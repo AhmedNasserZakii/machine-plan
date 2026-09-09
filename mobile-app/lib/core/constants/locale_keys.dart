@@ -114,9 +114,12 @@ class LocaleKeys {
   static const String syncConflictDismiss = 'sync_conflict_dismiss';
   static const String syncAttemptsCount = 'sync_attempts_count';
   static const String syncPendingCount = 'sync_pending_count';
-  static const String syncItemTypeCreateTransfer = 'sync_item_type_create_transfer';
-  static const String syncItemTypeConfirmTransfer = 'sync_item_type_confirm_transfer';
-  static const String syncItemTypeCreateMerchant = 'sync_item_type_create_merchant';
+  static const String syncItemTypeCreateTransfer =
+      'sync_item_type_create_transfer';
+  static const String syncItemTypeConfirmTransfer =
+      'sync_item_type_confirm_transfer';
+  static const String syncItemTypeCreateMerchant =
+      'sync_item_type_create_merchant';
   static const String syncItemTypeCreateFinanceTransaction =
       'sync_item_type_create_finance_transaction';
   static const String syncItemTypeUploadMedia = 'sync_item_type_upload_media';
@@ -422,6 +425,50 @@ class LocaleKeys {
   static const String machinesFilterIncludeRetiredHint =
       'machines_filter_include_retired_hint';
 
+  // ── Machine detail actions (`8.1`) ───────────────────────────────────────
+  static const String machineActionsTitle = 'machine_actions_title';
+  static const String machineReplaceAction = 'machine_replace_action';
+  static const String machineDecommissionAction = 'machine_decommission_action';
+
+  // ── Machine timeline (`8.1`) ─────────────────────────────────────────────
+  static const String machineTimelineTitle = 'machine_timeline_title';
+  static const String machineTimelineEmpty = 'machine_timeline_empty';
+  static const String timelineTransferPending = 'timeline_transfer_pending';
+  static const String timelineTransferConfirmed = 'timeline_transfer_confirmed';
+  static const String timelineTransferRejected = 'timeline_transfer_rejected';
+  static const String timelineTransferCancelled = 'timeline_transfer_cancelled';
+  static const String timelineMaintenanceOpened = 'timeline_maintenance_opened';
+  static const String timelineMaintenanceClosed = 'timeline_maintenance_closed';
+  static const String timelineViolationCreated = 'timeline_violation_created';
+  static const String timelineMachineReplaced = 'timeline_machine_replaced';
+  static const String timelineDecommissioned = 'timeline_decommissioned';
+  static const String timelineDecommissionReverted =
+      'timeline_decommission_reverted';
+  static const String timelineUnknown = 'timeline_unknown';
+
+  // ── Maintenance history (read-only; `11` owns the write side) ───────────
+  static const String machineMaintenanceHistoryTitle =
+      'machine_maintenance_history_title';
+  static const String machineMaintenanceHistoryEmpty =
+      'machine_maintenance_history_empty';
+  static const String machineMaintenanceHistoryTotals =
+      'machine_maintenance_history_totals';
+  static const String machineMaintenanceHistoryOrdersCount =
+      'machine_maintenance_history_orders_count';
+  static const String machineMaintenanceHistoryTotalCost =
+      'machine_maintenance_history_total_cost';
+  static const String machineMaintenanceHistoryFreeUnderWarranty =
+      'machine_maintenance_history_free_under_warranty';
+
+  // ── Bulk import (`8.1`) ──────────────────────────────────────────────────
+  static const String machineBulkImportTitle = 'machine_bulk_import_title';
+  static const String machineBulkImportUnits = 'machine_bulk_import_units';
+  static const String machineBulkImportAddRow = 'machine_bulk_import_add_row';
+  static const String machineBulkImportRemoveRow =
+      'machine_bulk_import_remove_row';
+  static const String machineBulkImportSubmit = 'machine_bulk_import_submit';
+  static const String machineBulkImportSuccess = 'machine_bulk_import_success';
+
   // ── Holder / party types ─────────────────────────────────────────────────
   static const String partyTypeFactory = 'party_type_factory';
   static const String partyTypeWarehouse = 'party_type_warehouse';
@@ -444,6 +491,13 @@ class LocaleKeys {
   static const String scanRetry = 'scan_retry';
   static const String scanCameraDenied = 'scan_camera_denied';
   static const String scanCameraDeniedHint = 'scan_camera_denied_hint';
+
+  // ── Continuous scanning (`8.2`) ──────────────────────────────────────────
+  static const String scanContinuousTitle = 'scan_continuous_title';
+  static const String scanAdded = 'scan_added';
+  static const String scanBatteryScanTooltip = 'scan_battery_scan_tooltip';
+  static const String machineQrTitle = 'machine_qr_title';
+  static const String machineQrHint = 'machine_qr_hint';
 
   // ── Transfers ────────────────────────────────────────────────────────────
   static const String transfersTitle = 'transfers_title';

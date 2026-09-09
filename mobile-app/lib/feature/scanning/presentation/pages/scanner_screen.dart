@@ -4,22 +4,50 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
 import 'package:machinery/core/shared_widgets/error_toast.dart';
+import 'package:machinery/core/shared_widgets/success_toast.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/feature/machines/domain/entities/machine_lookup_result.dart';
 import 'package:machinery/feature/scanning/data/logic/scanner/scanner_cubit.dart';
 import 'package:machinery/feature/scanning/data/logic/scanner/scanner_state.dart';
+import 'package:machinery/feature/scanning/domain/entities/scan_decision.dart';
 import 'package:machinery/feature/scanning/presentation/widgets/manual_entry_sheet.dart';
 import 'package:machinery/feature/scanning/presentation/widgets/scanner_overlay.dart';
 import 'package:machinery/feature/scanning/presentation/widgets/scanner_result_sheet.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-/// Single-shot scanner: read one code, resolve it, pop the machine.
+/// Whether one hit ends the session or the camera keeps running.
+enum ScannerMode {
+  /// Read one code, resolve it, pop the machine. Used by "find a machine".
+  singleShot,
+
+  /// Every hit is handed to [ScannerScreen.onContinuousHit] and the camera
+  /// keeps running — built for adding many machines to one transfer without
+  /// closing and reopening the camera forty times (`8.2`).
+  continuous,
+}
+
+/// The one scanner screen, in either of two modes (`8.2`).
 ///
 /// Manual entry sits beside the camera rather than behind an error, because a
 /// scratched or sun-bleached sticker is the normal case in a warehouse, not an
 /// exception — and a camera permission that was denied must not be a dead end.
+/// Manual entry goes through [ScannerCubit.resolve] exactly like a camera hit,
+/// so it is covered by the same mode logic below with no special-casing.
 class ScannerScreen extends StatefulWidget {
-  const ScannerScreen({super.key});
+  const ScannerScreen({
+    super.key,
+    this.mode = ScannerMode.singleShot,
+    this.onContinuousHit,
+  }) : assert(
+         mode == ScannerMode.singleShot || onContinuousHit != null,
+         'ScannerMode.continuous needs onContinuousHit',
+       );
+
+  final ScannerMode mode;
+
+  /// Decides what one hit means (eligible? already added?) without the
+  /// scanner ever closing. Required in continuous mode, unused otherwise.
+  final Future<ScanDecision> Function(MachineLookupResult)? onContinuousHit;
 
   @override
   State<ScannerScreen> createState() => _ScannerScreenState();
@@ -35,6 +63,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
   /// camera — the viewfinder, the torch, the "hold it over the sticker" hint —
   /// has to come off the screen when there is no camera to aim.
   bool _cameraFailed = false;
+
+  /// Continuous mode only: how many hits this session has accepted, shown in
+  /// the app bar so a rep scanning forty units can see progress without
+  /// counting the pile in his hand.
+  int _acceptedCount = 0;
+
+  bool get _isContinuous => widget.mode == ScannerMode.continuous;
 
   @override
   void dispose() {
@@ -63,6 +98,30 @@ class _ScannerScreenState extends State<ScannerScreen> {
   }
 
   Future<void> _onResolved(MachineLookupResult result) async {
+    if (_isContinuous) {
+      final ScanDecision decision = await widget.onContinuousHit!(result);
+
+      if (!mounted) {
+        return;
+      }
+
+      // Neither branch closes the scanner (`8.2`) — the whole point of
+      // continuous mode is that an ineligible or duplicate hit is just one
+      // more thing to say out loud before the camera keeps looking.
+      if (decision.isAccepted) {
+        setState(() => _acceptedCount++);
+        showSuccessToast(
+          LocaleKeys.scanAdded.tr(args: <String>[result.machine.serial]),
+          context,
+        );
+      } else {
+        showErrorToast(decision.rejectionReason!, context);
+      }
+
+      context.read<ScannerCubit>().retry();
+      return;
+    }
+
     // A confirmation step, not a straight pop: the scan may have matched on the
     // battery or SIM sticker, and the user has to see which machine that is
     // before the app acts on it.
@@ -88,8 +147,22 @@ class _ScannerScreenState extends State<ScannerScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: const ArrowBackWidget(),
-        title: Text(LocaleKeys.scanTitle.tr()),
+        title: Text(
+          _isContinuous
+              ? LocaleKeys.scanContinuousTitle.tr(
+                  args: <String>['$_acceptedCount'],
+                )
+              : LocaleKeys.scanTitle.tr(),
+        ),
         actions: <Widget>[
+          if (_isContinuous)
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Semantics(
+                identifier: 'scanner_done_button',
+                child: Text(LocaleKeys.done.tr()),
+              ),
+            ),
           if (!_cameraFailed)
             IconButton(
               onPressed: _controller.toggleTorch,

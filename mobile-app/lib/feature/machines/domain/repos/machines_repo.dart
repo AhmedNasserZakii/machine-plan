@@ -4,6 +4,8 @@ import 'package:machinery/core/network_services/models/pagination_meta_model.dar
 import 'package:machinery/feature/machines/domain/entities/machine_catalogue_entity.dart';
 import 'package:machinery/feature/machines/domain/entities/machine_entity.dart';
 import 'package:machinery/feature/machines/domain/entities/machine_lookup_result.dart';
+import 'package:machinery/feature/machines/domain/entities/machine_maintenance_history.dart';
+import 'package:machinery/feature/machines/domain/entities/machine_timeline_event.dart';
 import 'package:machinery/feature/machines/domain/params/machine_form_params.dart';
 import 'package:machinery/feature/machines/domain/params/machines_query_params.dart';
 import 'package:machinery/feature/users/domain/entities/branch_entity.dart';
@@ -14,6 +16,14 @@ class MachinesPage {
   const MachinesPage({required this.machines, required this.meta});
 
   final List<MachineEntity> machines;
+  final PaginationMetaModel meta;
+}
+
+/// One keyset page of a machine's timeline.
+class MachineTimelinePage {
+  const MachineTimelinePage({required this.events, required this.meta});
+
+  final List<MachineTimelineEvent> events;
   final PaginationMetaModel meta;
 }
 
@@ -39,6 +49,13 @@ abstract class MachinesRepo {
     required CreateMachineParams params,
   });
 
+  /// Factory intake in bulk (`8.1`). Validated and committed as a whole by the
+  /// server — a validation failure creates nothing, so the caller never has to
+  /// reconcile a partially-imported batch.
+  Future<Either<ServerFailure, List<MachineEntity>>> bulkCreateMachines({
+    required List<CreateMachineParams> rows,
+  });
+
   Future<Either<ServerFailure, MachineEntity>> updateMachine({
     required String id,
     required UpdateMachineParams params,
@@ -49,6 +66,18 @@ abstract class MachinesRepo {
   Future<Either<ServerFailure, List<MachineEntity>>> fetchReplacementChain({
     required String id,
   });
+
+  /// The full life story, newest first, keyset-paginated (`8.1`). [cursor] is
+  /// the previous page's `nextCursor`; omitted for the first page.
+  Future<Either<ServerFailure, MachineTimelinePage>> fetchTimeline({
+    required String machineId,
+    String? cursor,
+  });
+
+  /// Every repair this machine has had, with the totals (`8.1`). Read-only:
+  /// opening, closing and costing an order belongs to `11`.
+  Future<Either<ServerFailure, MachineMaintenanceHistory>>
+  fetchMaintenanceHistory({required String machineId});
 
   Future<Either<ServerFailure, List<MachineTypeEntity>>> fetchMachineTypes();
 

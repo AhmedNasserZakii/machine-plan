@@ -3,9 +3,13 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:machinery/core/utils/enums.dart';
 import 'package:machinery/feature/machines/data/models/machine_catalogue_model.dart';
+import 'package:machinery/feature/machines/data/models/machine_maintenance_history_model.dart';
 import 'package:machinery/feature/machines/data/models/machine_response_model.dart';
+import 'package:machinery/feature/machines/data/models/machine_timeline_event_model.dart';
 import 'package:machinery/feature/machines/domain/entities/machine_catalogue_entity.dart';
 import 'package:machinery/feature/machines/domain/entities/machine_entity.dart';
+import 'package:machinery/feature/machines/domain/entities/machine_maintenance_history.dart';
+import 'package:machinery/feature/machines/domain/entities/machine_timeline_event.dart';
 import 'package:machinery/feature/machines/domain/params/machine_form_params.dart';
 import 'package:machinery/feature/machines/domain/params/machines_query_params.dart';
 
@@ -143,5 +147,153 @@ void main() {
 
     expect(body['serial'], 'SN-2001');
     expect(body.containsKey('simSerial'), isFalse);
+  });
+
+  group('GET /machines/:id/timeline (8.1)', () {
+    test('parses every planned event type without falling back to unknown', () {
+      const List<String> serverTypes = <String>[
+        'TRANSFER_PENDING',
+        'TRANSFER_CONFIRMED',
+        'TRANSFER_REJECTED',
+        'TRANSFER_CANCELLED',
+        'MAINTENANCE_OPENED',
+        'MAINTENANCE_CLOSED',
+        'VIOLATION_CREATED',
+        'MACHINE_REPLACED',
+        'DECOMMISSIONED',
+        'DECOMMISSION_REVERTED',
+      ];
+
+      for (final String raw in serverTypes) {
+        final MachineTimelineEvent event = MachineTimelineEventModel.fromJson(
+          decode('''
+{
+  "at": "2026-02-14T08:30:00.000Z",
+  "type": "$raw",
+  "refId": "b52723ff-3efe-454e-bf16-62af2ee9f74a",
+  "refNo": "TRF-2026-000141",
+  "details": {"reason": "test"}
+}
+'''),
+        ).toEntity();
+
+        expect(
+          event.type,
+          isNot(MachineTimelineEventType.unknown),
+          reason: '$raw must have a mapped enum value',
+        );
+        expect(event.refNo, 'TRF-2026-000141');
+        expect(event.details['reason'], 'test');
+      }
+    });
+
+    test('an unrecognized type degrades to unknown rather than throwing', () {
+      final MachineTimelineEvent event = MachineTimelineEventModel.fromJson(
+        decode('''
+{
+  "at": "2026-02-14T08:30:00.000Z",
+  "type": "SOMETHING_FUTURE",
+  "refId": "b52723ff-3efe-454e-bf16-62af2ee9f74a",
+  "refNo": null,
+  "details": {}
+}
+'''),
+      ).toEntity();
+
+      expect(event.type, MachineTimelineEventType.unknown);
+      expect(event.refNo, isNull);
+    });
+  });
+
+  group('GET /machines/:id/maintenance-history (8.1, read-only)', () {
+    test('parses the totals and every order in the list', () {
+      final MachineMaintenanceHistory history =
+          MachineMaintenanceHistoryModel.fromJson(
+            decode('''
+{
+  "machineId": "b52723ff-3efe-454e-bf16-62af2ee9f74a",
+  "serial": "SN-00311",
+  "totals": {
+    "orders": 2,
+    "totalCost": 850.5,
+    "freeUnderWarranty": 1,
+    "chargedToCompany": 1,
+    "chargedToRepresentative": 0,
+    "chargedToMerchant": 0,
+    "chargedToFactory": 0
+  },
+  "orders": [
+    {
+      "id": "6c1f1e2a",
+      "referenceNo": "MNT-2026-000087",
+      "machine": {"id": "b52723ff", "serial": "SN-00311", "status": "UNDER_MAINTENANCE", "model": null},
+      "location": {"id": "loc1", "code": "INTERNAL_WORKSHOP", "name": "الورشة الداخلية"},
+      "status": "RETURNED",
+      "result": "REPAIRED",
+      "sentAt": "2026-02-14T08:30:00.000Z",
+      "returnedAt": "2026-02-20T08:30:00.000Z",
+      "cost": 350,
+      "isFreeUnderWarranty": false,
+      "responsibleParty": "COMPANY",
+      "branch": {"id": "br1", "name": "فرع القاهرة"},
+      "createdAt": "2026-02-14T08:30:00.000Z"
+    },
+    {
+      "id": "6c1f1e2b",
+      "referenceNo": "MNT-2026-000090",
+      "machine": {"id": "b52723ff", "serial": "SN-00311", "status": "IN_COMPANY_WAREHOUSE", "model": null},
+      "location": {"id": "loc1", "code": "INTERNAL_WORKSHOP", "name": "الورشة الداخلية"},
+      "status": "OPEN",
+      "result": null,
+      "sentAt": "2026-03-01T08:30:00.000Z",
+      "returnedAt": null,
+      "cost": null,
+      "isFreeUnderWarranty": true,
+      "responsibleParty": null,
+      "branch": null,
+      "createdAt": "2026-03-01T08:30:00.000Z"
+    }
+  ]
+}
+'''),
+          ).toEntity();
+
+      expect(history.serial, 'SN-00311');
+      expect(history.totals.orders, 2);
+      expect(history.totals.totalCost, 850.5);
+      expect(history.orders, hasLength(2));
+
+      final MaintenanceOrderSummary first = history.orders.first;
+      expect(first.referenceNo, 'MNT-2026-000087');
+      expect(first.status, MaintenanceOrderStatus.returned);
+      expect(first.result, MaintenanceOrderResult.repaired);
+      expect(first.cost, 350);
+      expect(first.responsibleParty, MaintenanceResponsibleParty.company);
+      expect(first.branchName, 'فرع القاهرة');
+
+      final MaintenanceOrderSummary second = history.orders.last;
+      expect(second.status, MaintenanceOrderStatus.open);
+      expect(second.result, isNull);
+      expect(second.cost, isNull);
+      expect(second.isFreeUnderWarranty, isTrue);
+      expect(second.branchName, isNull);
+    });
+
+    test('an empty history parses to zero totals and no orders', () {
+      final MachineMaintenanceHistory history =
+          MachineMaintenanceHistoryModel.fromJson(
+            decode('''
+{
+  "machineId": "b52723ff-3efe-454e-bf16-62af2ee9f74a",
+  "serial": "SN-00311",
+  "totals": {"orders": 0, "totalCost": 0, "freeUnderWarranty": 0, "chargedToCompany": 0, "chargedToRepresentative": 0, "chargedToMerchant": 0, "chargedToFactory": 0},
+  "orders": []
+}
+'''),
+          ).toEntity();
+
+      expect(history.totals.orders, 0);
+      expect(history.orders, isEmpty);
+    });
   });
 }

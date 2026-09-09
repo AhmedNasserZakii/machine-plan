@@ -8,6 +8,7 @@ import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/core/utils/app_route.dart';
 import 'package:machinery/feature/machines/domain/entities/machine_lookup_result.dart';
+import 'package:machinery/feature/scanning/domain/entities/scan_decision.dart';
 import 'package:machinery/feature/transfers/data/logic/create_transfer/create_transfer_cubit.dart';
 import 'package:machinery/feature/transfers/data/logic/create_transfer/create_transfer_state.dart';
 import 'package:machinery/feature/transfers/presentation/widgets/transfer_details_step.dart';
@@ -36,30 +37,36 @@ class _CreateTransferScreenState extends State<CreateTransferScreen> {
     context.read<CreateTransferCubit>().loadTypes();
   }
 
-  /// Machines are added by scan. A hit that is not eligible for this type is
-  /// said so plainly rather than added and refused later.
+  /// Machines are added by scan, one after another without the camera
+  /// closing (`8.2`) — a hand-off of forty machines is not forty trips
+  /// through the scanner screen. A hit that is not eligible for this type is
+  /// said so plainly, in place, rather than added and refused later.
   Future<void> _scan() async {
     final CreateTransferCubit cubit = context.read<CreateTransferCubit>();
 
-    final MachineLookupResult? result = await AppRoute.goToScanner(context);
+    await AppRoute.goToContinuousScanner(
+      context: context,
+      onHit: (MachineLookupResult result) async {
+        final CreateTransferState state = cubit.state;
 
-    if (result == null || !mounted) return;
+        if (state.items.any(
+          (DraftItem item) => item.machine.id == result.machine.id,
+        )) {
+          return ScanDecision.reject(
+            LocaleKeys.transferMachineAlreadyAdded.tr(),
+          );
+        }
 
-    final CreateTransferState state = cubit.state;
+        if (!state.isEligible(result.machine)) {
+          return ScanDecision.reject(
+            LocaleKeys.transferMachineNotEligible.tr(),
+          );
+        }
 
-    if (state.items.any(
-      (DraftItem item) => item.machine.id == result.machine.id,
-    )) {
-      showErrorToast(LocaleKeys.transferMachineAlreadyAdded.tr(), context);
-      return;
-    }
-
-    if (!state.isEligible(result.machine)) {
-      showErrorToast(LocaleKeys.transferMachineNotEligible.tr(), context);
-      return;
-    }
-
-    cubit.addMachine(result.machine);
+        cubit.addMachine(result.machine);
+        return const ScanDecision.accept();
+      },
+    );
   }
 
   void _onStateChanged(BuildContext context, CreateTransferState state) {

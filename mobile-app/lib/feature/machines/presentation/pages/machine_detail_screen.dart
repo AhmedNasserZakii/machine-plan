@@ -12,11 +12,13 @@ import 'package:machinery/core/utils/app_route.dart';
 import 'package:machinery/feature/machines/data/logic/machine_detail/machine_detail_cubit.dart';
 import 'package:machinery/feature/machines/data/logic/machine_detail/machine_detail_state.dart';
 import 'package:machinery/feature/machines/domain/entities/machine_entity.dart';
+import 'package:machinery/feature/machines/presentation/widgets/machine_actions_section.dart';
 import 'package:machinery/feature/machines/presentation/widgets/machine_chain_card.dart';
 import 'package:machinery/feature/machines/presentation/widgets/machine_cost_card.dart';
 import 'package:machinery/feature/machines/presentation/widgets/machine_detail_header.dart';
 import 'package:machinery/feature/machines/presentation/widgets/machine_identity_card.dart';
 import 'package:machinery/feature/machines/presentation/widgets/machine_purchase_card.dart';
+import 'package:machinery/feature/machines/presentation/widgets/machine_qr_sheet.dart';
 import 'package:machinery/feature/machines/presentation/widgets/machine_warranty_card.dart';
 
 /// Everything known about one unit.
@@ -59,6 +61,35 @@ class _MachineDetailScreenState extends State<MachineDetailScreen> {
     AppRoute.goToMachineDetail(context: context, machineId: link.id);
   }
 
+  void _viewTimeline(MachineEntity machine) {
+    AppRoute.goToMachineTimeline(context: context, machineId: machine.id);
+  }
+
+  void _viewMaintenanceHistory(MachineEntity machine) {
+    AppRoute.goToMachineMaintenanceHistory(
+      context: context,
+      machineId: machine.id,
+    );
+  }
+
+  Future<void> _createTransfer() async {
+    final bool? created = await AppRoute.goToCreateTransfer(context);
+
+    if ((created ?? false) && mounted) {
+      _didChange = true;
+    }
+  }
+
+  /// Both land on the same placeholder until `11` builds the real screens
+  /// (`8.1`) — see `MachineActionsSection`'s doc comment.
+  void _openNotReady({required String titleKey, required IconData icon}) {
+    AppRoute.goToFeatureNotReadyScreen(
+      context: context,
+      titleKey: titleKey,
+      icon: icon,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope<Object?>(
@@ -72,6 +103,26 @@ class _MachineDetailScreenState extends State<MachineDetailScreen> {
         appBar: AppBar(
           leading: const ArrowBackWidget(),
           title: Text(LocaleKeys.machinesTitle.tr()),
+          actions: <Widget>[
+            BlocBuilder<MachineDetailCubit, MachineDetailState>(
+              builder: (BuildContext context, MachineDetailState state) {
+                if (state is! MachineDetailLoaded) {
+                  return const SizedBox.shrink();
+                }
+
+                final MachineEntity machine = state.machine;
+                return IconButton(
+                  onPressed: () => MachineQrSheet.show(
+                    context: context,
+                    code: machine.qrPayload ?? machine.serial,
+                    serial: machine.serial,
+                  ),
+                  icon: const Icon(Icons.qr_code_2_rounded),
+                  tooltip: LocaleKeys.machineQrTitle.tr(),
+                );
+              },
+            ),
+          ],
         ),
         body: BlocBuilder<MachineDetailCubit, MachineDetailState>(
           builder: (BuildContext context, MachineDetailState state) {
@@ -123,6 +174,21 @@ class _MachineDetailScreenState extends State<MachineDetailScreen> {
               onTap: _openChainLink,
             ),
           ],
+          const SizedBox(height: AppSpacing.md),
+          MachineActionsSection(
+            machine: machine,
+            onViewTimeline: () => _viewTimeline(machine),
+            onViewMaintenanceHistory: () => _viewMaintenanceHistory(machine),
+            onCreateTransfer: _createTransfer,
+            onReplace: () => _openNotReady(
+              titleKey: LocaleKeys.machineReplaceAction,
+              icon: Icons.change_circle_outlined,
+            ),
+            onDecommission: () => _openNotReady(
+              titleKey: LocaleKeys.machineDecommissionAction,
+              icon: Icons.delete_forever_rounded,
+            ),
+          ),
           // A retired unit has nothing left to edit, so the button goes rather
           // than being shown and then refused by the server.
           if (!machine.isRetired) ...<Widget>[

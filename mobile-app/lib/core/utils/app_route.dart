@@ -7,12 +7,18 @@ import 'package:machinery/feature/auth/data/logic/change_password/change_passwor
 import 'package:machinery/feature/auth/data/logic/login/login_cubit.dart';
 import 'package:machinery/feature/auth/presentation/pages/change_password_screen.dart';
 import 'package:machinery/feature/auth/presentation/pages/login_screen.dart';
+import 'package:machinery/feature/machines/data/logic/machine_bulk_import/machine_bulk_import_cubit.dart';
 import 'package:machinery/feature/machines/data/logic/machine_detail/machine_detail_cubit.dart';
 import 'package:machinery/feature/machines/data/logic/machine_form/machine_form_cubit.dart';
+import 'package:machinery/feature/machines/data/logic/machine_maintenance_history/machine_maintenance_history_cubit.dart';
+import 'package:machinery/feature/machines/data/logic/machine_timeline/machine_timeline_cubit.dart';
 import 'package:machinery/feature/machines/domain/entities/machine_entity.dart';
 import 'package:machinery/feature/machines/domain/entities/machine_lookup_result.dart';
+import 'package:machinery/feature/machines/presentation/pages/machine_bulk_import_screen.dart';
 import 'package:machinery/feature/machines/presentation/pages/machine_detail_screen.dart';
 import 'package:machinery/feature/machines/presentation/pages/machine_form_screen.dart';
+import 'package:machinery/feature/machines/presentation/pages/machine_maintenance_history_screen.dart';
+import 'package:machinery/feature/machines/presentation/pages/machine_timeline_screen.dart';
 import 'package:machinery/feature/merchants/data/logic/merchant_detail/merchant_detail_cubit.dart';
 import 'package:machinery/feature/merchants/data/logic/merchant_form/merchant_form_cubit.dart';
 import 'package:machinery/feature/merchants/domain/entities/merchant_entity.dart';
@@ -21,10 +27,12 @@ import 'package:machinery/feature/merchants/presentation/pages/merchant_form_scr
 import 'package:machinery/feature/more/presentation/pages/feature_not_ready_screen.dart';
 import 'package:machinery/feature/nav_bar/presentation/pages/main_scaffold.dart';
 import 'package:machinery/feature/scanning/data/logic/scanner/scanner_cubit.dart';
+import 'package:machinery/feature/scanning/domain/entities/scan_decision.dart';
 import 'package:machinery/feature/sync/data/logic/sync_queue_cubit.dart';
 import 'package:machinery/feature/sync/presentation/pages/sync_queue_screen.dart';
 import 'package:machinery/feature/reports/data/logic/reports_hub/reports_hub_cubit.dart';
 import 'package:machinery/feature/reports/presentation/pages/reports_hub_screen.dart';
+import 'package:machinery/feature/scanning/presentation/pages/raw_barcode_scanner_screen.dart';
 import 'package:machinery/feature/scanning/presentation/pages/scanner_screen.dart';
 import 'package:machinery/feature/splash/presentation/pages/splash_screen.dart';
 import 'package:machinery/feature/transfers/data/logic/confirm_transfer/confirm_transfer_cubit.dart';
@@ -222,6 +230,51 @@ abstract class AppRoute {
     );
   }
 
+  /// Resolves to true when at least one machine was created, so the list
+  /// behind it knows to refresh.
+  static Future<bool?> goToMachineBulkImport(BuildContext context) {
+    return Navigator.push<bool>(
+      context,
+      MaterialPageRoute<bool>(
+        builder: (_) => BlocProvider<MachineBulkImportCubit>(
+          create: (_) => getIt<MachineBulkImportCubit>(),
+          child: const MachineBulkImportScreen(),
+        ),
+      ),
+    );
+  }
+
+  static void goToMachineTimeline({
+    required BuildContext context,
+    required String machineId,
+  }) {
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => BlocProvider<MachineTimelineCubit>(
+          create: (_) => getIt<MachineTimelineCubit>(param1: machineId),
+          child: const MachineTimelineScreen(),
+        ),
+      ),
+    );
+  }
+
+  static void goToMachineMaintenanceHistory({
+    required BuildContext context,
+    required String machineId,
+  }) {
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => BlocProvider<MachineMaintenanceHistoryCubit>(
+          create: (_) =>
+              getIt<MachineMaintenanceHistoryCubit>(param1: machineId),
+          child: const MachineMaintenanceHistoryScreen(),
+        ),
+      ),
+    );
+  }
+
   /// Resolves to true when the transfer changed while it was open, so the list
   /// behind it does not keep showing something that has since been signed for.
   static Future<bool?> goToTransferDetail({
@@ -278,6 +331,42 @@ abstract class AppRoute {
         builder: (_) => BlocProvider<ScannerCubit>(
           create: (_) => getIt<ScannerCubit>(),
           child: const ScannerScreen(),
+        ),
+      ),
+    );
+  }
+
+  /// Reads one barcode and returns the raw string, or null if the user backed
+  /// out — no lookup, for capturing a serial that need not already exist on
+  /// record (`8.2`, battery scanning in a transfer item's details).
+  static Future<String?> goToRawBarcodeScanner({
+    required BuildContext context,
+    String? titleKey,
+  }) {
+    return Navigator.push<String>(
+      context,
+      MaterialPageRoute<String>(
+        builder: (_) => RawBarcodeScannerScreen(titleKey: titleKey),
+      ),
+    );
+  }
+
+  /// The camera stays open across every hit (`8.2`) — [onHit] decides whether
+  /// each one counts, and the caller has already acted on every accepted hit
+  /// by the time this resolves, so nothing is returned.
+  static Future<void> goToContinuousScanner({
+    required BuildContext context,
+    required Future<ScanDecision> Function(MachineLookupResult) onHit,
+  }) {
+    return Navigator.push<void>(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => BlocProvider<ScannerCubit>(
+          create: (_) => getIt<ScannerCubit>(),
+          child: ScannerScreen(
+            mode: ScannerMode.continuous,
+            onContinuousHit: onHit,
+          ),
         ),
       ),
     );

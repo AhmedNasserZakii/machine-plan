@@ -11,10 +11,13 @@ import 'package:machinery/core/network_services/models/pagination_meta_model.dar
 import 'package:machinery/core/network_services/web_constant.dart';
 import 'package:machinery/core/resources/debug_print.dart';
 import 'package:machinery/feature/machines/data/models/machine_catalogue_model.dart';
+import 'package:machinery/feature/machines/data/models/machine_maintenance_history_model.dart';
 import 'package:machinery/feature/machines/data/models/machine_response_model.dart';
+import 'package:machinery/feature/machines/data/models/machine_timeline_event_model.dart';
 import 'package:machinery/feature/machines/domain/entities/machine_catalogue_entity.dart';
 import 'package:machinery/feature/machines/domain/entities/machine_entity.dart';
 import 'package:machinery/feature/machines/domain/entities/machine_lookup_result.dart';
+import 'package:machinery/feature/machines/domain/entities/machine_maintenance_history.dart';
 import 'package:machinery/feature/machines/domain/params/machine_form_params.dart';
 import 'package:machinery/feature/machines/domain/params/machines_query_params.dart';
 import 'package:machinery/feature/machines/domain/repos/machines_repo.dart';
@@ -46,10 +49,12 @@ class MachinesRepoImpl implements MachinesRepo {
   }) async {
     if (await networkInfo.isConnected) {
       try {
-        final Response<dynamic> response = await apiService.client().get<dynamic>(
-          WebConstant.machines,
-          queryParameters: params.toQuery(),
-        );
+        final Response<dynamic> response = await apiService
+            .client()
+            .get<dynamic>(
+              WebConstant.machines,
+              queryParameters: params.toQuery(),
+            );
 
         final Map<String, dynamic> body = _body(response.data);
         final List<Map<String, dynamic>> rows = _list(body[ApiKeys.data]);
@@ -58,16 +63,26 @@ class MachinesRepoImpl implements MachinesRepo {
         return Right(
           MachinesPage(
             machines: rows
-                .map((Map<String, dynamic> json) => MachineResponseModel.fromJson(json).toEntity())
+                .map(
+                  (Map<String, dynamic> json) =>
+                      MachineResponseModel.fromJson(json).toEntity(),
+                )
                 .toList(growable: false),
             meta: _metaOf(body),
           ),
         );
       } on DioException catch (error, stackTrace) {
-        printDebug(message: 'machines repo fetchMachines dio exception: ${error.message}', stackTrace: stackTrace);
+        printDebug(
+          message:
+              'machines repo fetchMachines dio exception: ${error.message}',
+          stackTrace: stackTrace,
+        );
         return _machinesFromCache(params);
       } catch (error, stackTrace) {
-        printDebug(message: 'machines repo fetchMachines catch: $error', stackTrace: stackTrace);
+        printDebug(
+          message: 'machines repo fetchMachines catch: $error',
+          stackTrace: stackTrace,
+        );
         return _machinesFromCache(params);
       }
     }
@@ -78,7 +93,9 @@ class MachinesRepoImpl implements MachinesRepo {
   Future<Either<ServerFailure, MachinesPage>> _machinesFromCache(
     MachinesQueryParams params,
   ) async {
-    final List<MachineEntity> machines = await cachedMachinesDao.search(query: params.search);
+    final List<MachineEntity> machines = await cachedMachinesDao.search(
+      query: params.search,
+    );
     return Right(
       MachinesPage(
         machines: machines,
@@ -99,17 +116,23 @@ class MachinesRepoImpl implements MachinesRepo {
   }) async {
     if (await networkInfo.isConnected) {
       try {
-        final Response<dynamic> response = await apiService.client().get<dynamic>(
-          WebConstant.machine(id),
-        );
+        final Response<dynamic> response = await apiService
+            .client()
+            .get<dynamic>(WebConstant.machine(id));
         final Map<String, dynamic> json = _data(response.data);
         await cachedMachinesDao.upsertAll(<Map<String, dynamic>>[json]);
         return Right(MachineResponseModel.fromJson(json).toEntity());
       } on DioException catch (error, stackTrace) {
-        printDebug(message: 'machines repo fetchMachine dio exception: ${error.message}', stackTrace: stackTrace);
+        printDebug(
+          message: 'machines repo fetchMachine dio exception: ${error.message}',
+          stackTrace: stackTrace,
+        );
         return _machineFromCache(id);
       } catch (error, stackTrace) {
-        printDebug(message: 'machines repo fetchMachine catch: $error', stackTrace: stackTrace);
+        printDebug(
+          message: 'machines repo fetchMachine catch: $error',
+          stackTrace: stackTrace,
+        );
         return _machineFromCache(id);
       }
     }
@@ -117,7 +140,9 @@ class MachinesRepoImpl implements MachinesRepo {
     return _machineFromCache(id);
   }
 
-  Future<Either<ServerFailure, MachineEntity>> _machineFromCache(String id) async {
+  Future<Either<ServerFailure, MachineEntity>> _machineFromCache(
+    String id,
+  ) async {
     final MachineEntity? cached = await cachedMachinesDao.findById(id);
     return cached == null ? Left(OfflineFailure()) : Right(cached);
   }
@@ -161,6 +186,93 @@ class MachinesRepoImpl implements MachinesRepo {
     });
   }
 
+  /// Bypasses [_guard]: a 400 here carries a per-row detail list (`8.1`) that
+  /// the generic parsing has no way to express, so this method does its own.
+  @override
+  Future<Either<ServerFailure, List<MachineEntity>>> bulkCreateMachines({
+    required List<CreateMachineParams> rows,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return Left(OfflineFailure());
+    }
+
+    try {
+      final Response<dynamic> response = await apiService
+          .client()
+          .post<dynamic>(
+            WebConstant.machinesBulk,
+            data: <String, dynamic>{
+              ApiKeys.machines: rows
+                  .map((CreateMachineParams row) => row.toJson())
+                  .toList(growable: false),
+            },
+          );
+
+      final Map<String, dynamic> data = _data(response.data);
+      return Right(
+        _list(data[ApiKeys.machines])
+            .map(
+              (Map<String, dynamic> json) =>
+                  MachineResponseModel.fromJson(json).toEntity(),
+            )
+            .toList(growable: false),
+      );
+    } on DioException catch (error, stackTrace) {
+      printDebug(
+        message:
+            'machines repo bulkCreateMachines dio exception: ${error.message}',
+        stackTrace: stackTrace,
+      );
+
+      if (error.response?.statusCode == 400) {
+        final ServerFailure generic = ServerFailure.fromDioException(error);
+        return Left(
+          BulkImportValidationFailure(
+            generic.errorMessage,
+            code: generic.code,
+            statusCode: 400,
+            problems: _bulkImportProblems(error.response?.data),
+          ),
+        );
+      }
+
+      return Left(ServerFailure.fromDioException(error));
+    } catch (error, stackTrace) {
+      printDebug(
+        message: 'machines repo bulkCreateMachines catch: $error',
+        stackTrace: stackTrace,
+      );
+      return Left(ServerFailure(LocaleKeys.anErrorOccurred.tr()));
+    }
+  }
+
+  /// Flattens `error.details` into `field: constraint` lines — each field
+  /// already carries its own row index (`machines[2].serial`), so no further
+  /// grouping is needed before showing them.
+  static List<String> _bulkImportProblems(dynamic raw) {
+    final dynamic details = raw is Map<String, dynamic>
+        ? (raw[ApiKeys.error] is Map<String, dynamic>
+              ? (raw[ApiKeys.error] as Map<String, dynamic>)[ApiKeys.details]
+              : null)
+        : null;
+
+    if (details is! List) {
+      return const <String>[];
+    }
+
+    return details
+        .map((dynamic problem) {
+          if (problem is Map<String, dynamic>) {
+            final Object? field = problem[ApiKeys.field];
+            final Object? constraint = problem[ApiKeys.constraint];
+            return <Object?>[field, constraint].whereType<String>().join(': ');
+          }
+          return problem?.toString() ?? '';
+        })
+        .where((String line) => line.isNotEmpty)
+        .toList(growable: false);
+  }
+
   @override
   Future<Either<ServerFailure, MachineEntity>> updateMachine({
     required String id,
@@ -190,6 +302,46 @@ class MachinesRepoImpl implements MachinesRepo {
                 MachineResponseModel.fromJson(json).toEntity(),
           )
           .toList(growable: false);
+    });
+  }
+
+  @override
+  Future<Either<ServerFailure, MachineTimelinePage>> fetchTimeline({
+    required String machineId,
+    String? cursor,
+  }) {
+    return _guard('fetchTimeline', () async {
+      final Response<dynamic> response = await apiService.client().get<dynamic>(
+        WebConstant.machineTimeline(machineId),
+        queryParameters: <String, dynamic>{
+          if (cursor != null && cursor.isNotEmpty) ApiKeys.cursor: cursor,
+        },
+      );
+
+      final Map<String, dynamic> body = _body(response.data);
+      return MachineTimelinePage(
+        events: _list(body[ApiKeys.data])
+            .map(
+              (Map<String, dynamic> json) =>
+                  MachineTimelineEventModel.fromJson(json).toEntity(),
+            )
+            .toList(growable: false),
+        meta: _metaOf(body),
+      );
+    });
+  }
+
+  @override
+  Future<Either<ServerFailure, MachineMaintenanceHistory>>
+  fetchMaintenanceHistory({required String machineId}) {
+    return _guard('fetchMaintenanceHistory', () async {
+      final Response<dynamic> response = await apiService.client().get<dynamic>(
+        WebConstant.machineMaintenanceHistory(machineId),
+      );
+
+      return MachineMaintenanceHistoryModel.fromJson(
+        _data(response.data),
+      ).toEntity();
     });
   }
 

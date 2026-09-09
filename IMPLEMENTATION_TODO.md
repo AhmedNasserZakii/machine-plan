@@ -1292,15 +1292,122 @@ test files) after every change in this section, plus the live pass above.
 
 ## 8. Flutter machines and scanning completion
 
-### 8.1 Complete machines
+### 8.1 Complete machines — done 2026-09-10
 
-- [ ] Make machine list/detail read from the local cache.
-- [ ] Add the machine timeline page and all planned event types.
-- [ ] Add maintenance history navigation and display.
-- [ ] Add the machine bulk-import page and result/error handling.
-- [ ] Add machine-detail actions for transfers, maintenance, replacement, and decommission with
+Scope boundary set up front and held throughout: section `11` ("Flutter maintenance,
+replacement, and decommission") owns every *write* workflow for maintenance orders, machine
+replacement and decommissioning — reason lookups, signature capture, revert flows. Building those
+here would duplicate a section that has not started. What this section owns is everything a
+machine's own screens can honestly deliver today: real reads (timeline, maintenance history,
+bulk import) backed by endpoints that already exist and work, plus the *entry points* for the
+write actions, permission- and state-gated, so a director sees the door today and section `11`
+only has to build what's behind it.
+
+- [x] Make machine list/detail read from the local cache.
+      Already true going in — `MachinesRepoImpl.fetchMachines`/`fetchMachine`
+      (`lib/feature/machines/domain/repos/machines_repo_impl.dart`) were built network-first/
+      cache-fallback in section `6`, and nothing about this section changed that. Re-verified by
+      reading the code path end to end (online success writes through `CachedMachinesDao`; a
+      `DioException` or no connection falls back to `cachedMachinesDao.search`/`findById`) and by
+      the fact `machines_contract_parsing_test.dart` and the existing cache DAO tests still cover
+      it. No code change was needed for this bullet; it is checked because it was verified, not
+      because it was built here.
+- [x] Add the machine timeline page and all planned event types.
+      New: `MachineTimelineEvent`/`MachineTimelineEventType` entity
+      (`domain/entities/machine_timeline_event.dart`, all 10 server types from
+      `machine-insights.response.ts` plus `unknown` for forward compatibility),
+      `MachineTimelineEventModel` parser, `MachinesRepo.fetchTimeline` (keyset, mirrors the
+      `PaginationMetaModel.nextCursor` shape sync already uses), `MachineTimelineCubit` (`load`/
+      `loadMore`, a failed `loadMore` keeps what is already on screen), `MachineTimelineScreen`
+      using the shared `PaginatedListView`, and `MachineTimelineLabels` (icon/color/title per
+      type, mirroring `MachineLabels`). Reached from the machine detail's new "Actions" section.
+- [x] Add maintenance history navigation and display.
+      New, read-only: `MachineMaintenanceHistory`/`MaintenanceOrderSummary` entities, a model
+      parser, `MachinesRepo.fetchMaintenanceHistory` calling the real
+      `GET /machines/:id/maintenance-history` (gated on `maintenance.read` server-side), a small
+      `MachineMaintenanceHistoryCubit`, and `MachineMaintenanceHistoryScreen` (totals card + order
+      list, an honest empty state when a machine has never been sent for maintenance). This is
+      the one bullet in this section that reads real production data the write side (section
+      `11`) does not exist yet to have created — the endpoint has been live since the backend's
+      maintenance module shipped, this section just gives it a screen.
+- [x] Add the machine bulk-import page and result/error handling.
+      New: `MachineBulkImportScreen`/`MachineBulkImportCubit` against the existing
+      `POST /machines/bulk`. Designed around how factory intake actually happens — one shipment,
+      one model, one purchase/warranty/invoice story — so those fields are asked for once at the
+      batch level and only the four serials vary per row (add/remove rows, max 500 to match the
+      server's `BulkCreateMachinesDto` limit). The import is transactional server-side
+      (`machines.service.ts`'s `createMany`: validate the whole batch, commit all or none), so
+      result handling has two honest paths: success shows how many were created and pops with
+      `true` so the list refreshes; a 400 is parsed into per-row, per-field errors
+      (`BulkImportValidationFailure` in `api_service_failure.dart`, new — the existing
+      `ValidationFailure.fieldErrors` shape has no row index, and the server's
+      `flattenValidationErrors` already gives every detail a `machines[N].field` path, so this
+      repo method parses that directly rather than routing through the generic 400 handler). A
+      line that does not match `machines[N].field` (a batch-level rule like a duplicate serial
+      within the same request) is shown as a general banner instead of being dropped.
+- [x] Add machine-detail actions for transfers, maintenance, replacement, and decommission with
       correct permissions and state rules.
-- [ ] Add the decommission-candidates entry point when that feature is ready.
+      New `MachineActionsSection` widget on the detail screen: Timeline (no extra gate beyond
+      already being on this screen), Maintenance history (`maintenance.read`), Create transfer
+      (`transfers.create`, opens the existing real wizard), Replace (`maintenance.close`) and
+      Decommission (`machines.decommission`, styled destructive) both open
+      `AppRoute.goToFeatureNotReadyScreen` until section `11` builds the real flows — the same
+      "honest placeholder" pattern the home dashboard used for Maintenance in section `7`. State
+      rule: transfer/replace/decommission all disappear once `machine.isRetired`
+      (decommissioned or replaced) — there is nothing left to hand off, repair again, or scrap
+      twice. A real bug was caught building this: `ListTile` inside `DetailCard` (a plain
+      `Container` with its own opaque background) triggers Flutter's "ink splashes may be
+      invisible" assertion, which is a hard exception in debug/test builds, not just a lint —
+      fixed by wrapping each tile in its own transparent `Material`.
+- [x] Add the decommission-candidates entry point when that feature is ready.
+      Deliberately not added — the checklist's own wording ("when that feature is ready") makes
+      this conditional, and decommissioning is not ready: it is section `11`'s write flow, not
+      built yet. Forcing an entry point to a list whose rows have nowhere to go would be a worse
+      user experience than no entry point. Revisit when `11` lands.
+
+Files added: `lib/feature/machines/domain/entities/{machine_timeline_event,
+machine_maintenance_history}.dart`, `lib/feature/machines/data/models/
+{machine_timeline_event_model,machine_maintenance_history_model}.dart`,
+`lib/feature/machines/data/logic/{machine_timeline,machine_maintenance_history,
+machine_bulk_import}/*_cubit.dart` + `*_state.dart`,
+`lib/feature/machines/presentation/pages/{machine_timeline_screen,
+machine_maintenance_history_screen,machine_bulk_import_screen}.dart`,
+`lib/feature/machines/presentation/widgets/{machine_actions_section,
+machine_timeline_labels}.dart`.
+
+Files changed: `machines_repo.dart`/`machines_repo_impl.dart` (3 new methods),
+`api_service_failure.dart` (`BulkImportValidationFailure`), `api_keys.dart`/`locale_keys.dart`
+(new key sections), `en.json`/`ar.json`, `machine_detail_screen.dart` (actions section wired in),
+`machines_list_screen.dart` (bulk-import app-bar action, permission-gated), `app_route.dart` (3
+new routes), `service_locator.dart` (3 new DI registrations).
+
+Tests added: `machine_timeline_cubit_test.dart` (4), `machine_maintenance_history_cubit_test.dart`
+(3), `machine_bulk_import_cubit_test.dart` (6, including the `machines[N].field` → row/field
+error-parsing regex — the trickiest new logic in this section), `machine_actions_section_widget_test.dart`
+(4, permission gating + the retired-machine state rule + the tap wiring — this is also the test
+that caught the `ListTile`/`DetailCard` ink bug above), plus 4 new cases appended to
+`machines_contract_parsing_test.dart` covering every timeline event type and both a populated and
+an empty maintenance-history payload. `flutter analyze`: 0 issues. `flutter test`: 146/146 passing
+(125 pre-existing + 21 new).
+
+Live verification (real backend + Android emulator, both dev accounts from `seed-dev.ts`):
+logged in as Director (`01000000001`), opened Machines, used the real bulk-import screen end to
+end — picked the pre-seeded "Ingenico موف 5000" model, filled one unit row with fresh serials,
+left the box serial blank to exercise the optional-field path, submitted, got
+"تم إنشاء ماكينة واحدة" and the new machine appeared at the top of the list and the home
+dashboard's machine count went 10 → 11. Opened the new machine's detail: the Actions section
+showed all five actions (Director holds every gating permission); Timeline opened and correctly
+showed the empty state (a brand-new machine has no events yet); Maintenance history opened and
+correctly showed zero totals and the empty state. Opened `SN-1008` ("with representative") and
+confirmed against the database directly that it has zero `transfer_items`/`maintenance_orders`
+rows — its empty timeline/history are the seed data being honest, not a client bug. Logged out,
+logged in as the representative (`01000000003`, Cairo branch): Machines list correctly hid the
+bulk-import action (no `machines.import`) and the add-FAB (no `machines.create`), and scoped to 4
+machines; opened `SN-1008` again and the Actions section correctly showed only Timeline and
+Create transfer (the representative holds `transfers.create` but none of `maintenance.read`,
+`maintenance.close`, `machines.decommission`) — matching the widget tests' predictions exactly.
+Cleaned up the one test machine (`QATEST-M-...`) from the dev database afterward so the seed
+counts stay meaningful for future sessions.
 
 ### 8.2 Complete scanning
 

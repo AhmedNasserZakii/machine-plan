@@ -39,7 +39,10 @@ import 'package:machinery/feature/finance/domain/repos/finance_repo_impl.dart';
 import 'package:machinery/feature/home/data/logic/home_dashboard_cubit.dart';
 import 'package:machinery/feature/home/domain/repos/home_repo.dart';
 import 'package:machinery/feature/home/domain/repos/home_repo_impl.dart';
+import 'package:machinery/feature/machines/data/logic/machine_bulk_import/machine_bulk_import_cubit.dart';
 import 'package:machinery/feature/machines/data/logic/machine_form/machine_form_cubit.dart';
+import 'package:machinery/feature/machines/data/logic/machine_maintenance_history/machine_maintenance_history_cubit.dart';
+import 'package:machinery/feature/machines/data/logic/machine_timeline/machine_timeline_cubit.dart';
 import 'package:machinery/feature/machines/data/logic/machines_list/machines_list_cubit.dart';
 import 'package:machinery/feature/machines/domain/entities/machine_entity.dart';
 import 'package:machinery/feature/machines/domain/repos/machines_repo.dart';
@@ -88,18 +91,32 @@ void setupServiceLocator(AppDatabase appDatabase) {
 
   // ── Offline local database (`6.1`/`6.2`) ─────────────────────────────────
   getIt.registerSingleton<AppDatabase>(appDatabase);
-  getIt.registerLazySingleton<CachedMachinesDao>(() => CachedMachinesDao(getIt()));
-  getIt.registerLazySingleton<CachedMerchantsDao>(() => CachedMerchantsDao(getIt()));
-  getIt.registerLazySingleton<CachedBranchesDao>(() => CachedBranchesDao(getIt()));
-  getIt.registerLazySingleton<CachedLookupsDao>(() => CachedLookupsDao(getIt()));
-  getIt.registerLazySingleton<CachedTransfersDao>(() => CachedTransfersDao(getIt()));
+  getIt.registerLazySingleton<CachedMachinesDao>(
+    () => CachedMachinesDao(getIt()),
+  );
+  getIt.registerLazySingleton<CachedMerchantsDao>(
+    () => CachedMerchantsDao(getIt()),
+  );
+  getIt.registerLazySingleton<CachedBranchesDao>(
+    () => CachedBranchesDao(getIt()),
+  );
+  getIt.registerLazySingleton<CachedLookupsDao>(
+    () => CachedLookupsDao(getIt()),
+  );
+  getIt.registerLazySingleton<CachedTransfersDao>(
+    () => CachedTransfersDao(getIt()),
+  );
   getIt.registerLazySingleton<SyncQueueDao>(() => SyncQueueDao(getIt()));
   getIt.registerLazySingleton<PendingMediaDao>(() => PendingMediaDao(getIt()));
 
   // ── Offline sync engine (`6.3`/`6.4`/`6.5`) ──────────────────────────────
   getIt.registerLazySingleton<SyncApi>(() => SyncApi(apiService: getIt()));
   getIt.registerLazySingleton<MediaStagingService>(
-    () => MediaStagingService(pendingMediaDao: getIt(), apiService: getIt(), networkInfo: getIt()),
+    () => MediaStagingService(
+      pendingMediaDao: getIt(),
+      apiService: getIt(),
+      networkInfo: getIt(),
+    ),
   );
   getIt.registerLazySingleton<SyncQueueService>(
     () => SyncQueueService(
@@ -153,7 +170,11 @@ void setupServiceLocator(AppDatabase appDatabase) {
 
   // AuthCubit is the one singleton cubit: session state is app-wide.
   getIt.registerLazySingleton<AuthCubit>(
-    () => AuthCubit(authRepo: getIt(), permissionService: getIt(), syncCoordinator: getIt()),
+    () => AuthCubit(
+      authRepo: getIt(),
+      permissionService: getIt(),
+      syncCoordinator: getIt(),
+    ),
   );
 
   getIt.registerFactory<LoginCubit>(
@@ -171,7 +192,10 @@ void setupServiceLocator(AppDatabase appDatabase) {
   // into the one count the logout warning shows.
   getIt.registerLazySingleton<PendingSyncCounter>(
     () => CompositePendingSyncCounter(
-      counters: <PendingSyncCounter>[getIt<SyncQueueService>(), getIt<FinanceSyncQueue>()],
+      counters: <PendingSyncCounter>[
+        getIt<SyncQueueService>(),
+        getIt<FinanceSyncQueue>(),
+      ],
     ),
   );
 
@@ -265,6 +289,22 @@ void setupServiceLocator(AppDatabase appDatabase) {
 
   getIt.registerFactory<ScannerCubit>(
     () => ScannerCubit(machinesRepo: getIt()),
+  );
+
+  getIt.registerFactory<MachineBulkImportCubit>(
+    () => MachineBulkImportCubit(machinesRepo: getIt()),
+  );
+
+  getIt.registerFactoryParam<MachineTimelineCubit, String, void>(
+    (String machineId, _) =>
+        MachineTimelineCubit(machinesRepo: getIt(), machineId: machineId),
+  );
+
+  getIt.registerFactoryParam<MachineMaintenanceHistoryCubit, String, void>(
+    (String machineId, _) => MachineMaintenanceHistoryCubit(
+      machinesRepo: getIt(),
+      machineId: machineId,
+    ),
   );
 
   // ── Transfers ────────────────────────────────────────────────────────────

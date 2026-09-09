@@ -88,12 +88,31 @@ class _MachinesListScreenState extends State<MachinesListScreen> {
     }
   }
 
+  Future<void> _openBulkImport() async {
+    final bool? created = await AppRoute.goToMachineBulkImport(context);
+
+    if ((created ?? false) && mounted) {
+      await context.read<MachinesListCubit>().load(showLoader: false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(LocaleKeys.machinesTitle.tr()),
         actions: <Widget>[
+          PermissionGate(
+            permission: P.machinesImport,
+            child: IconButton(
+              onPressed: _openBulkImport,
+              icon: Semantics(
+                identifier: 'machines_bulk_import_button',
+                child: const Icon(Icons.upload_file_rounded),
+              ),
+              tooltip: LocaleKeys.machineBulkImportTitle.tr(),
+            ),
+          ),
           IconButton(
             onPressed: _scan,
             icon: Semantics(

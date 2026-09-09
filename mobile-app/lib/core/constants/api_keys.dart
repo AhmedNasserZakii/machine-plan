@@ -16,6 +16,7 @@ class ApiKeys {
   /// broke, which is what binds a server error back to a form input.
   static const String field = 'field';
   static const String constraint = 'constraint';
+  static const String value = 'value';
 
   // ── Pagination ───────────────────────────────────────────────────────────
   static const String items = 'items';
@@ -25,6 +26,9 @@ class ApiKeys {
   static const String totalPages = 'totalPages';
   static const String hasNext = 'hasNext';
   static const String nextCursor = 'nextCursor';
+
+  /// The `nextCursor` from the previous keyset page, sent back as a query param.
+  static const String cursor = 'cursor';
 
   // ── Common entity fields ─────────────────────────────────────────────────
   static const String id = 'id';
@@ -264,6 +268,26 @@ class ApiKeys {
   static const String budgetAmount = 'budgetAmount';
   static const String spentAmount = 'spentAmount';
   static const String period = 'period';
+
+  // ── Machine timeline ─────────────────────────────────────────────────────
+  static const String at = 'at';
+  static const String refId = 'refId';
+  static const String refNo = 'refNo';
+
+  // ── Maintenance history (read-only; `11` owns the write side) ───────────
+  static const String location = 'location';
+  static const String sentAt = 'sentAt';
+  static const String returnedAt = 'returnedAt';
+  static const String isFreeUnderWarranty = 'isFreeUnderWarranty';
+  static const String responsibleParty = 'responsibleParty';
+  static const String result = 'result';
+  static const String orders = 'orders';
+  static const String totalCost = 'totalCost';
+  static const String freeUnderWarranty = 'freeUnderWarranty';
+  static const String chargedToCompany = 'chargedToCompany';
+  static const String chargedToRepresentative = 'chargedToRepresentative';
+  static const String chargedToMerchant = 'chargedToMerchant';
+  static const String chargedToFactory = 'chargedToFactory';
 
   // ── Violations & maintenance ─────────────────────────────────────────────
   static const String severity = 'severity';

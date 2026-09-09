@@ -193,3 +193,18 @@ class ConflictFailure extends ServerFailure {
 class BusinessFailure extends ServerFailure {
   BusinessFailure(super.errorMessage, {super.code, super.statusCode});
 }
+
+/// 400 on `POST /machines/bulk` — the whole batch was refused, and [problems]
+/// names every row that failed (`field: constraint`, e.g.
+/// `machines[2].serial: must be longer than or equal to 3 characters`), not
+/// just the first. The import is all-or-nothing, so nothing was created.
+class BulkImportValidationFailure extends ServerFailure {
+  BulkImportValidationFailure(
+    super.errorMessage, {
+    required this.problems,
+    super.code,
+    super.statusCode,
+  });
+
+  final List<String> problems;
+}

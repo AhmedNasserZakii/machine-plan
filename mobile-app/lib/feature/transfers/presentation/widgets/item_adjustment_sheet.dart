@@ -6,6 +6,7 @@ import 'package:machinery/core/shared_widgets/labeled_text_form_field.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/core/theme/styles/app_text_styles.dart';
+import 'package:machinery/core/utils/app_route.dart';
 import 'package:machinery/core/utils/enums.dart';
 import 'package:machinery/feature/transfers/domain/entities/transfer_entity.dart';
 import 'package:machinery/feature/transfers/domain/params/transfer_write_params.dart';
@@ -80,6 +81,25 @@ class _ItemAdjustmentSheetState extends State<ItemAdjustmentSheet> {
     _batteryController.dispose();
     _notesController.dispose();
     super.dispose();
+  }
+
+  /// Scanning is the point of a battery field the receiver corrects standing
+  /// next to the unit (`8.2`) — this reads the raw sticker with no lookup, so
+  /// a battery that does not match this machine's record is still capturable
+  /// exactly as scanned. The mismatch itself is what the violation report is
+  /// built from server-side; this screen's job is only to get an honest value
+  /// into the field.
+  Future<void> _scanBattery() async {
+    final String? code = await AppRoute.goToRawBarcodeScanner(
+      context: context,
+      titleKey: LocaleKeys.scanBatteryScanTooltip,
+    );
+
+    if (code == null || !mounted) {
+      return;
+    }
+
+    setState(() => _batteryController.text = code);
   }
 
   /// Only what differs from the sender's version is sent. An absent field means
@@ -161,6 +181,11 @@ class _ItemAdjustmentSheetState extends State<ItemAdjustmentSheet> {
                 // A serial reads left-to-right whatever the interface language.
                 textDirection: TextDirection.ltr,
                 identifier: 'adjust_battery_field',
+                suffixIcon: IconButton(
+                  onPressed: _scanBattery,
+                  icon: const Icon(Icons.qr_code_scanner_rounded, size: 20),
+                  tooltip: LocaleKeys.scanBatteryScanTooltip.tr(),
+                ),
               ),
               const SizedBox(height: AppSpacing.md),
               LabeledTextFormField(

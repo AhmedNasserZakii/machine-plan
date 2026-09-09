@@ -36,6 +36,7 @@ dependencies:
   # Field capture
   local_auth: ^2.3.0
   mobile_scanner: ^7.1.4
+  qr_flutter: ^4.1.0
   signature: ^6.3.0
   device_info_plus: ^13.2.0
 
