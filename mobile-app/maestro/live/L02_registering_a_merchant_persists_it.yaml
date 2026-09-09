@@ -1,0 +1,73 @@
+appId: com.machinery.machinery
+name: L02 — Registering a merchant writes it to the database and lists it
+tags:
+  - live
+  - merchants
+---
+- runFlow:
+    file: shared/launch_and_login.yaml
+    env:
+      PHONE: "01000000001"
+      PASSWORD: "Dev#12345"
+
+# Every run writes a real row, so the identifying fields carry a run-unique
+# suffix. A national ID is unique server-side; reusing one would make the
+# second run fail for the wrong reason.
+- evalScript: |
+    ${
+      output.suffix = String(Date.now()).slice(-8);
+      output.shop = 'محل الاختبار ' + output.suffix;
+      output.phone = '010' + output.suffix;
+      output.nationalId = '298010' + output.suffix;
+    }
+
+- tapOn: "(?s).*التجار.*"
+- extendedWaitUntil:
+    visible:
+      id: "merchants_add_button"
+    timeout: 15000
+- tapOn:
+    id: "merchants_add_button"
+
+- tapOn:
+    id: "merchant_form_shop_name"
+- inputText: ${output.shop}
+- tapOn:
+    id: "merchant_form_name"
+- inputText: "أحمد صاحب المحل"
+- tapOn:
+    id: "merchant_form_phone"
+- inputText: ${output.phone}
+- tapOn:
+    id: "merchant_form_address"
+- inputText: "شارع الجمهورية، المنصورة"
+- tapOn:
+    id: "merchant_form_national_id"
+- inputText: ${output.nationalId}
+- hideKeyboard
+
+- tapOn:
+    id: "merchant_form_submit"
+
+# Back on the list, the row the server just created is rendered from the
+# server's own response rather than from what was typed.
+- extendedWaitUntil:
+    visible: "(?s).*${output.shop}.*"
+    timeout: 20000
+
+# Leaving the tab disposes the list and coming back refetches it, so seeing the
+# row again is the part a mock cannot prove: it is in Postgres, not in a cubit.
+- tapOn: "(?s).*الرئيسية.*"
+- tapOn: "(?s).*التجار.*"
+- extendedWaitUntil:
+    visible: "(?s).*${output.shop}.*"
+    timeout: 20000
+
+# The detail screen reads it back through GET /merchants/:id, which returns the
+# fuller record — national ID, registrar and notes the list row leaves out.
+- tapOn: "(?s).*${output.shop}.*"
+- extendedWaitUntil:
+    visible: "(?s).*أحمد صاحب المحل.*"
+    timeout: 15000
+- assertVisible: "(?s).*${output.phone}.*"
+- assertVisible: "(?s).*${output.nationalId}.*"

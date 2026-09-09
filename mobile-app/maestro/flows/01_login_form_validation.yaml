@@ -1,0 +1,45 @@
+appId: com.machinery.machinery
+name: 01 — Login button stays disabled until the form is genuinely valid
+tags:
+  - auth
+  - smoke
+---
+- runFlow: shared/reset_and_launch.yaml
+
+# No stored session, so splash resolves straight to login.
+- assertVisible: "أهلًا بيك"
+- assertVisible: "سجّل دخولك عشان تكمّل شغلك"
+
+# Nothing typed yet.
+- assertVisible:
+    id: "login_submit_button"
+    enabled: false
+
+# A half-typed phone is not enough, even with a valid password.
+- tapOn:
+    id: "login_phone_field"
+- inputText: "0100"
+- tapOn:
+    id: "login_password_field"
+- inputText: "Password1"
+- hideKeyboard
+- assertVisible:
+    id: "login_submit_button"
+    enabled: false
+
+# A valid password but a malformed phone still blocks submission.
+- tapOn:
+    id: "login_phone_field"
+- inputText: "00000"
+- hideKeyboard
+- assertVisible:
+    id: "login_submit_button"
+    enabled: false
+
+# Clear and enter a well-formed Egyptian number: now it unlocks.
+- eraseText: 20
+- inputText: "01000000001"
+- hideKeyboard
+- assertVisible:
+    id: "login_submit_button"
+    enabled: true

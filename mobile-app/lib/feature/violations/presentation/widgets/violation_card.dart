@@ -1,0 +1,162 @@
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:machinery/core/constants/locale_keys.dart';
+import 'package:machinery/core/helper/formatters.dart';
+import 'package:machinery/core/shared_widgets/clicked_widget.dart';
+import 'package:machinery/core/shared_widgets/ltr_text.dart';
+import 'package:machinery/core/shared_widgets/status_chip.dart';
+import 'package:machinery/core/theme/styles/app_colors.dart';
+import 'package:machinery/core/theme/styles/app_spacing.dart';
+import 'package:machinery/core/theme/styles/app_text_styles.dart';
+import 'package:machinery/core/theme/styles/status_colors.dart';
+import 'package:machinery/feature/violations/domain/entities/violation_entity.dart';
+import 'package:machinery/feature/violations/presentation/helpers/violation_labels.dart';
+
+/// One row in the violations register.
+///
+/// The type leads and the person follows, because the register is usually read
+/// the other way round from how it is written: someone is looking for every
+/// missing charger, not for everything one representative did.
+class ViolationCard extends StatelessWidget {
+  const ViolationCard({
+    required this.violation,
+    required this.onTap,
+    super.key,
+  });
+
+  final ViolationEntity violation;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      identifier: 'violation_card_${violation.id}',
+      child: ClickedWidget(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsetsDirectional.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceColor,
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            border: Border.all(color: AppColors.borderColor),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Text(
+                      violation.type.name,
+                      style: Styles.s15(
+                        context,
+                      ).copyWith(fontWeight: FontWeight.w700),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  StatusChip(
+                    label: ViolationLabels.status(violation.status),
+                    color: ViolationLabels.statusColor(violation.status),
+                    icon: ViolationLabels.statusIcon(violation.status),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                violation.user.fullName,
+                style: Styles.s13(
+                  context,
+                ).copyWith(color: AppColors.textSecondaryColor),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              _MetaRow(violation: violation),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MetaRow extends StatelessWidget {
+  const _MetaRow({required this.violation});
+
+  final ViolationEntity violation;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color severityColor = StatusColors.forViolationSeverity(
+      violation.severity,
+    );
+
+    return Wrap(
+      spacing: AppSpacing.md,
+      runSpacing: AppSpacing.xs,
+      children: <Widget>[
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Icon(
+              StatusColors.iconForViolationSeverity(violation.severity),
+              size: 14,
+              color: severityColor,
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            Text(
+              ViolationLabels.severity(violation.severity),
+              style: Styles.s12(context).copyWith(color: severityColor),
+            ),
+          ],
+        ),
+        if (violation.machine != null)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              const Icon(
+                Icons.point_of_sale_outlined,
+                size: 14,
+                color: AppColors.textSecondaryColor,
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              LtrText(
+                violation.machine!.serial,
+                style: Styles.s12(
+                  context,
+                ).copyWith(color: AppColors.textSecondaryColor),
+              ),
+            ],
+          ),
+        if (violation.chargedAmount != null)
+          LtrText(
+            Formatters.currency(violation.chargedAmount!),
+            style: Styles.s12(context).copyWith(
+              color: AppColors.successColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        if (violation.autoGenerated)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              const Icon(
+                Icons.auto_awesome_outlined,
+                size: 14,
+                color: AppColors.textSecondaryColor,
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Text(
+                LocaleKeys.violationAutoBadge.tr(),
+                style: Styles.s12(
+                  context,
+                ).copyWith(color: AppColors.textSecondaryColor),
+              ),
+            ],
+          ),
+      ],
+    );
+  }
+}

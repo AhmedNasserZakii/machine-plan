@@ -1,0 +1,75 @@
+# Prometheus alerting rules for the machinery API (`5.3`).
+#
+# Load this file via `rule_files:` in `prometheus.yml` and point a `scrape_configs` entry at
+# `GET /metrics` (bearer-authenticated with `METRICS_TOKEN` in production — see
+# `backend/MONITORING.md`). Every metric referenced here is defined in
+# `backend/api/src/common/metrics/metrics.ts`.
+#
+# What is deliberately NOT here: storage/database/cache health. Those are readiness concerns,
+# not counters to alert on a rate of — `GET /health/ready` already probes all three for real
+# (a genuine write-read-delete round trip for storage, an actual `PING` for cache, a real query
+# for Postgres) and belongs behind an uptime monitor / blackbox-exporter probe instead. See
+# `backend/MONITORING.md`'s "Uptime monitoring" section for that half of `5.3`.
+
+groups:
+  - name: machinery-api.rules
+    rules:
+      - alert: MachineryQueueJobsFailing
+        # Every job counted here already exhausted BullMQ's own 5 retries with exponential
+        # backoff — by the time this counter moves at all, automatic recovery has already
+        # failed once for real.
+        expr: increase(machinery_api_queue_jobs_failed_total[15m]) > 0
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'A background job on queue "{{ $labels.queue }}" exhausted all retries'
+          description: >-
+            {{ $value }} job(s) on the "{{ $labels.queue }}" queue (audit-log, media-optimize,
+            or report-exports) failed permanently in the last 15 minutes. Inspect the failed
+            job in Redis/BullMQ — `removeOnFail` keeps it there rather than discarding it.
+
+      - alert: MachinerySyncOperationsFailing
+        expr: >-
+          (
+            sum(rate(machinery_api_sync_operations_total{status="FAILED"}[15m]))
+            /
+            sum(rate(machinery_api_sync_operations_total[15m]))
+          ) > 0.10
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'More than 10% of offline sync operations are failing'
+          description: >-
+            Sustained sync-batch failures usually mean a client version mismatch, a widened
+            validation rule, or a permission/business-rule regression — not an isolated user
+            error, which this ratio (rather than a raw count) is chosen to filter out.
+
+      - alert: MachineryHighApiErrorRate
+        expr: >-
+          (
+            sum(rate(machinery_api_http_requests_total{status_code=~"5.."}[5m]))
+            /
+            sum(rate(machinery_api_http_requests_total[5m]))
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'API 5xx rate above 5% over 5 minutes'
+          description: >-
+            5xx only — 4xx (validation, permission, not-found) is expected client traffic and
+            would otherwise drown a real incident in noise. Check `AllExceptionsFilter`'s error
+            logs (and Sentry, once `SENTRY_DSN` is configured) for the actual exceptions.
+
+      - alert: MachineryMediaCleanupFailing
+        expr: increase(machinery_api_media_cleanup_failed_total[1h]) > 0
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'The hourly media cleanup sweep is leaving orphaned objects undeleted'
+          description: >-
+            The object was never confirmed and is still in storage past retention — not a data
+            **loss** risk, but a storage-cost and eventual-consistency one if it recurs.

@@ -1,0 +1,189 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:machinery/core/theme/styles/app_colors.dart';
+import 'package:machinery/core/theme/styles/app_spacing.dart';
+import 'package:machinery/core/theme/styles/app_text_styles.dart';
+import 'package:machinery/feature/finance/domain/entities/finance_entities.dart';
+
+String formatMoney(BuildContext context, double value) =>
+    '${NumberFormat.decimalPattern(Localizations.localeOf(context).languageCode).format(value)} EGP';
+
+Color budgetStatusColor(BudgetStatus status) => switch (status) {
+  BudgetStatus.ok => AppColors.successColor,
+  BudgetStatus.warning => AppColors.warningColor,
+  BudgetStatus.exceeded => AppColors.dangerColor,
+};
+
+class FinanceMetricCard extends StatelessWidget {
+  const FinanceMetricCard({
+    required this.label,
+    required this.value,
+    required this.color,
+    super.key,
+    this.icon,
+  });
+  final String label;
+  final String value;
+  final Color color;
+  final IconData? icon;
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsetsDirectional.all(AppSpacing.md),
+    decoration: BoxDecoration(
+      color: color.withValues(alpha: .08),
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      border: Border.all(color: color.withValues(alpha: .25)),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            if (icon != null) ...<Widget>[
+              Icon(icon, color: color, size: 18),
+              const SizedBox(width: AppSpacing.sm),
+            ],
+            Expanded(
+              child: Text(
+                label,
+                style: Styles.s13(
+                  context,
+                ).copyWith(color: AppColors.textSecondaryColor),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Text(value, style: Styles.s20(context).copyWith(color: color)),
+      ],
+    ),
+  );
+}
+
+class FinanceTransactionTile extends StatelessWidget {
+  const FinanceTransactionTile({
+    required this.transaction,
+    required this.onTap,
+    super.key,
+  });
+  final FinanceTransaction transaction;
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) {
+    final Color color = transaction.isVoided
+        ? AppColors.textDisabledColor
+        : transaction.kind == FinanceKind.income
+        ? AppColors.successColor
+        : AppColors.dangerColor;
+    return Card(
+      child: ListTile(
+        onTap: onTap,
+        leading: CircleAvatar(
+          backgroundColor: color.withValues(alpha: .1),
+          child: Icon(
+            transaction.kind == FinanceKind.income
+                ? Icons.south_west_rounded
+                : Icons.north_east_rounded,
+            color: color,
+          ),
+        ),
+        title: Text(
+          transaction.category.name.isEmpty
+              ? transaction.referenceNo
+              : transaction.category.name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              '${transaction.referenceNo} • ${DateFormat.yMMMd().format(transaction.transactionDate)}',
+            ),
+            if (transaction.isAutomatic)
+              Text(
+                'Auto-generated • ${transaction.source.replaceAll('AUTO_', '').toLowerCase()}',
+                style: Styles.s12(context).copyWith(color: AppColors.infoColor),
+              ),
+            if (transaction.isPendingSync)
+              Text(
+                'Pending sync',
+                style: Styles.s12(
+                  context,
+                ).copyWith(color: AppColors.warningColor),
+              ),
+            if (transaction.isVoided)
+              Text(
+                'Voided',
+                style: Styles.s12(
+                  context,
+                ).copyWith(color: AppColors.dangerColor),
+              ),
+          ],
+        ),
+        trailing: Text(
+          formatMoney(context, transaction.amount),
+          style: Styles.mono(context).copyWith(
+            color: color,
+            decoration: transaction.isVoided
+                ? TextDecoration.lineThrough
+                : null,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class BudgetStatusCard extends StatelessWidget {
+  const BudgetStatusCard({required this.budget, super.key});
+  final FinanceBudgetStatus budget;
+  @override
+  Widget build(BuildContext context) {
+    final Color color = budgetStatusColor(budget.status);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsetsDirectional.all(AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: Text(budget.category.name, style: Styles.s15(context)),
+                ),
+                Text(
+                  '${budget.usedPercent.toStringAsFixed(1)}%',
+                  style: Styles.s15(context).copyWith(color: color),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(AppRadius.pill),
+              child: LinearProgressIndicator(
+                value: (budget.usedPercent / 100).clamp(0, 1),
+                color: color,
+                backgroundColor: AppColors.surfaceAltColor,
+                minHeight: 8,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              '${formatMoney(context, budget.spent)} / ${formatMoney(context, budget.amount)}',
+              style: Styles.s13(context),
+            ),
+            Text(
+              'Time elapsed ${budget.elapsedPercent.toStringAsFixed(0)}% • Projected ${formatMoney(context, budget.projectedTotal)}',
+              style: Styles.s12(context).copyWith(
+                color: budget.overPaceBy > 0
+                    ? AppColors.warningColor
+                    : AppColors.textSecondaryColor,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

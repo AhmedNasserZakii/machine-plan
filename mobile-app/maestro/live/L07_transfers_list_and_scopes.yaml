@@ -1,0 +1,50 @@
+appId: com.machinery.machinery
+name: L07 — The transfers screen loads its three scopes from the live API
+tags:
+  - live
+  - transfers
+---
+# Each scope is a separate endpoint — /transfers, /transfers/pending/incoming
+# and /transfers/pending/outgoing — so switching tabs is three round trips, not
+# one list filtered client-side.
+- runFlow:
+    file: shared/launch_and_login.yaml
+    env:
+      PHONE: "01000000001"
+      PASSWORD: "Dev#12345"
+
+- tapOn: "(?s).*التسليمات.*"
+- extendedWaitUntil:
+    visible:
+      id: "transfers_add_button"
+    timeout: 20000
+
+- tapOn:
+    id: "transfers_tab_incoming"
+- extendedWaitUntil:
+    visible:
+      id: "transfers_add_button"
+    timeout: 20000
+
+- tapOn:
+    id: "transfers_tab_outgoing"
+- extendedWaitUntil:
+    visible:
+      id: "transfers_add_button"
+    timeout: 20000
+
+- tapOn:
+    id: "transfers_tab_all"
+- extendedWaitUntil:
+    visible:
+      id: "transfers_add_button"
+    timeout: 20000
+
+# Starting a hand-off asks the server which types this user may initiate
+# (GET /transfers/creatable-types) rather than deciding it from the role in the
+# client, so an empty answer here would mean the endpoint broke.
+- tapOn:
+    id: "transfers_add_button"
+- extendedWaitUntil:
+    visible: "(?s).*تسليم.*"
+    timeout: 20000

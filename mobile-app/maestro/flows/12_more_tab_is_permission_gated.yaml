@@ -1,0 +1,53 @@
+appId: com.machinery.machinery
+name: 12 — More shows the profile and only the sections the user may open
+tags:
+  - permissions
+  - more
+---
+- runFlow: shared/reset_and_launch.yaml
+
+- runFlow:
+    file: shared/login_as.yaml
+    env:
+      PHONE: "01000000001"
+      PASSWORD: "Password1"
+
+- tapOn: "(?s).*المزيد.*"
+
+# Identity first: name, role and branch, so a hand-over is done as the right
+# person at the right branch. The header is one merged accessibility node.
+- assertVisible: "(?s).*أحمد ناصر.*"
+- assertVisible: "(?s).*Director.*"
+- assertVisible: "(?s).*الفرع الرئيسي.*"
+
+# The Director holds every reports.* code and users.read. Reports is gated on
+# "any report", not on a single blanket code — the backend has no such code.
+- assertVisible:
+    id: "more_reports_tile"
+- assertVisible:
+    id: "more_users_tile"
+- assertVisible:
+    id: "more_sync_queue_tile"
+
+# Account actions sit at the foot of the list. A Director unlocks every section
+# above them, which on a phone puts them past the fold.
+- assertVisible:
+    id: "more_change_password_tile"
+- scrollUntilVisible:
+    element:
+      id: "more_logout_tile"
+    direction: DOWN
+
+# Reports is where it belongs — reachable from More, not from the bottom bar.
+- scrollUntilVisible:
+    element:
+      id: "more_reports_tile"
+    direction: UP
+- tapOn:
+    id: "more_reports_tile"
+- assertVisible: "الشاشة دي لسه بتتبني"
+- back
+- scrollUntilVisible:
+    element:
+      id: "more_logout_tile"
+    direction: DOWN

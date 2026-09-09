@@ -1,0 +1,39 @@
+appId: com.machinery.machinery
+name: Sign in and leave the app sitting on the merchants tab
+---
+# Not an assertion flow. This signs the director in against the live API and
+# walks the tabs so the app is left in a usable state on the emulator.
+- clearState
+- launchApp:
+    clearKeychain: true
+
+- tapOn:
+    id: "login_phone_field"
+- inputText: "01000000001"
+- tapOn:
+    id: "login_password_field"
+- inputText: "Dev#12345"
+- hideKeyboard
+- tapOn:
+    id: "login_submit_button"
+- extendedWaitUntil:
+    visible: "الرئيسية"
+    timeout: 25000
+
+- tapOn: "(?s).*الماكينات.*"
+- extendedWaitUntil:
+    visible:
+      id: "machines_search_field"
+    timeout: 20000
+
+- tapOn: "(?s).*التسليمات.*"
+- extendedWaitUntil:
+    visible:
+      id: "transfers_add_button"
+    timeout: 20000
+
+- tapOn: "(?s).*التجار.*"
+- extendedWaitUntil:
+    visible:
+      id: "merchants_add_button"
+    timeout: 20000

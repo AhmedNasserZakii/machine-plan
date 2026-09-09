@@ -1,0 +1,68 @@
+export enum TransferType {
+  FACTORY_TO_COMPANY = 'FACTORY_TO_COMPANY',
+  COMPANY_TO_BRANCH = 'COMPANY_TO_BRANCH',
+  BRANCH_TO_REPRESENTATIVE = 'BRANCH_TO_REPRESENTATIVE',
+  REPRESENTATIVE_TO_MERCHANT = 'REPRESENTATIVE_TO_MERCHANT',
+  MERCHANT_TO_REPRESENTATIVE = 'MERCHANT_TO_REPRESENTATIVE',
+  REPRESENTATIVE_TO_BRANCH = 'REPRESENTATIVE_TO_BRANCH',
+  BRANCH_TO_COMPANY = 'BRANCH_TO_COMPANY',
+  COMPANY_TO_MAINTENANCE = 'COMPANY_TO_MAINTENANCE',
+  MAINTENANCE_TO_COMPANY = 'MAINTENANCE_TO_COMPANY',
+  COMPANY_TO_FACTORY = 'COMPANY_TO_FACTORY',
+  FACTORY_TO_COMPANY_RETURN = 'FACTORY_TO_COMPANY_RETURN',
+  COMPANY_TO_SERVICE_CENTER = 'COMPANY_TO_SERVICE_CENTER',
+  SERVICE_CENTER_TO_COMPANY = 'SERVICE_CENTER_TO_COMPANY',
+  COMPANY_TO_SCRAP = 'COMPANY_TO_SCRAP',
+}
+
+export const TRANSFER_TYPES = Object.values(TransferType);
+
+export enum TransferStatus {
+  PENDING = 'PENDING',
+  CONFIRMED = 'CONFIRMED',
+  REJECTED = 'REJECTED',
+  CANCELLED = 'CANCELLED',
+}
+
+export const TRANSFER_STATUSES = Object.values(TransferStatus);
+
+export enum TransferDirection {
+  OUT = 'OUT',
+  RETURN = 'RETURN',
+}
+
+export const TRANSFER_DIRECTIONS = Object.values(TransferDirection);
+
+/** Polymorphic custody holder kinds, shared by transfers and `machines.current_holder_type`. */
+export enum PartyType {
+  FACTORY = 'FACTORY',
+  WAREHOUSE = 'WAREHOUSE',
+  SUPERVISOR = 'SUPERVISOR',
+  REPRESENTATIVE = 'REPRESENTATIVE',
+  MERCHANT = 'MERCHANT',
+  SERVICE_CENTER = 'SERVICE_CENTER',
+}
+
+export const PARTY_TYPES = Object.values(PartyType);
+
+export enum ItemCondition {
+  GOOD = 'GOOD',
+  DAMAGED = 'DAMAGED',
+  NOT_WORKING = 'NOT_WORKING',
+}
+
+export const ITEM_CONDITIONS = Object.values(ItemCondition);
+
+export enum SignaturePartyRole {
+  SENDER = 'SENDER',
+  RECEIVER = 'RECEIVER',
+}
+
+export const SIGNATURE_PARTY_ROLES = Object.values(SignaturePartyRole);
+
+export enum SignatureMethod {
+  DRAWN_SIGNATURE = 'DRAWN_SIGNATURE',
+  BIOMETRIC = 'BIOMETRIC',
+}
+
+export const SIGNATURE_METHODS = Object.values(SignatureMethod);

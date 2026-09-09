@@ -1,0 +1,119 @@
+name: Backend CI
+
+on:
+  push:
+    paths:
+      - 'backend/api/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    paths:
+      - 'backend/api/**'
+      - '.github/workflows/backend-ci.yml'
+
+defaults:
+  run:
+    working-directory: backend/api
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: machinery_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      # Not read by the unit/e2e suites — `test/setup/test-env.ts` forces `REDIS_HOST=''` for
+      # every Jest worker on purpose (dozens of specs must never share a keyspace with a real
+      # broker). Kept running for local parity with `docker-compose`/dev and for any future
+      # integration suite that does want a real broker, the way `test:integration` wants MinIO.
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: test
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: machinery_test
+      REDIS_HOST: localhost
+      REDIS_PORT: 6379
+      # There is no separate JWT_REFRESH_SECRET — refresh tokens are signed with the same
+      # JWT_ACCESS_SECRET (see `src/config/env.validation.ts`); a prior version of this
+      # workflow set one anyway, which was harmless but implied a setting that doesn't exist.
+      JWT_ACCESS_SECRET: ci_access_secret_at_least_32_characters_long
+      # Required to seed the bootstrap Director — see `src/database/seeds/seed-identity.ts`.
+      # Without it `npm run e2e:db:reset` (and therefore every e2e spec) refuses to start.
+      SEED_DIRECTOR_PHONE: '01000000000'
+      SEED_DIRECTOR_PASSWORD: 'CiDirector#2026'
+      LOG_LEVEL: silent
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/api/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # `npm run lint` itself now carries `--max-warnings=0` (`package.json`) — `no-explicit-any`
+      # was already an `eslint.config.mjs` *error*; this is what turns the `warn`-level rules
+      # (unsafe assignment/member-access, missing explicit return types) into a real failure too,
+      # locally and in CI alike, per `5.1`'s "fail on lint warnings".
+      - name: Lint (zero warnings)
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      # Fails the build on a stray TODO/FIXME/XXX marker in application or test code — `5.1`'s
+      # "fail CI on ... unresolved TODOs". `-w` avoids matching inside a longer identifier or,
+      # e.g., a documented placeholder pattern like `01XXXXXXXXX`.
+      - name: No unresolved TODOs
+        run: |
+          if grep -rnE -w 'TODO|FIXME|XXX' src test --include='*.ts'; then
+            echo "::error::Unresolved TODO/FIXME/XXX marker found — resolve it or file a tracked issue instead."
+            exit 1
+          fi
+
+      # Up once, revert all 14+ one at a time back to empty, then up again — against its own
+      # scratch database, never `machinery_test`. See `scripts/check-migrations.sh`.
+      - name: Migrations apply and revert cleanly
+        run: ./scripts/check-migrations.sh
+
+      - name: Unit tests
+        run: npm test
+
+      - name: E2E tests
+        run: npm run test:e2e
+
+      - name: Build
+        run: npm run build
+
+      # Catches a controller/DTO change nobody ran `npm run docs:generate` for. Runs after
+      # `build`/tests, not before: it boots the compiled module graph the same way the app does,
+      # so a genuinely broken module wiring fails on `build`/tests first with a clearer error.
+      - name: OpenAPI spec matches the code
+        run: npm run check:openapi

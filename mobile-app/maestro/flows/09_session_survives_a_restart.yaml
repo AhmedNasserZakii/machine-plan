@@ -1,0 +1,23 @@
+appId: com.machinery.machinery
+name: 09 — A stored session skips login on the next cold start
+tags:
+  - auth
+  - session
+---
+- runFlow: shared/reset_and_launch.yaml
+
+- runFlow:
+    file: shared/login_as.yaml
+    env:
+      PHONE: "01000000001"
+      PASSWORD: "Password1"
+
+- assertVisible: "الرئيسية"
+
+# Cold start without clearing state: the token is in secure storage, so splash
+# resolves to the app rather than the login form.
+- stopApp
+- launchApp
+
+- assertVisible: "الرئيسية"
+- assertNotVisible: "أهلًا بيك"

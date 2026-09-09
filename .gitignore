@@ -1,0 +1,9 @@
+# Root-level ignores. `backend/api/.gitignore` and `mobile-app/.gitignore` already cover their
+# own subtrees (node_modules, dist, .env*, Flutter build artifacts) — git applies nested
+# .gitignore files automatically, so this file only needs what those two don't already handle.
+
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.log

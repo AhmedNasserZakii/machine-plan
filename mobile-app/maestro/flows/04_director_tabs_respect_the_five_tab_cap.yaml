@@ -1,0 +1,35 @@
+appId: com.machinery.machinery
+name: 04 — A Director logs in and the bar caps at five tabs
+tags:
+  - auth
+  - permissions
+  - smoke
+---
+- runFlow: shared/reset_and_launch.yaml
+
+- runFlow:
+    file: shared/login_as.yaml
+    env:
+      PHONE: "01000000001"
+      PASSWORD: "Password1"
+
+- assertVisible: "الرئيسية"
+
+# Android appends "tab N of M" to each destination's accessibility label, so
+# these are substring matches rather than exact ones.
+#
+# This user holds machines/transfers/merchants/finance, but Home and More each
+# take a permanent slot, so only the first three gated tabs fit.
+- assertVisible: "(?s).*الماكينات.*"
+- assertVisible: "(?s).*التسليمات.*"
+- assertVisible: "(?s).*التجار.*"
+- assertVisible: "(?s).*المزيد.*"
+
+# Finance is permitted yet deliberately pushed out of the bar by the cap.
+- assertNotVisible: "(?s).*المالية.*"
+
+# Tabs actually switch: the placeholder page title follows the selection.
+- tapOn: "(?s).*الماكينات.*"
+- assertVisible: "الماكينات"
+- tapOn: "(?s).*التسليمات.*"
+- assertVisible: "التسليمات"

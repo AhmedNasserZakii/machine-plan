@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+#
+# Pre-commit quality gate (`5.1`'s "Husky/pre-commit checks or document the chosen equivalent").
+# Installed into `.git/hooks/pre-commit` by `backend/api/scripts/install-git-hooks.sh`, which
+# runs automatically from that package's `npm install` — see that script for why this repo uses
+# a plain hook instead of the Husky package itself.
+#
+# Only touches what is actually staged, and only the subtree(s) with staged changes: a commit
+# that touches only `mobile-app/` should not wait on the backend's ESLint, and vice versa.
+#
+set -uo pipefail
+
+# GUI git clients and some shells run hooks with a minimal PATH that never sourced a Node
+# version manager — `npx`/`node` would otherwise be "not found" even though a normal terminal
+# in this repo has them. Best-effort only: an already-working PATH is left alone.
+if ! command -v npx >/dev/null 2>&1 && [ -s "$HOME/.nvm/nvm.sh" ]; then
+  # shellcheck disable=SC1091
+  . "$HOME/.nvm/nvm.sh"
+fi
+
+repo_root="$(git rev-parse --show-toplevel)"
+staged_files="$(git diff --cached --name-only --diff-filter=ACM)"
+
+if echo "$staged_files" | grep -q '^backend/api/'; then
+  echo "pre-commit: linting staged backend/api files..."
+  (cd "$repo_root/backend/api" && npx lint-staged) || exit 1
+fi
+
+if echo "$staged_files" | grep -qE '^mobile-app/.*\.dart$'; then
+  echo "pre-commit: checking staged mobile-app Dart formatting..."
+
+  mobile_dart_files="$(echo "$staged_files" | grep -E '^mobile-app/.*\.dart$' | sed 's#^mobile-app/##')"
+
+  (
+    cd "$repo_root/mobile-app" || exit 1
+    # Format check only — this rewrites nothing on its own; a failure tells the developer to
+    # run `dart format` and re-stage, the same division of labor `lint-staged` gives the backend.
+    #
+    # Deliberately does NOT also run `flutter analyze` here: as of this hook's introduction the
+    # app has pre-existing, unrelated analyzer errors (section `13`, the Finance feature, is
+    # mid-build per `IMPLEMENTATION_TODO.md`), so gating *every* commit on a fully clean
+    # `flutter analyze` would block unrelated work too. The working rules already require
+    # `flutter analyze` to pass before closing any individual mobile checklist item — that is
+    # the right place for it, not a blanket pre-commit gate over a codebase mid-feature.
+    echo "$mobile_dart_files" | xargs dart format --output=none --set-exit-if-changed || exit 1
+  ) || exit 1
+fi
+
+exit 0

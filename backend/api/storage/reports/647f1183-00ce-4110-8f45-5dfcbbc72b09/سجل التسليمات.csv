@@ -1,0 +1,33 @@
+﻿التقرير,سجل التسليمات
+تاريخ الإصدار,2026-09-08T14:34:17.699Z
+عوامل التصفية,"from=2026-06-10, to=2026-09-08"
+
+رقم الإذن,التاريخ,النوع,الاتجاه,الحالة,الفرع,من,إلى,عدد الماكينات,أنشأه,تاريخ التأكيد
+TRF-2026-000088,2026-09-08,COMPANY_TO_BRANCH,OUT,CONFIRMED,فرع التقارير الآخر,— (WAREHOUSE),مشرف الفرع الآخر (SUPERVISOR),1,مدير النظام,2026-09-08
+TRF-2026-000087,2026-09-08,COMPANY_TO_BRANCH,OUT,PENDING,فرع التقارير,— (WAREHOUSE),مشرف التقارير (SUPERVISOR),1,مدير النظام,
+TRF-2026-000086,2026-09-08,BRANCH_TO_REPRESENTATIVE,OUT,CONFIRMED,فرع التقارير,مشرف التقارير (SUPERVISOR),مندوب التقارير (REPRESENTATIVE),1,مشرف التقارير,2026-09-08
+TRF-2026-000085,2026-09-08,COMPANY_TO_BRANCH,OUT,CONFIRMED,فرع التقارير,— (WAREHOUSE),مشرف التقارير (SUPERVISOR),1,مدير النظام,2026-09-08
+TRF-2026-000084,2026-09-08,COMPANY_TO_BRANCH,OUT,PENDING,فرع الإشعارات,— (WAREHOUSE),مشرف الإشعارات (SUPERVISOR),1,مدير النظام,
+TRF-2026-000083,2026-09-08,COMPANY_TO_BRANCH,OUT,PENDING,فرع الإشعارات,— (WAREHOUSE),مشرف الإشعارات (SUPERVISOR),1,مدير النظام,
+TRF-2026-000082,2026-09-08,COMPANY_TO_BRANCH,OUT,PENDING,فرع الإشعارات,— (WAREHOUSE),مشرف الإشعارات (SUPERVISOR),1,مدير النظام,
+TRF-2026-000081,2026-09-08,COMPANY_TO_BRANCH,OUT,PENDING,فرع الإشعارات,— (WAREHOUSE),مشرف الإشعارات (SUPERVISOR),1,مدير النظام,
+TRF-2026-000080,2026-09-08,COMPANY_TO_BRANCH,OUT,PENDING,فرع الإشعارات,— (WAREHOUSE),مشرف الإشعارات (SUPERVISOR),1,مدير النظام,
+TRF-2026-000079,2026-09-08,COMPANY_TO_BRANCH,OUT,PENDING,فرع الإشعارات,— (WAREHOUSE),مشرف الإشعارات (SUPERVISOR),1,مدير النظام,
+TRF-2026-000078,2026-09-08,COMPANY_TO_BRANCH,OUT,PENDING,فرع الإشعارات,— (WAREHOUSE),مشرف الإشعارات (SUPERVISOR),1,مدير النظام,
+TRF-2026-000077,2026-09-08,COMPANY_TO_BRANCH,OUT,PENDING,فرع الإشعارات,— (WAREHOUSE),مشرف الإشعارات (SUPERVISOR),1,مدير النظام,
+TRF-2026-000076,2026-09-08,COMPANY_TO_BRANCH,OUT,PENDING,فرع الإشعارات,— (WAREHOUSE),مشرف الإشعارات (SUPERVISOR),1,مدير النظام,
+TRF-2026-000075,2026-09-08,COMPANY_TO_BRANCH,OUT,PENDING,فرع الإشعارات,— (WAREHOUSE),مشرف الإشعارات (SUPERVISOR),1,مدير النظام,
+TRF-2026-000074,2026-09-08,COMPANY_TO_BRANCH,OUT,PENDING,فرع الإشعارات,— (WAREHOUSE),مشرف الإشعارات (SUPERVISOR),1,مدير النظام,
+TRF-2026-000073,2026-09-08,REPRESENTATIVE_TO_BRANCH,RETURN,REJECTED,فرع الإشعارات,مندوب الإشعارات (REPRESENTATIVE),مشرف الإشعارات (SUPERVISOR),1,مندوب الإشعارات,
+TRF-2026-000072,2026-09-08,BRANCH_TO_REPRESENTATIVE,OUT,CONFIRMED,فرع الإشعارات,مشرف الإشعارات (SUPERVISOR),مندوب الإشعارات (REPRESENTATIVE),1,مشرف الإشعارات,2026-09-08
+TRF-2026-000071,2026-09-08,COMPANY_TO_BRANCH,OUT,CONFIRMED,فرع الإشعارات,— (WAREHOUSE),مشرف الإشعارات (SUPERVISOR),1,مدير النظام,2026-09-08
+TRF-2026-000070,2026-09-08,COMPANY_TO_BRANCH,OUT,CONFIRMED,فرع الإشعارات,— (WAREHOUSE),مشرف الإشعارات (SUPERVISOR),1,مدير النظام,2026-09-08
+TRF-2026-000069,2026-09-08,COMPANY_TO_BRANCH,OUT,PENDING,فرع الإشعارات,— (WAREHOUSE),مشرف الإشعارات (SUPERVISOR),1,مدير النظام,
+TRF-2026-000068,2026-09-08,COMPANY_TO_BRANCH,OUT,PENDING,فرع الإشعارات,— (WAREHOUSE),مشرف الإشعارات (SUPERVISOR),1,مدير النظام,
+TRF-2026-000067,2026-09-08,COMPANY_TO_BRANCH,OUT,PENDING,فرع الإشعارات,— (WAREHOUSE),مشرف الإشعارات (SUPERVISOR),1,مدير النظام,
+TRF-2026-000066,2026-09-08,COMPANY_TO_BRANCH,OUT,PENDING,فرع الإشعارات,— (WAREHOUSE),مشرف الإشعارات (SUPERVISOR),1,مدير النظام,
+TRF-2026-000065,2026-09-08,COMPANY_TO_BRANCH,OUT,PENDING,فرع الإشعارات,— (WAREHOUSE),مشرف الإشعارات (SUPERVISOR),1,مدير النظام,
+TRF-2026-000064,2026-09-08,COMPANY_TO_BRANCH,OUT,PENDING,فرع الإشعارات,— (WAREHOUSE),مشرف الإشعارات (SUPERVISOR),1,مدير النظام,
+TRF-2026-000063,2026-09-08,BRANCH_TO_COMPANY,RETURN,CONFIRMED,فرع الصيانة,مشرف الصيانة (SUPERVISOR),مخزن الشركة الرئيسي (WAREHOUSE),1,مشرف الصيانة,2026-09-08
+TRF-2026-000062,2026-09-08,COMPANY_TO_BRANCH,OUT,CONFIRMED,فرع الصيانة,— (WAREHOUSE),مشرف الصيانة (SUPERVISOR),1,مدير النظام,2026-09-08
+TRF-2026-000010,2026-09-08,COMPANY_TO_BRANCH,OUT,PENDING,فرع الصيانة,— (WAREHOUSE),مشرف الصيانة (SUPERVISOR),1,مدير النظام,

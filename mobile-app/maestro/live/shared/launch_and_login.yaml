@@ -1,0 +1,27 @@
+appId: com.machinery.machinery
+name: Cold-start against the live API and sign in as the director
+---
+# The live flows write real rows, so they never reset the server the way the
+# mock flows do. They only reset the device, and every record they create is
+# named with a run-unique suffix so a second run does not collide with the
+# first.
+- clearState
+- launchApp:
+    clearKeychain: true
+
+- assertVisible:
+    id: "login_phone_field"
+- tapOn:
+    id: "login_phone_field"
+- inputText: ${PHONE}
+- tapOn:
+    id: "login_password_field"
+- inputText: ${PASSWORD}
+- hideKeyboard
+- tapOn:
+    id: "login_submit_button"
+
+# The director lands straight on the home tab; no forced password change.
+- extendedWaitUntil:
+    visible: "الرئيسية"
+    timeout: 25000

@@ -1,0 +1,29 @@
+appId: com.machinery.machinery
+name: 05 — An Accountant gets a smaller bar from the same code path
+tags:
+  - auth
+  - permissions
+---
+- runFlow: shared/reset_and_launch.yaml
+
+- runFlow:
+    file: shared/login_as.yaml
+    env:
+      PHONE: "01000000005"
+      PASSWORD: "Password1"
+
+# The Accountant holds machines.read and finance.read but neither
+# transfers.read nor merchants.read, so the bar comes out one shorter than the
+# Director's — from the same builder, driven only by the permission list.
+- assertVisible: "الرئيسية"
+- assertVisible: "(?s).*الماكينات.*"
+- assertVisible: "(?s).*المالية.*"
+- assertVisible: "(?s).*المزيد.*"
+
+- assertNotVisible: "(?s).*التسليمات.*"
+- assertNotVisible: "(?s).*التجار.*"
+
+# Finance fits here precisely because two operations tabs dropped out — the
+# same tab the Director loses to the five-tab cap.
+- tapOn: "(?s).*المالية.*"
+- assertVisible: "المالية"

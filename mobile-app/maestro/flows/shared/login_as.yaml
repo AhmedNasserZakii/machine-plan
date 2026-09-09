@@ -1,0 +1,18 @@
+appId: com.machinery.machinery
+name: Fill the login form and submit
+---
+# Expects PHONE and PASSWORD in env. Leaves the app wherever login lands it,
+# so callers can assert on the main scaffold or the forced change-password
+# screen themselves.
+- tapOn:
+    id: "login_phone_field"
+- inputText: ${PHONE}
+- tapOn:
+    id: "login_password_field"
+- inputText: ${PASSWORD}
+- hideKeyboard
+- assertVisible:
+    id: "login_submit_button"
+    enabled: true
+- tapOn:
+    id: "login_submit_button"

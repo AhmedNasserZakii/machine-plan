@@ -1,0 +1,18 @@
+appId: com.machinery.machinery
+name: 03 — A 400 with field details renders inline under the phone field
+tags:
+  - auth
+---
+- runFlow: shared/reset_and_launch.yaml
+
+# This number is well-formed, so client validation passes and the request is
+# actually sent. The backend is what rejects it.
+- runFlow:
+    file: shared/login_as.yaml
+    env:
+      PHONE: "01000000009"
+      PASSWORD: "Password1"
+
+# `error.details[].field` is mapped onto the matching input.
+- assertVisible: "رقم الموبايل ده مش مسجل."
+- assertVisible: "أهلًا بيك"

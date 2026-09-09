@@ -1,0 +1,87 @@
+name: machinery
+description: "Machine Lifecycle & Finance System — field operations app."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # State management
+  flutter_bloc: ^9.1.1
+  hydrated_bloc: ^11.0.0
+  equatable: ^2.0.5
+
+  # Networking
+  dio: ^5.9.2
+  connectivity_plus: ^7.0.0
+  dartz: ^0.10.1
+
+  # Dependency injection
+  get_it: ^9.2.1
+
+  # Storage
+  flutter_secure_storage: ^11.0.0
+  shared_preferences: ^2.5.3
+  sqflite: ^2.4.2
+  path_provider: ^2.1.5
+  path: ^1.9.1
+
+  # Field capture
+  local_auth: ^2.3.0
+  mobile_scanner: ^7.1.4
+  signature: ^6.3.0
+  device_info_plus: ^13.2.0
+
+  # Localization
+  easy_localization: ^3.0.8
+  intl: ^0.20.2
+
+  # UI
+  flutter_svg: ^2.2.4
+  google_fonts: ^8.0.2
+  cached_network_image: ^3.4.1
+  loading_animation_widget: ^1.3.0
+  elegant_notification: ^2.5.1
+  skeletonizer: ^2.1.3
+  auto_size_text: ^3.0.0
+  lottie: ^3.3.1
+
+  # Media & files
+  image_picker: ^1.1.2
+  flutter_image_compress: ^2.3.0
+  share_plus: ^13.3.0
+  open_filex: ^4.7.0
+  url_launcher: ^6.3.2
+
+  # Debug tooling
+  device_preview: ^1.3.1
+  crypto: ^3.0.7
+  uuid: ^4.6.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+
+  # `6.1`: exercises the real sqflite schema/migration code against the FFI
+  # (desktop sqlite3) backend in the Dart VM test runner — plain `sqflite`
+  # only has a platform channel implementation, which unit tests cannot use.
+  sqflite_common_ffi: ^2.3.4
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/translations/
+    - assets/animations/

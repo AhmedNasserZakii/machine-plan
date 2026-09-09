@@ -1,0 +1,37 @@
+appId: com.machinery.machinery
+name: 10 — A dead backend must not lock a logged-in user out
+tags:
+  - auth
+  - session
+  - offline
+---
+- runFlow: shared/reset_and_launch.yaml
+
+- runFlow:
+    file: shared/login_as.yaml
+    env:
+      PHONE: "01000000003"
+      PASSWORD: "Password1"
+
+- assertVisible: "الرئيسية"
+
+# Take the backend down. /auth/me now fails with a non-401, which is the case
+# a representative hits in a village with no signal.
+- evalScript: "${http.post('http://127.0.0.1:8787/api/v1/test/network', { body: '{\"down\": true}' })}"
+
+- stopApp
+- launchApp
+
+# The cached profile carries the permissions, so the gated bar comes back whole
+# rather than collapsing to a bare Home tab. All three of the Representative's
+# operations tabs have to survive the restart, not just the first one.
+- assertVisible: "الرئيسية"
+- assertVisible: "(?s).*الماكينات.*"
+- assertVisible: "(?s).*التسليمات.*"
+- assertVisible: "(?s).*التجار.*"
+
+# Still gated, though: no finance.read in the cached list means no finance tab.
+- assertNotVisible: "(?s).*المالية.*"
+- assertNotVisible: "أهلًا بيك"
+
+- evalScript: "${http.post('http://127.0.0.1:8787/api/v1/test/network', { body: '{\"down\": false}' })}"

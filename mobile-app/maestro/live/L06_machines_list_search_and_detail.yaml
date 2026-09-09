@@ -1,0 +1,40 @@
+appId: com.machinery.machinery
+name: L06 — The machines register lists, searches and opens a real machine
+tags:
+  - live
+  - machines
+---
+# The seeded database carries machines SN-1001 upward, so this reads real rows
+# rather than asserting an empty state.
+- runFlow:
+    file: shared/launch_and_login.yaml
+    env:
+      PHONE: "01000000001"
+      PASSWORD: "Dev#12345"
+
+- tapOn: "(?s).*الماكينات.*"
+- extendedWaitUntil:
+    visible:
+      id: "machines_search_field"
+    timeout: 20000
+
+# Search by serial narrows to the one machine.
+- tapOn:
+    id: "machines_search_field"
+- inputText: "SN-1001"
+- extendedWaitUntil:
+    visible: "(?s).*SN-1001.*"
+    timeout: 20000
+
+# The card is keyed by serial, so it can be tapped directly. Tapping the text
+# would be ambiguous — the same serial is sitting in the search box.
+- tapOn:
+    id: "machine_card_SN-1001"
+
+# The detail screen reads the machine back through GET /machines/:id, which
+# carries the warranty window and the holder the list row leaves out.
+- extendedWaitUntil:
+    visible: "(?s).*هوية الوحدة.*"
+    timeout: 20000
+- assertVisible: "(?s).*الضمان.*"
+- assertVisible: "(?s).*SN-1001.*"

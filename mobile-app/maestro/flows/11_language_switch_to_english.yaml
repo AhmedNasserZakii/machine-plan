@@ -1,0 +1,24 @@
+appId: com.machinery.machinery
+name: 11 — Switching to English re-renders the login screen and persists
+tags:
+  - l10n
+---
+- runFlow: shared/reset_and_launch.yaml
+
+# Arabic is the default, not a fallback.
+- assertVisible: "أهلًا بيك"
+- assertVisible: "العربية"
+
+- tapOn: "العربية"
+- assertVisible: "لغة التطبيق"
+- tapOn: "الإنجليزية"
+
+- assertVisible: "Welcome back"
+- assertVisible: "Log in to get on with your work"
+- assertVisible: "Phone number"
+- assertNotVisible: "أهلًا بيك"
+
+# The choice is written to preferences, so a cold start keeps it.
+- stopApp
+- launchApp
+- assertVisible: "Welcome back"

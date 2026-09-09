@@ -1,0 +1,65 @@
+appId: com.machinery.machinery
+name: L05 — The violations register opens from More and its filters hold
+tags:
+  - live
+  - violations
+---
+# Violations are reached from More rather than the tab bar, because the bar is
+# capped at five and this is a supervisor's screen, not a daily one.
+- runFlow:
+    file: shared/launch_and_login.yaml
+    env:
+      PHONE: "01000000001"
+      PASSWORD: "Dev#12345"
+
+- tapOn: "(?s).*المزيد.*"
+- extendedWaitUntil:
+    visible:
+      id: "more_violations_tile"
+    timeout: 15000
+- tapOn:
+    id: "more_violations_tile"
+
+# The list loads from GET /violations. The seeded database has the violation
+# this suite's own runs raised, so the register is not empty.
+- extendedWaitUntil:
+    visible:
+      id: "violations_filter_button"
+    timeout: 20000
+
+# The filter sheet is populated from the live lookup table, so the violation
+# types it offers are the seven the server actually knows about.
+- tapOn:
+    id: "violations_filter_button"
+- extendedWaitUntil:
+    visible: "(?s).*فلترة المخالفات.*"
+    timeout: 15000
+- assertVisible: "(?s).*الحالة.*"
+- assertVisible: "(?s).*الدرجة.*"
+- assertVisible: "(?s).*نوع المخالفة.*"
+
+# Narrow to open violations only and apply.
+- tapOn: "(?s).*مفتوحة.*"
+- tapOn:
+    id: "violations_filter_apply"
+
+# The filter survives the round trip: the button now carries a badge counting
+# the one filter in force.
+- extendedWaitUntil:
+    visible:
+      id: "violations_filter_button"
+    timeout: 20000
+
+# Clearing gets back to the unfiltered register rather than an empty screen.
+- tapOn:
+    id: "violations_filter_button"
+- extendedWaitUntil:
+    visible: "(?s).*الحالة.*"
+    timeout: 15000
+- tapOn: "(?s).*مفتوحة.*"
+- tapOn:
+    id: "violations_filter_apply"
+- extendedWaitUntil:
+    visible:
+      id: "violations_filter_button"
+    timeout: 20000

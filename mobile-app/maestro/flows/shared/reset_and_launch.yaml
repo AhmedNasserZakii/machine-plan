@@ -1,0 +1,9 @@
+appId: com.machinery.machinery
+name: Reset mock backend and cold-start the app
+---
+# The mock backend keeps mutable state (passwords, mustChangePassword), so
+# every flow starts from a known server AND a known device.
+- evalScript: "${http.post('http://127.0.0.1:8787/api/v1/test/reset', { body: '{}' })}"
+- clearState
+- launchApp:
+    clearKeychain: true

@@ -1,0 +1,49 @@
+appId: com.machinery.machinery
+name: 14 — Logout confirms, returns to login, and does not leave a session behind
+tags:
+  - auth
+  - more
+  - smoke
+---
+- runFlow: shared/reset_and_launch.yaml
+
+- runFlow:
+    file: shared/login_as.yaml
+    env:
+      PHONE: "01000000001"
+      PASSWORD: "Password1"
+
+- tapOn: "(?s).*المزيد.*"
+
+# Logout is the last row, past the fold for a user who unlocks every section.
+- scrollUntilVisible:
+    element:
+      id: "more_logout_tile"
+    direction: DOWN
+- tapOn:
+    id: "more_logout_tile"
+
+# Never a one-tap logout. The dialog merges its title and body into one node.
+- assertVisible: "(?s).*متأكد إنك عايز تخرج؟.*"
+
+# Cancelling leaves the session untouched.
+- tapOn:
+    id: "logout_cancel_button"
+- assertVisible:
+    id: "more_logout_tile"
+
+- tapOn:
+    id: "more_logout_tile"
+- assertVisible: "(?s).*متأكد إنك عايز تخرج؟.*"
+
+# By id, because the confirm button repeats the label of the tile behind it.
+- tapOn:
+    id: "logout_confirm_button"
+
+- assertVisible: "أهلًا بيك"
+
+# The tokens are gone, so a cold start cannot walk back into the app.
+- stopApp
+- launchApp
+- assertVisible: "أهلًا بيك"
+- assertNotVisible: "الرئيسية"

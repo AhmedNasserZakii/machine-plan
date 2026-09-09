@@ -1,0 +1,124 @@
+appId: com.machinery.machinery
+name: L04 — A merchant gets a plan and a collection is recorded against it
+tags:
+  - live
+  - merchants
+---
+# Collecting is where the merchant screens meet the money. The plan is created
+# overdue on its own start date, and taking a payment has to move the due date
+# forward — otherwise every collected merchant would still read as owing.
+- runFlow:
+    file: shared/launch_and_login.yaml
+    env:
+      PHONE: "01000000001"
+      PASSWORD: "Dev#12345"
+
+- evalScript: |
+    ${
+      output.suffix = String(Date.now()).slice(-8);
+      output.shop = 'محل الاشتراك ' + output.suffix;
+      output.phone = '010' + output.suffix;
+      output.nationalId = '298010' + output.suffix;
+    }
+
+- tapOn: "(?s).*التجار.*"
+- extendedWaitUntil:
+    visible:
+      id: "merchants_add_button"
+    timeout: 15000
+- tapOn:
+    id: "merchants_add_button"
+- extendedWaitUntil:
+    visible:
+      id: "merchant_form_shop_name"
+    timeout: 15000
+
+- tapOn:
+    id: "merchant_form_shop_name"
+- inputText: ${output.shop}
+- tapOn:
+    id: "merchant_form_name"
+- inputText: "صاحب محل الاشتراك"
+- tapOn:
+    id: "merchant_form_phone"
+- inputText: ${output.phone}
+- tapOn:
+    id: "merchant_form_address"
+- inputText: "شارع الجيش، المنصورة"
+- tapOn:
+    id: "merchant_form_national_id"
+- inputText: ${output.nationalId}
+- hideKeyboard
+- tapOn:
+    id: "merchant_form_submit"
+
+- extendedWaitUntil:
+    visible: "(?s).*${output.shop}.*"
+    timeout: 20000
+
+# Search narrows the list to the one row, so the tap cannot land on a
+# neighbouring card as the list grows run after run.
+- tapOn:
+    id: "merchants_search_field"
+- inputText: ${output.suffix}
+# No hideKeyboard here: the search bar drops focus on its own, and a back press
+# with no keyboard up would leave the app rather than dismiss anything.
+- extendedWaitUntil:
+    visible: "(?s).*${output.shop}.*"
+    timeout: 20000
+- tapOn: "(?s).*صاحب محل الاشتراك.*"
+
+# A merchant with no plan yet: the add button is the only subscription action.
+- extendedWaitUntil:
+    visible:
+      id: "subscription_add_button"
+    timeout: 15000
+- tapOn:
+    id: "subscription_add_button"
+
+- extendedWaitUntil:
+    visible:
+      id: "subscription_amount"
+    timeout: 15000
+- tapOn:
+    id: "subscription_amount"
+- inputText: "500"
+- hideKeyboard
+- tapOn:
+    id: "subscription_submit"
+
+# A monthly plan created today is due today — not yet late, so the badge reads
+# the plan type rather than a warning.
+- extendedWaitUntil:
+    visible: "(?s).*شهري.*"
+    timeout: 20000
+- assertVisible: "(?s).*500.*"
+
+# Collect the 500 in cash. The payment methods come from the live lookup table,
+# so this also proves GET /payment-methods is reachable and parsed.
+- tapOn: "(?s).*تحصيل.*"
+- extendedWaitUntil:
+    visible:
+      id: "collect_amount"
+    timeout: 15000
+- tapOn:
+    id: "collect_amount"
+- inputText: "500"
+- hideKeyboard
+- tapOn: "(?s).*نقدي.*"
+- tapOn:
+    id: "collect_submit"
+
+# The collection is what moves the plan on: the server advances the due date by
+# a month, and the screen reflects the server's answer rather than guessing.
+- extendedWaitUntil:
+    visible: "(?s).*2026/10/08.*"
+    timeout: 20000
+
+# It also lands in the merchant's timeline, which the server assembles from the
+# plan and the payment together.
+- scrollUntilVisible:
+    element:
+      text: "(?s).*السجل.*"
+    direction: DOWN
+    timeout: 15000

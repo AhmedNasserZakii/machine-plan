@@ -1,0 +1,39 @@
+appId: com.machinery.machinery
+name: 13 — A Representative gets no reports or user administration in More
+tags:
+  - permissions
+  - more
+---
+- runFlow: shared/reset_and_launch.yaml
+
+- runFlow:
+    file: shared/login_as.yaml
+    env:
+      PHONE: "01000000003"
+      PASSWORD: "Password1"
+
+# merchants.read is part of the real Representative grant, so the merchants tab
+# is present here even though finance is not.
+- assertVisible: "(?s).*التجار.*"
+- assertNotVisible: "(?s).*المالية.*"
+
+- tapOn: "(?s).*المزيد.*"
+
+- assertVisible: "(?s).*محمود توباي.*"
+- assertVisible: "(?s).*فرع المنصورة.*"
+
+# A Representative holds no reports.* code and no users.read, so those rows are
+# never rendered — the user never sees a link to a screen the server would
+# reject anyway.
+- assertNotVisible:
+    id: "more_reports_tile"
+- assertNotVisible:
+    id: "more_users_tile"
+
+# Everything that does not need a permission is still there.
+- assertVisible:
+    id: "more_notifications_tile"
+- assertVisible:
+    id: "more_language_tile"
+- assertVisible:
+    id: "more_logout_tile"

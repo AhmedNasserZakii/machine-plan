@@ -1,0 +1,21 @@
+export enum MachineStatus {
+  IN_COMPANY_WAREHOUSE = 'IN_COMPANY_WAREHOUSE',
+  IN_BRANCH_WAREHOUSE = 'IN_BRANCH_WAREHOUSE',
+  WITH_SUPERVISOR = 'WITH_SUPERVISOR',
+  WITH_REPRESENTATIVE = 'WITH_REPRESENTATIVE',
+  WITH_MERCHANT = 'WITH_MERCHANT',
+  IN_TRANSIT = 'IN_TRANSIT',
+  UNDER_MAINTENANCE = 'UNDER_MAINTENANCE',
+  AT_FACTORY = 'AT_FACTORY',
+  AT_SERVICE_CENTER = 'AT_SERVICE_CENTER',
+  DECOMMISSIONED = 'DECOMMISSIONED',
+  REPLACED = 'REPLACED',
+}
+
+export const MACHINE_STATUSES = Object.values(MachineStatus);
+
+/** Statuses in which a machine is no longer part of the active fleet. */
+export const TERMINAL_MACHINE_STATUSES: readonly MachineStatus[] = [
+  MachineStatus.DECOMMISSIONED,
+  MachineStatus.REPLACED,
+];

@@ -1,0 +1,101 @@
+appId: com.machinery.machinery
+name: L03 — A repeated national ID blocks the form before it is submitted
+tags:
+  - live
+  - merchants
+---
+# The register-merchant form checks for duplicates while the representative is
+# still typing. A repeated phone only warns — two brothers can share a number —
+# but a repeated national ID is refused server-side, so the form refuses it
+# first rather than collecting a full record and then losing it.
+- runFlow:
+    file: shared/launch_and_login.yaml
+    env:
+      PHONE: "01000000001"
+      PASSWORD: "Dev#12345"
+
+- evalScript: |
+    ${
+      output.suffix = String(Date.now()).slice(-8);
+      output.shop = 'محل المكرر ' + output.suffix;
+      output.phone = '010' + output.suffix;
+      output.nationalId = '298010' + output.suffix;
+    }
+
+- tapOn: "(?s).*التجار.*"
+- extendedWaitUntil:
+    visible:
+      id: "merchants_add_button"
+    timeout: 15000
+
+# First registration: clean, and it establishes the ID that the second one
+# will collide with.
+- tapOn:
+    id: "merchants_add_button"
+- tapOn:
+    id: "merchant_form_shop_name"
+- inputText: ${output.shop}
+- tapOn:
+    id: "merchant_form_name"
+- inputText: "صاحب المحل الأول"
+- tapOn:
+    id: "merchant_form_phone"
+- inputText: ${output.phone}
+- tapOn:
+    id: "merchant_form_address"
+- inputText: "شارع الجمهورية، المنصورة"
+- tapOn:
+    id: "merchant_form_national_id"
+- inputText: ${output.nationalId}
+- hideKeyboard
+- tapOn:
+    id: "merchant_form_submit"
+- extendedWaitUntil:
+    visible: "(?s).*${output.shop}.*"
+    timeout: 20000
+
+# Second registration, same national ID and same phone.
+- tapOn:
+    id: "merchants_add_button"
+- extendedWaitUntil:
+    visible:
+      id: "merchant_form_shop_name"
+    timeout: 15000
+- tapOn:
+    id: "merchant_form_shop_name"
+- inputText: "محل آخر ${output.suffix}"
+- tapOn:
+    id: "merchant_form_name"
+- inputText: "صاحب المحل الثاني"
+- tapOn:
+    id: "merchant_form_phone"
+- inputText: ${output.phone}
+- tapOn:
+    id: "merchant_form_address"
+- inputText: "شارع آخر، المنصورة"
+- tapOn:
+    id: "merchant_form_national_id"
+- inputText: ${output.nationalId}
+- hideKeyboard
+
+# The check debounces both identity fields together, so give it and the round
+# trip room. Both collisions are reported, not just the fatal one.
+- extendedWaitUntil:
+    visible: "(?s).*تقدر تكمّل لو متأكد إنه شخص مختلف.*"
+    timeout: 15000
+- assertVisible: "(?s).*مينفعش تسجّله مرتين.*"
+
+# Submission is barred while the national ID collision stands. The phone
+# warning alone would not have been enough to disable it.
+- assertVisible:
+    id: "merchant_form_submit"
+    enabled: false
+
+# The notice names the shop already holding the ID, so the representative can
+# recognise it rather than just being told a number is taken. It sits below the
+# warnings, which on a short screen means scrolling to it.
+- scrollUntilVisible:
+    element:
+      text: "(?s).*${output.shop}.*"
+    direction: DOWN
+    timeout: 15000
