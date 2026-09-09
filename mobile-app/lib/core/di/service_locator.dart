@@ -36,6 +36,9 @@ import 'package:machinery/feature/finance/data/logic/finance_overview/finance_ov
 import 'package:machinery/feature/finance/data/logic/transactions/finance_transactions_cubit.dart';
 import 'package:machinery/feature/finance/domain/repos/finance_repo.dart';
 import 'package:machinery/feature/finance/domain/repos/finance_repo_impl.dart';
+import 'package:machinery/feature/home/data/logic/home_dashboard_cubit.dart';
+import 'package:machinery/feature/home/domain/repos/home_repo.dart';
+import 'package:machinery/feature/home/domain/repos/home_repo_impl.dart';
 import 'package:machinery/feature/machines/data/logic/machine_form/machine_form_cubit.dart';
 import 'package:machinery/feature/machines/data/logic/machines_list/machines_list_cubit.dart';
 import 'package:machinery/feature/machines/domain/entities/machine_entity.dart';
@@ -350,6 +353,23 @@ void setupServiceLocator(AppDatabase appDatabase) {
   getIt.registerFactoryParam<ViolationSummaryCubit, String, void>(
     (String userId, _) =>
         ViolationSummaryCubit(violationsRepo: getIt(), userId: userId),
+  );
+
+  // ── Home dashboard ───────────────────────────────────────────────────────
+  getIt.registerLazySingleton<HomeRepo>(
+    () => HomeRepoImpl(
+      apiService: getIt(),
+      networkInfo: getIt(),
+      machinesRepo: getIt(),
+      transfersRepo: getIt(),
+      merchantsRepo: getIt(),
+      violationsRepo: getIt(),
+      financeRepo: getIt(),
+    ),
+  );
+
+  getIt.registerFactory<HomeDashboardCubit>(
+    () => HomeDashboardCubit(repo: getIt(), permissionService: getIt()),
   );
 }
 

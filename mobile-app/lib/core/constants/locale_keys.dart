@@ -175,6 +175,20 @@ class LocaleKeys {
   static const String navFinance = 'nav_finance';
   static const String navMore = 'nav_more';
 
+  // ── Home dashboard ───────────────────────────────────────────────────────
+  static const String homeOverviewSection = 'home_overview_section';
+  static const String homeQuickActionsSection = 'home_quick_actions_section';
+  static const String homeInYourScope = 'home_in_your_scope';
+  static const String homeTransfersSubtitle = 'home_transfers_subtitle';
+  static const String homeViolationsSubtitle = 'home_violations_subtitle';
+  static const String homeMaintenanceTitle = 'home_maintenance_title';
+  static const String homeMaintenanceSubtitle = 'home_maintenance_subtitle';
+  static const String homeFinanceSubtitle = 'home_finance_subtitle';
+  static const String homeBudgetsSubtitle = 'home_budgets_subtitle';
+  static const String homeBlockOffline = 'home_block_offline';
+  static const String homeLastUpdated = 'home_last_updated';
+  static const String homeNoBlocksAvailable = 'home_no_blocks_available';
+
   // ── Finance ─────────────────────────────────────────────────────────────
   static const String financeTitle = 'finance_title';
   static const String financeIncome = 'finance_income';

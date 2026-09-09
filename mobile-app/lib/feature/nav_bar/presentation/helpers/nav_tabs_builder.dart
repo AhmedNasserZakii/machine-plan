@@ -8,11 +8,12 @@ import 'package:machinery/feature/machines/data/logic/machines_list/machines_lis
 import 'package:machinery/feature/finance/data/logic/finance_overview/finance_overview_cubit.dart';
 import 'package:machinery/feature/finance/presentation/pages/finance_overview_screen.dart';
 import 'package:machinery/feature/machines/presentation/pages/machines_list_screen.dart';
+import 'package:machinery/feature/home/data/logic/home_dashboard_cubit.dart';
+import 'package:machinery/feature/home/presentation/pages/home_dashboard_screen.dart';
 import 'package:machinery/feature/merchants/data/logic/merchants_list/merchants_list_cubit.dart';
 import 'package:machinery/feature/merchants/presentation/pages/merchants_list_screen.dart';
 import 'package:machinery/feature/more/presentation/pages/more_screen.dart';
 import 'package:machinery/feature/nav_bar/presentation/models/nav_tab.dart';
-import 'package:machinery/feature/nav_bar/presentation/widgets/nav_placeholder_page.dart';
 import 'package:machinery/feature/transfers/data/logic/transfers_list/transfers_list_cubit.dart';
 import 'package:machinery/feature/transfers/presentation/pages/transfers_list_screen.dart';
 
@@ -81,9 +82,9 @@ abstract class NavTabsBuilder {
   }
 }
 
-Widget _buildHome() => const NavPlaceholderPage(
-  titleKey: LocaleKeys.navHome,
-  icon: Icons.home_outlined,
+Widget _buildHome() => BlocProvider<HomeDashboardCubit>(
+  create: (_) => getIt<HomeDashboardCubit>(),
+  child: const HomeDashboardScreen(),
 );
 
 Widget _buildMachines() => BlocProvider<MachinesListCubit>(

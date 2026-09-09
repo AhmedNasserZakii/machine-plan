@@ -1107,17 +1107,186 @@ independent of what the app itself reports.
 
 ---
 
-## 7. Flutter home dashboard
+## 7. Flutter home dashboard — done 2026-09-09
 
-- [ ] Replace the Home placeholder with the planned dashboard.
-- [ ] Implement permission-driven dashboard blocks for Director, supervisor, representative, and
+Every tile reuses the same repository its own feature tab already uses (`MachinesRepo`,
+`TransfersRepo`, `MerchantsRepo`, `ViolationsRepo`, `FinanceRepo`), called with `limit: 1` and read
+only for `meta.total` — so a tile's number is always exactly what tapping through to that screen
+would show, and each tile inherits that repository's own already-tested network-first/cache-fallback
+behaviour for free instead of a second, subtly different implementation of it. Maintenance has no
+repository yet (section 11 is not built), so its tile reads the same `GET /maintenance-orders` list
+endpoint directly through `ApiService` for its `meta.total` alone. Section 6 only mirrors
+machines/transfers/merchants locally, so violations/maintenance/finance/budgets have no offline
+story — the dashboard says so plainly (`غير متاح دون اتصال` / "Unavailable offline") instead of
+guessing.
+
+- [x] Replace the Home placeholder with the planned dashboard.
+      `nav_tabs_builder.dart`'s `_buildHome()` returned a `NavPlaceholderPage` (a static empty-state
+      widget with no data). It now returns `HomeDashboardScreen` wrapped in its own
+      `BlocProvider<HomeDashboardCubit>`. The now-unused `NavPlaceholderPage` widget was deleted
+      (nothing else referenced it — confirmed with a repo-wide grep before removing).
+
+- [x] Implement permission-driven dashboard blocks for Director, supervisor, representative, and
       accountant access patterns without hardcoded role checks.
-- [ ] Add machine, transfer, merchant, violation, maintenance, finance, and budget summary blocks as
+      `HomeDashboardCubit.load()` gates every one of the seven tiles on a `PermissionService.has(...)`
+      check (`P.machinesRead`, `P.transfersRead`, `P.merchantsRead`, `P.violationsRead`,
+      `P.maintenanceRead`, `P.financeRead` for both the finance and budgets tiles — there is no
+      separate `budgets.read` permission, matching how the Finance tab itself gates its own budget
+      alerts card). A permission the caller lacks leaves that field `null` in `HomeDashboardLoaded`,
+      which `HomeDashboardScreen` reads as "do not render this card" — never as a failure — and the
+      repo method for that tile is never even called (verified in
+      `home_dashboard_cubit_test.dart`: `repo.merchantsCalls == 0` etc. for a representative-shaped
+      permission set). No role name (`SystemRole.DIRECTOR`, `"representative"`, ...) appears anywhere
+      in the dashboard code; only permission strings do. Live-verified against the real backend with
+      two real seeded accounts holding genuinely different permission sets (below).
+
+- [x] Add machine, transfer, merchant, violation, maintenance, finance, and budget summary blocks as
       permitted.
-- [ ] Add permission-filtered quick actions.
-- [ ] Render cached data offline with last-updated information.
-- [ ] Add pull-to-refresh and partial-failure handling.
-- [ ] Add RTL/LTR widget tests for the main role/permission combinations.
+      - **Machines** — `MachinesRepo.fetchMachines(limit: 1).meta.total`, labelled "in your scope"
+        (the server already narrows this to one branch unless the caller holds `machines.read.all`,
+        so the number is never pretended to be "the whole fleet").
+      - **Transfers** — `TransfersRepo.fetchTransfers(scope: incoming, limit: 1).meta.total`,
+        labelled "awaiting your signature" — the one transfer scope section 6's cache also holds, so
+        this tile is the one that stays meaningful with no connection.
+      - **Merchants** — `MerchantsRepo.fetchMerchants(limit: 1).meta.total`, "in your scope".
+      - **Violations** — `ViolationsRepo.fetchViolations(statuses: [OPEN], limit: 1).meta.total`. No
+        `userId` is passed — the backend's `GET /violations` already auto-scopes a caller without
+        `violations.read.all` to just their own record (confirmed by reading
+        `violations.controller.ts`: "a representative always sees his own file"), so the number is
+        correct for both a rep and a supervisor from the same query.
+      - **Maintenance** — direct `GET /maintenance-orders?status=OPEN,IN_PROGRESS,RETURNED&limit=1`
+        (mirrors the backend's own `OPEN_MAINTENANCE_STATUSES`), read for `meta.total`. No feature
+        screen exists for this yet, so tapping the tile opens the same `FeatureNotReadyScreen`
+        placeholder the "Notifications" tile in More already uses for an unbuilt feature, named
+        "Maintenance" (`LocaleKeys.homeMaintenanceTitle`) rather than pretending a real screen exists.
+      - **Finance** — `FinanceRepo.summary(const FinanceQuery())`, showing net (coloured by sign) with
+        income/expense as the caption — the exact same call and default period the Finance tab itself
+        uses with no filter applied.
+      - **Budgets** — `FinanceRepo.budgetStatus(const FinanceQuery())`, showing
+        `warningCount + exceededCount`, colour-escalated to danger when any budget is exceeded — reuses
+        the same numbers the Finance tab's own "Budget alerts" card computes.
+      Each tile is one `HomeBlock<T>` (`lib/feature/home/domain/entities/home_block.dart`): a small
+      sum type over `loading | ready(data, isFromCache) | offline | error(message)`, so the widget
+      layer never has to guess what a `null`/`0`/empty value means.
+
+- [x] Add permission-filtered quick actions.
+      `HomeQuickActions` renders a `Wrap` of buttons built from a list `HomeDashboardScreen` assembles
+      per-permission: "Scan a code" (`machines.read`), "New transfer" (`transfers.create`), "Register
+      merchant" (`merchants.create`), "Register a machine" (`machines.create`), "Add transaction"
+      (`finance.create`) — reusing the exact same button labels (`LocaleKeys.scanTitle`,
+      `transferCreateTitle`, `merchantRegisterTitle`, `machineAddTitle`, `financeAddTransaction`) and
+      navigation targets (`AppRoute.goToScanner`/`goToCreateTransfer`/`goToMerchantForm`/
+      `goToMachineForm`, and `TransactionFormScreen` pushed directly) that the corresponding feature
+      screens already use, rather than inventing a second set of strings/routes. An empty list (a
+      read-only/auditor role with none of these five permissions) renders nothing at all — no empty
+      "Quick actions" header — proven by a dedicated widget test.
+
+- [x] Render cached data offline with last-updated information.
+      Because every list-backed tile goes through the feature's own repository, the *existing*
+      network-first/cache-fallback logic from `6.2` already does this — the dashboard did not need a
+      second cache-reading path. `HomeRepoImpl` records `wasOffline` (checked once, right before the
+      call) and marks the returned `HomeBlock.ready(..., isFromCache: wasOffline)`. `HomeBlockCard`
+      then shows `LocalStorage.getLastSyncedAt()` formatted via the existing `Formatters.relative()`
+      ("Updated 6 minutes ago" / "آخر تحديث من 6 دقيقة") **in place of**, not stacked under, the
+      normal "in your scope" subtitle — live testing on a real grid cell caught that showing both
+      lines at once overflowed a two-column card by 8px; the fix (one caption line, last-updated wins
+      when present) is also pinned by a widget test so it cannot regress silently. Violations,
+      maintenance, finance and budgets have no cache to fall back to (by section 6's own design) and
+      say `Unavailable offline` instead of showing a stale or fabricated number.
+
+- [x] Add pull-to-refresh and partial-failure handling.
+      The whole screen is one `RefreshIndicator` (`AlwaysScrollableScrollPhysics` so the pull works
+      even when the loaded content is shorter than the viewport) calling `HomeDashboardCubit.load()`,
+      which re-fetches every permitted tile concurrently via a 7-way record `.wait` and always
+      resolves to a `HomeDashboardLoaded` — one tile's failure/offline result never blocks or discards
+      another's success, because `HomeRepoImpl`'s methods never throw and never return a bare
+      `Either` the cubit would have to short-circuit on. A tile that came back `error` also gets its
+      own inline retry icon (`HomeDashboardCubit.retry(HomeBlockKind)`) that re-fetches only that one
+      tile and leaves the other six state fields untouched — proven directly in
+      `home_dashboard_cubit_test.dart` (`identical(afterRetry.machines, machinesBeforeRetry)`) rather
+      than merely asserting the visible number was right.
+
+- [x] Add RTL/LTR widget tests for the main role/permission combinations.
+      Bootstrapping real `easy_localization` inside a `flutter_test` widget test was tried first
+      (`EasyLocalization.ensureInitialized()` + a full `MaterialApp` tree) and hung for the entire
+      10-minute test timeout — no asset-bundle I/O completes inside the plain test binding, which is
+      also presumably why nothing else in this test suite attempts it. Rather than accept that cost,
+      `HomeBlockCard` was refactored to take every string it shows — including the offline notice and
+      the retry tooltip — pre-resolved from the caller, the same way its `title`/`subtitle`/
+      `errorMessage` already worked; it now carries no localization dependency of its own and is cheap
+      to mount directly. RTL vs LTR is exercised the same way `report_phone_layout_test.dart` exercises
+      a phone viewport: wrap the widget in the exact ambient condition being tested
+      (`Directionality(textDirection: ...)`) and nothing more — 5 widget tests × 2 directions in
+      `home_block_card_widget_test.dart` (loading/ready/offline/error rendering, tap and retry
+      callbacks) and 3 × 2 in `home_quick_actions_widget_test.dart` (a representative-shaped action
+      list, an empty list for a role with no create permission, and a Director-shaped full list).
+      Permission-combination coverage that needs the real permission/repo wiring — which blocks a
+      Director vs. a representative vs. a no-permissions role actually get fetched, and that one
+      tile's failure never touches another's data — lives in `home_dashboard_cubit_test.dart` instead,
+      against a fake `HomeRepo` and a real `PermissionService` backed by `SharedPreferences`'
+      mock-values API (`SharedPreferences.setMockInitialValues`), covering: full-permission set (all 7
+      tiles fetched and ready), machines+transfers-only set (exactly those 2 fetched, the other 5
+      repo methods never called), zero-permission set (all 7 fields `null`, no crash), one tile
+      offline while the other six stay ready, and a per-tile retry leaving the untouched tiles
+      `identical`.
+
+**Files added**: `lib/feature/home/` (`domain/entities/home_block.dart`, `home_summaries.dart`;
+`domain/repos/home_repo.dart`, `home_repo_impl.dart`; `data/logic/home_block_kind.dart`,
+`home_dashboard_cubit.dart`, `home_dashboard_state.dart`; `presentation/pages/home_dashboard_screen.dart`;
+`presentation/widgets/home_block_card.dart`, `home_quick_actions.dart`); tests
+`test/home_dashboard_cubit_test.dart`, `test/home_block_card_widget_test.dart`,
+`test/home_quick_actions_widget_test.dart`.
+
+**Files changed**: `lib/feature/nav_bar/presentation/helpers/nav_tabs_builder.dart` (`_buildHome`);
+`lib/core/di/service_locator.dart` (`HomeRepo`/`HomeDashboardCubit` registration);
+`lib/core/constants/locale_keys.dart` + `assets/translations/{en,ar}.json` (new `home_*` keys, reusing
+existing keys — `nav_machines`, `nav_transfers`, `nav_merchants`, `nav_finance`, `violations_title`,
+`finance_budgets`, `scan_title`, `transfer_create_title`, `merchant_register_title`,
+`machine_add_title`, `finance_add_transaction` — everywhere a block/action title duplicates an
+existing screen's own title, rather than adding a second string for the same concept).
+
+**Files deleted**: `lib/feature/nav_bar/presentation/widgets/nav_placeholder_page.dart` (dead once
+Home no longer used it; nothing else did).
+
+**Live verification** (real backend, real Android emulator, both directions of the offline test from
+`6`'s Acceptance criteria repeated here for the new screen specifically):
+- Logged in as the seeded dev Director (`01000000001` / `Dev#12345`, full permission set). All seven
+  tiles rendered with real numbers matching the actual database (10 machines, 21 merchants, 1 open
+  violation, 0 pending transfers, `ج.م 0.00` net, 0 open maintenance orders, 0 budget alerts) and all
+  five quick actions were visible. Tapped the Machines tile → pushed the real `MachinesListScreen`
+  showing exactly 10 rows. Tapped the Maintenance tile → opened the "still being built" placeholder.
+- Disabled wifi+data on the emulator (`svc wifi disable`/`svc data disable`, confirmed via
+  `dumpsys connectivity | grep -c NetworkAgentInfo` returning `0`) and force-restarted the app
+  process. Machines/Transfers/Merchants tiles kept their last-known numbers and each showed "Updated
+  X minutes ago"; Violations/Maintenance/Finance/Budgets all showed "Unavailable offline" with the
+  cloud-off icon — exactly the split the design intends, not a blanket offline screen. Re-enabled the
+  network and restarted again: all seven tiles returned to live `ready` values.
+- Confirmed via `adb logcat` that a pull-to-refresh gesture produces a fresh, correctly-parameterised
+  batch of all seven requests (`machines?limit=1`, `transfers/pending/incoming?limit=1`,
+  `merchants?limit=1`, `violations?limit=1&status=OPEN`,
+  `maintenance-orders?limit=1&status=OPEN&status=IN_PROGRESS&status=RETURNED`, `finance/summary`,
+  `finance/budgets/status`) within about a second of the gesture — an earlier attempt to eyeball this
+  from screenshots looked like the refresh was doing nothing, which turned out to be because the dev
+  database's numbers for that account do not change between refreshes, not a bug.
+- Logged out and back in as the seeded dev representative (`01000000003` "مندوب القاهرة",
+  branch-scoped, holding `machines.read`/`transfers.read`/`merchants.read`/`violations.read`/
+  `transfers.create`/`merchants.create` but not `machines.create`, `finance.*`, or `maintenance.read`).
+  The same build produced exactly four tiles (Transfers, Machines, Violations, Merchants — Finance,
+  Budgets and Maintenance absent, not blank) and exactly three quick actions (Scan, New transfer,
+  Register merchant — Register a machine and Add transaction absent), with the header additionally
+  showing the representative's branch ("فرع القاهرة") via the reused `MoreProfileHeader`. Machines
+  correctly read 4 (in this rep's custody) rather than the Director's 10 (the whole branch/company
+  scope), proving the identical query genuinely re-scopes per caller rather than the UI hiding a
+  shared number.
+- Cleaned up afterwards: reverted a temporary `DevicePreview(enabled: false)` override used only to
+  get reliable synthetic-swipe coordinates for the pull-to-refresh check back to
+  `enabled: kDebugMode`; stopped the `flutter run` and `nest start` background processes; re-enabled
+  wifi/data on the emulator; force-stopped the app. No test data was written during this section (every
+  call used was a `GET`), so there was nothing to clean up in the database.
+
+**Verification commands run**: `flutter analyze` (0 issues) and `flutter test` (125/125 passing — 102
+pre-existing plus 23 new: 5 cubit tests and 18 RTL/LTR widget-test cases across the two new widget
+test files) after every change in this section, plus the live pass above.
 
 ---
 
