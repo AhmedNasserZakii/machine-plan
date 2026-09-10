@@ -19,6 +19,16 @@ const MachineEntity _activeMachine = MachineEntity(
   warranty: MachineWarranty(),
 );
 
+const MachineEntity _warehouseMachine = MachineEntity(
+  id: 'm3',
+  serial: 'SN-3',
+  status: MachineStatus.inCompanyWarehouse,
+  hasBox: true,
+  type: MachineTypeRef(id: 't1', name: 'Type', requiresSim: false),
+  model: MachineModelRef(id: 'mo1', name: 'Model'),
+  warranty: MachineWarranty(),
+);
+
 const MachineEntity _decommissionedMachine = MachineEntity(
   id: 'm2',
   serial: 'SN-2',
@@ -61,6 +71,7 @@ void main() {
     (tester) async {
       await _withPermissions(<String>[
         P.maintenanceRead,
+        P.maintenanceCreate,
         P.transfersCreate,
         P.maintenanceClose,
         P.machinesDecommission,
@@ -69,10 +80,11 @@ void main() {
       await tester.pumpWidget(
         _wrap(
           MachineActionsSection(
-            machine: _activeMachine,
+            machine: _warehouseMachine,
             onViewTimeline: () {},
             onViewMaintenanceHistory: () {},
             onCreateTransfer: () {},
+            onSendForMaintenance: () {},
             onReplace: () {},
             onDecommission: () {},
           ),
@@ -91,6 +103,7 @@ void main() {
         find.widgetWithIcon(ListTile, Icons.swap_horiz_rounded),
         findsOneWidget,
       );
+      expect(find.widgetWithIcon(ListTile, Icons.build_outlined), findsOneWidget);
       expect(
         find.widgetWithIcon(ListTile, Icons.change_circle_outlined),
         findsOneWidget,
@@ -114,6 +127,7 @@ void main() {
             onViewTimeline: () {},
             onViewMaintenanceHistory: () {},
             onCreateTransfer: () {},
+            onSendForMaintenance: () {},
             onReplace: () {},
             onDecommission: () {},
           ),
@@ -132,6 +146,7 @@ void main() {
         find.widgetWithIcon(ListTile, Icons.swap_horiz_rounded),
         findsNothing,
       );
+      expect(find.widgetWithIcon(ListTile, Icons.build_outlined), findsNothing);
       expect(
         find.widgetWithIcon(ListTile, Icons.change_circle_outlined),
         findsNothing,
@@ -148,6 +163,7 @@ void main() {
     (tester) async {
       await _withPermissions(<String>[
         P.maintenanceRead,
+        P.maintenanceCreate,
         P.transfersCreate,
         P.maintenanceClose,
         P.machinesDecommission,
@@ -160,6 +176,7 @@ void main() {
             onViewTimeline: () {},
             onViewMaintenanceHistory: () {},
             onCreateTransfer: () {},
+            onSendForMaintenance: () {},
             onReplace: () {},
             onDecommission: () {},
           ),
@@ -178,6 +195,7 @@ void main() {
         find.widgetWithIcon(ListTile, Icons.swap_horiz_rounded),
         findsNothing,
       );
+      expect(find.widgetWithIcon(ListTile, Icons.build_outlined), findsNothing);
       expect(
         find.widgetWithIcon(ListTile, Icons.change_circle_outlined),
         findsNothing,
@@ -200,6 +218,7 @@ void main() {
           onViewTimeline: () => taps++,
           onViewMaintenanceHistory: () {},
           onCreateTransfer: () {},
+          onSendForMaintenance: () {},
           onReplace: () {},
           onDecommission: () {},
         ),
@@ -211,4 +230,55 @@ void main() {
 
     expect(taps, 1);
   });
+
+  testWidgets(
+    'tapping the send-for-maintenance action calls its callback',
+    (tester) async {
+      await _withPermissions(<String>[P.maintenanceCreate]);
+      int taps = 0;
+
+      await tester.pumpWidget(
+        _wrap(
+          MachineActionsSection(
+            machine: _warehouseMachine,
+            onViewTimeline: () {},
+            onViewMaintenanceHistory: () {},
+            onCreateTransfer: () {},
+            onSendForMaintenance: () => taps++,
+            onReplace: () {},
+            onDecommission: () {},
+          ),
+        ),
+      );
+
+      await tester.tap(find.widgetWithIcon(ListTile, Icons.build_outlined));
+      await tester.pump();
+
+      expect(taps, 1);
+    },
+  );
+
+  testWidgets(
+    'a machine outside the company warehouse hides send-for-maintenance '
+    'even with the permission',
+    (tester) async {
+      await _withPermissions(<String>[P.maintenanceCreate]);
+
+      await tester.pumpWidget(
+        _wrap(
+          MachineActionsSection(
+            machine: _activeMachine,
+            onViewTimeline: () {},
+            onViewMaintenanceHistory: () {},
+            onCreateTransfer: () {},
+            onSendForMaintenance: () {},
+            onReplace: () {},
+            onDecommission: () {},
+          ),
+        ),
+      );
+
+      expect(find.widgetWithIcon(ListTile, Icons.build_outlined), findsNothing);
+    },
+  );
 }

@@ -6,7 +6,9 @@
 enum SyncOperationType {
   createTransfer('CREATE_TRANSFER'),
   confirmTransfer('CONFIRM_TRANSFER'),
+  rejectTransfer('REJECT_TRANSFER'),
   createMerchant('CREATE_MERCHANT'),
+  createSubscription('CREATE_SUBSCRIPTION'),
   createFinanceTransaction('CREATE_FINANCE_TRANSACTION');
 
   const SyncOperationType(this.value);

@@ -131,6 +131,14 @@ class _MoreView extends StatelessWidget {
                           onTap: () =>
                               AppRoute.goToViolationsList(context: context),
                         ),
+                      if (permissionService.has(P.maintenanceRead))
+                        MoreTile(
+                          identifier: 'more_maintenance_tile',
+                          icon: Icons.build_circle_outlined,
+                          label: LocaleKeys.maintenanceListTitle.tr(),
+                          onTap: () =>
+                              AppRoute.goToMaintenanceList(context: context),
+                        ),
                       if (permissionService.has(P.usersRead))
                         MoreTile(
                           identifier: 'more_users_tile',

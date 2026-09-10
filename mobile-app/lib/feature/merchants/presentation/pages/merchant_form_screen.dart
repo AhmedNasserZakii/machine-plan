@@ -122,7 +122,7 @@ class _MerchantFormScreenState extends State<MerchantFormScreen> {
                   : LocaleKeys.merchantUpdated.tr(),
               context,
             );
-            AppRoute.goBack(context: context, result: true);
+            AppRoute.goBack(context: context, result: state.merchant);
           }
         },
         builder: (BuildContext context, MerchantFormState state) {

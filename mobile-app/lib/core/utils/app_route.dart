@@ -19,6 +19,15 @@ import 'package:machinery/feature/machines/presentation/pages/machine_detail_scr
 import 'package:machinery/feature/machines/presentation/pages/machine_form_screen.dart';
 import 'package:machinery/feature/machines/presentation/pages/machine_maintenance_history_screen.dart';
 import 'package:machinery/feature/machines/presentation/pages/machine_timeline_screen.dart';
+import 'package:machinery/feature/maintenance/data/logic/maintenance_create/maintenance_create_cubit.dart';
+import 'package:machinery/feature/maintenance/data/logic/maintenance_detail/maintenance_detail_cubit.dart';
+import 'package:machinery/feature/maintenance/data/logic/maintenance_list/maintenance_list_cubit.dart';
+import 'package:machinery/feature/maintenance/domain/entities/maintenance_entity.dart';
+import 'package:machinery/feature/maintenance/domain/params/maintenance_params.dart';
+import 'package:machinery/feature/maintenance/presentation/pages/maintenance_create_screen.dart';
+import 'package:machinery/feature/maintenance/presentation/pages/maintenance_detail_screen.dart';
+import 'package:machinery/feature/maintenance/presentation/pages/maintenance_handover_screen.dart';
+import 'package:machinery/feature/maintenance/presentation/pages/maintenance_list_screen.dart';
 import 'package:machinery/feature/merchants/data/logic/merchant_detail/merchant_detail_cubit.dart';
 import 'package:machinery/feature/merchants/data/logic/merchant_form/merchant_form_cubit.dart';
 import 'package:machinery/feature/merchants/domain/entities/merchant_entity.dart';
@@ -391,13 +400,18 @@ abstract class AppRoute {
     );
   }
 
-  static Future<bool?> goToMerchantForm({
+  /// Returns the created or updated merchant, or `null` if the form was left
+  /// without saving — a caller that only needs to know "did something
+  /// change" can check for non-null, and one that needs the record itself
+  /// (the create-transfer wizard's inline "new merchant" shortcut) gets it
+  /// without a second fetch.
+  static Future<MerchantEntity?> goToMerchantForm({
     required BuildContext context,
     MerchantEntity? existing,
   }) {
-    return Navigator.push<bool>(
+    return Navigator.push<MerchantEntity>(
       context,
-      MaterialPageRoute<bool>(
+      MaterialPageRoute<MerchantEntity>(
         builder: (_) => BlocProvider<MerchantFormCubit>(
           create: (_) => getIt<MerchantFormCubit>(param1: existing),
           child: MerchantFormScreen(existing: existing),
@@ -452,6 +466,83 @@ abstract class AppRoute {
         builder: (_) => BlocProvider<ViolationSummaryCubit>(
           create: (_) => getIt<ViolationSummaryCubit>(param1: userId),
           child: const ViolationSummaryScreen(),
+        ),
+      ),
+    );
+  }
+
+  /// [scope] narrows the register before it loads — one machine's own orders,
+  /// opened from its history screen.
+  static Future<void> goToMaintenanceList({
+    required BuildContext context,
+    MaintenanceOrdersQueryParams? scope,
+  }) {
+    return Navigator.push<void>(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => BlocProvider<MaintenanceListCubit>(
+          create: (_) => getIt<MaintenanceListCubit>(),
+          child: MaintenanceListScreen(scope: scope),
+        ),
+      ),
+    );
+  }
+
+  /// Resolves to the row as the server left it, so the list can swap it in
+  /// place instead of refetching a page. Null means nothing was done to it.
+  static Future<MaintenanceOrderEntity?> goToMaintenanceDetail({
+    required BuildContext context,
+    required String orderId,
+    MaintenanceOrderEntity? initial,
+  }) {
+    return Navigator.push<MaintenanceOrderEntity>(
+      context,
+      MaterialPageRoute<MaintenanceOrderEntity>(
+        builder: (_) => BlocProvider<MaintenanceDetailCubit>(
+          create: (_) =>
+              getIt<MaintenanceDetailCubit>(param1: orderId, param2: initial),
+          child: const MaintenanceDetailScreen(),
+        ),
+      ),
+    );
+  }
+
+  /// Opened straight from a machine's own detail screen — [machineId] is
+  /// pre-filled, there is no picker. Resolves to the created order, or null.
+  static Future<MaintenanceOrderEntity?> goToMaintenanceCreate({
+    required BuildContext context,
+    required String machineId,
+    required String machineSerial,
+  }) {
+    return Navigator.push<MaintenanceOrderEntity>(
+      context,
+      MaterialPageRoute<MaintenanceOrderEntity>(
+        builder: (_) => BlocProvider<MaintenanceCreateCubit>(
+          create: (_) => getIt<MaintenanceCreateCubit>(),
+          child: MaintenanceCreateScreen(
+            machineId: machineId,
+            machineSerial: machineSerial,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Shares the caller's own [cubit] instance rather than creating a new one
+  /// (see `MaintenanceHandoverScreen`'s doc comment) — resolves to true once
+  /// the hand-off went through, so the detail screen behind it knows to carry
+  /// the change back out when it, in turn, is popped.
+  static Future<bool?> goToMaintenanceHandover({
+    required BuildContext context,
+    required MaintenanceDetailCubit cubit,
+    required bool isSend,
+  }) {
+    return Navigator.push<bool>(
+      context,
+      MaterialPageRoute<bool>(
+        builder: (_) => BlocProvider<MaintenanceDetailCubit>.value(
+          value: cubit,
+          child: MaintenanceHandoverScreen(isSend: isSend),
         ),
       ),
     );

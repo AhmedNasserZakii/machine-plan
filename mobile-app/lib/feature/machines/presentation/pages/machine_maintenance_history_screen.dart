@@ -12,15 +12,15 @@ import 'package:machinery/core/shared_widgets/ltr_text.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/core/theme/styles/app_text_styles.dart';
+import 'package:machinery/core/utils/app_route.dart';
 import 'package:machinery/feature/machines/data/logic/machine_maintenance_history/machine_maintenance_history_cubit.dart';
 import 'package:machinery/feature/machines/data/logic/machine_maintenance_history/machine_maintenance_history_state.dart';
 import 'package:machinery/feature/machines/domain/entities/machine_maintenance_history.dart';
 
-/// Every repair a unit has had, with the server's own totals (`8.1`).
-///
-/// Read-only, deliberately: opening an order, closing one, or setting its cost
-/// is section `11`'s write side. This screen exists so a supervisor or
-/// director can see the repair bill without waiting for that feature to land.
+/// Every repair a unit has had, with the server's own totals (`8.1`), each row
+/// opening into the full order (`11.1`) — this screen still only reads, it
+/// just no longer dead-ends: a tap goes to where sending, receiving, closing
+/// and cancelling actually live.
 class MachineMaintenanceHistoryScreen extends StatefulWidget {
   const MachineMaintenanceHistoryScreen({super.key});
 
@@ -91,7 +91,13 @@ class _MachineMaintenanceHistoryScreenState
             )
           else
             ...history.orders.map(
-              (MaintenanceOrderSummary order) => _OrderTile(order: order),
+              (MaintenanceOrderSummary order) => _OrderTile(
+                order: order,
+                onTap: () => AppRoute.goToMaintenanceDetail(
+                  context: context,
+                  orderId: order.id,
+                ),
+              ),
             ),
         ],
       ),
@@ -158,60 +164,65 @@ class _TotalsRow extends StatelessWidget {
 }
 
 class _OrderTile extends StatelessWidget {
-  const _OrderTile({required this.order});
+  const _OrderTile({required this.order, required this.onTap});
 
   final MaintenanceOrderSummary order;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsetsDirectional.only(bottom: AppSpacing.sm),
-      child: Padding(
-        padding: const EdgeInsetsDirectional.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: LtrText(
-                    order.referenceNo,
-                    style: Styles.s13(
-                      context,
-                    ).copyWith(fontWeight: FontWeight.w700),
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsetsDirectional.all(AppSpacing.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: LtrText(
+                      order.referenceNo,
+                      style: Styles.s13(
+                        context,
+                      ).copyWith(fontWeight: FontWeight.w700),
+                    ),
                   ),
-                ),
-                if (order.cost != null)
-                  Text(
-                    Formatters.currency(order.cost!),
-                    style: Styles.s13(
-                      context,
-                    ).copyWith(fontWeight: FontWeight.w700),
-                  )
-                else if (order.isFreeUnderWarranty)
-                  Text(
-                    LocaleKeys.machineMaintenanceHistoryFreeUnderWarranty.tr(),
-                    style: Styles.s12(
-                      context,
-                    ).copyWith(color: AppColors.successColor),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              order.locationName,
-              style: Styles.s12(
-                context,
-              ).copyWith(color: AppColors.textSecondaryColor),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              Formatters.dateTime(order.sentAt),
-              style: Styles.s12(
-                context,
-              ).copyWith(color: AppColors.textSecondaryColor),
-            ),
-          ],
+                  if (order.cost != null)
+                    Text(
+                      Formatters.currency(order.cost!),
+                      style: Styles.s13(
+                        context,
+                      ).copyWith(fontWeight: FontWeight.w700),
+                    )
+                  else if (order.isFreeUnderWarranty)
+                    Text(
+                      LocaleKeys.machineMaintenanceHistoryFreeUnderWarranty
+                          .tr(),
+                      style: Styles.s12(
+                        context,
+                      ).copyWith(color: AppColors.successColor),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                order.locationName,
+                style: Styles.s12(
+                  context,
+                ).copyWith(color: AppColors.textSecondaryColor),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                Formatters.dateTime(order.sentAt),
+                style: Styles.s12(
+                  context,
+                ).copyWith(color: AppColors.textSecondaryColor),
+              ),
+            ],
+          ),
         ),
       ),
     );

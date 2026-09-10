@@ -68,9 +68,11 @@ class _MerchantsListScreenState extends State<MerchantsListScreen> {
   }
 
   Future<void> _openForm() async {
-    final bool? created = await AppRoute.goToMerchantForm(context: context);
+    final MerchantEntity? created = await AppRoute.goToMerchantForm(
+      context: context,
+    );
 
-    if ((created ?? false) && mounted) {
+    if (created != null && mounted) {
       await context.read<MerchantsListCubit>().load(showLoader: false);
     }
   }

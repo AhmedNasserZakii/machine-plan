@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:machinery/core/connection/network_info.dart';
@@ -87,13 +89,21 @@ class CreateTransferCubit extends Cubit<CreateTransferState> {
         : state.copyWith(recipientId: id, clearError: true),
   );
 
-  void setMerchantId(String? id) {
+  /// [name] is the shop name for a merchant picked via "تاجر جديد" — a bare
+  /// typed id carries none, and the signing screen falls back to showing the
+  /// id itself rather than a blank recipient.
+  void setMerchantId(String? id, {String? name}) {
     final String? trimmed = id?.trim();
 
     emit(
       trimmed == null || trimmed.isEmpty
           ? state.copyWith(clearRecipient: true)
-          : state.copyWith(merchantId: trimmed, clearError: true),
+          : state.copyWith(
+              merchantId: trimmed,
+              merchantName: name,
+              resetMerchantName: true,
+              clearError: true,
+            ),
     );
   }
 
@@ -168,6 +178,69 @@ class CreateTransferCubit extends Cubit<CreateTransferState> {
 
   void setNotes(String? notes) => emit(state.copyWith(notes: notes?.trim()));
 
+  /// With twenty identical machines, tapping charger/box/condition on each one
+  /// is punishing — this broadcasts one item's declaration to every other item
+  /// in the draft in a single step.
+  void applyToAll({
+    required bool hasCharger,
+    required bool hasBox,
+    required ItemCondition condition,
+  }) {
+    emit(
+      state.copyWith(
+        items: state.items
+            .map(
+              (DraftItem item) => item.copyWith(
+                params: item.params.copyWith(
+                  hasCharger: hasCharger,
+                  hasBox: hasBox,
+                  condition: condition,
+                ),
+              ),
+            )
+            .toList(growable: false),
+        clearError: true,
+      ),
+    );
+  }
+
+  /// Uploads (or, offline, stages) one already-compressed photo and appends
+  /// its id to the item's list. Returns the id so the caller can keep the
+  /// in-memory bytes keyed by it for an immediate thumbnail — there is no
+  /// server URL to preview from until the transfer itself is fetched back.
+  Future<String?> addPhoto(String machineId, Uint8List jpeg) async {
+    final Either<ServerFailure, String> result = await transfersRepo
+        .uploadItemPhoto(jpeg: jpeg);
+
+    if (isClosed) return null;
+
+    return result.fold((ServerFailure failure) {
+      emit(state.copyWith(errorMessage: failure.errorMessage));
+      return null;
+    }, (String mediaId) {
+      final DraftItem item = state.items.firstWhere(
+        (DraftItem draftItem) => draftItem.machine.id == machineId,
+      );
+      updateItem(
+        machineId,
+        photoMediaIds: <String>[...item.params.photoMediaIds, mediaId],
+      );
+      return mediaId;
+    });
+  }
+
+  void removePhoto(String machineId, String mediaId) {
+    final DraftItem item = state.items.firstWhere(
+      (DraftItem draftItem) => draftItem.machine.id == machineId,
+    );
+    updateItem(
+      machineId,
+      photoMediaIds: item.params.photoMediaIds
+          .where((String id) => id != mediaId)
+          .toList(growable: false),
+    );
+  }
+
   void goTo(CreateTransferStep step) =>
       emit(state.copyWith(step: step, clearError: true));
 
@@ -232,6 +305,9 @@ class CreateTransferCubit extends Cubit<CreateTransferState> {
     );
   }
 
+  /// The plain path: every type except a self-attested one (`needsSenderSignature
+  /// == false`) submits with no signature at all — the receiver signs on
+  /// `confirm` (`9.4`), and the server never asked this call for one.
   Future<void> submit() async {
     if (state.isSubmitting) return;
 
@@ -254,12 +330,79 @@ class CreateTransferCubit extends Cubit<CreateTransferState> {
     );
   }
 
-  CreateTransferParams _params() {
+  /// The self-attested path: a merchant, the factory, and the scrapyard have
+  /// no account to receive a pending hand-off and confirm it later, so the
+  /// sender's own signature closes the document in this same call
+  /// (`transfers.service.ts`, `rule.autoConfirm`). A drawn signature uploads
+  /// its PNG first — the two are one action from the user's point of view, so
+  /// a failed upload must not leave the button looking ready. A biometric one
+  /// carries no media: [biometricSignature] already has everything the
+  /// server needs, verified on this device before this method was called.
+  Future<void> submitWithSignature({
+    Uint8List? signaturePng,
+    SignatureParams? biometricSignature,
+    String? deviceModel,
+  }) async {
+    assert(
+      signaturePng != null || biometricSignature != null,
+      'submitWithSignature needs either a drawn signature or a verified biometric one',
+    );
+    if (state.isSubmitting) return;
+
+    emit(state.copyWith(isSubmitting: true, clearError: true));
+
+    final SignatureParams? signature;
+    if (biometricSignature != null) {
+      signature = biometricSignature;
+    } else {
+      final Either<ServerFailure, String> upload = await transfersRepo
+          .uploadSignature(png: signaturePng!);
+
+      if (isClosed) return;
+
+      final String? mediaId = upload.fold((ServerFailure failure) {
+        emit(
+          state.copyWith(
+            isSubmitting: false,
+            errorMessage: failure.errorMessage,
+          ),
+        );
+        return null;
+      }, (String id) => id);
+
+      if (mediaId == null) return;
+
+      signature = SignatureParams(
+        method: SignatureMethod.drawn,
+        signatureMediaId: mediaId,
+        deviceModel: deviceModel,
+      );
+    }
+
+    final Either<ServerFailure, TransferEntity> result = await transfersRepo
+        .createTransfer(params: _params(senderSignature: signature));
+
+    if (isClosed) return;
+
+    emit(
+      result.fold(
+        (ServerFailure failure) => state.copyWith(
+          isSubmitting: false,
+          errorMessage: failure.errorMessage,
+        ),
+        (TransferEntity transfer) =>
+            state.copyWith(isSubmitting: false, created: transfer),
+      ),
+    );
+  }
+
+  CreateTransferParams _params({SignatureParams? senderSignature}) {
     return CreateTransferParams(
       type: state.type!,
       toPartyId: state.toPartyId,
       clientUuid: state.clientUuid,
       occurredAt: DateTime.now(),
+      senderSignature: senderSignature,
       notes: state.notes,
       items: state.items
           .map((DraftItem item) => item.params)

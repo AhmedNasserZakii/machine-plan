@@ -85,6 +85,7 @@ class TransferResponseModel {
 
   TransferSignatureEntity _signature(Map<String, dynamic> raw) {
     return TransferSignatureEntity(
+      id: _string(raw[ApiKeys.id]) ?? '',
       partyRole: SignaturePartyRole.fromJson(_string(raw[ApiKeys.partyRole])),
       userId: _string(raw[ApiKeys.userId]) ?? '',
       method: SignatureMethod.fromJson(_string(raw[ApiKeys.method])),

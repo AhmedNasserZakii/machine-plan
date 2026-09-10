@@ -352,7 +352,11 @@ class TransfersRepoImpl implements TransfersRepo {
   Future<Either<ServerFailure, TransferEntity>> rejectTransfer({
     required String id,
     required String reason,
-  }) {
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return _queueRejectTransfer(id, reason);
+    }
+
     return _guard('rejectTransfer', () async {
       final Response<dynamic> response = await apiService
           .client()
@@ -361,8 +365,45 @@ class TransfersRepoImpl implements TransfersRepo {
             data: <String, dynamic>{ApiKeys.reason: reason.trim()},
           );
 
-      return TransferResponseModel.fromJson(_data(response.data)).toEntity();
+      final Map<String, dynamic> json = _data(response.data);
+      await cachedTransfersDao.upsertOne(json);
+      return TransferResponseModel.fromJson(json).toEntity();
     });
+  }
+
+  /// Mirrors `_queueConfirmTransfer` — a rejection carries no media, so there
+  /// is nothing to wait on before pushing it, just the same optimistic
+  /// "still pending" view until the queue lands it and the receiver's inbox
+  /// entry actually clears.
+  Future<Either<ServerFailure, TransferEntity>> _queueRejectTransfer(
+    String id,
+    String reason,
+  ) async {
+    final TransferEntity? existing = await cachedTransfersDao.findById(id);
+    if (existing == null) {
+      return Left(OfflineFailure());
+    }
+
+    final DateTime now = DateTime.now().toUtc();
+
+    await syncQueueService.enqueue(
+      SyncQueueItem(
+        clientUuid: const Uuid().v4(),
+        type: SyncOperationType.rejectTransfer,
+        payload: <String, dynamic>{
+          ApiKeys.transferId: id,
+          ApiKeys.reason: reason.trim(),
+        },
+        createdAt: now,
+        occurredAt: now,
+        status: SyncItemStatus.pending,
+      ),
+    );
+
+    syncCoordinator.notifyChange();
+    unawaited(syncCoordinator.flush());
+
+    return Right(existing);
   }
 
   @override
@@ -420,6 +461,24 @@ class TransfersRepoImpl implements TransfersRepo {
       'uploadItemPhoto',
       () => _upload(jpeg, _transferPhotoPurpose, 'image/jpeg'),
     );
+  }
+
+  @override
+  Future<Either<ServerFailure, String>> fetchSignatureMediaUrl({
+    required String transferId,
+    required String signatureId,
+  }) {
+    return _guard('fetchSignatureMediaUrl', () async {
+      final Response<dynamic> response = await apiService.client().get<dynamic>(
+        WebConstant.transferSignatureMedia(transferId, signatureId),
+      );
+
+      final String? url = _data(response.data)[ApiKeys.url] as String?;
+      if (url == null || url.isEmpty) {
+        throw StateError('signature media response had no url');
+      }
+      return url;
+    });
   }
 
   @override

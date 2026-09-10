@@ -351,6 +351,103 @@ void main() {
     await tempMediaDir.delete(recursive: true);
   });
 
+  test(
+    'a transfer referencing an unresolved offline merchant waits for it, '
+    'even while the merchant itself is backing off',
+    () async {
+      // The realistic trigger for this: the merchant's first push attempt
+      // hit a transient failure and is now in backoff, while the transfer
+      // queued moments after it has none — FIFO order alone would let the
+      // transfer jump ahead in the very next flush.
+      int calls = 0;
+      final SyncQueueService service = buildService((ops) {
+        calls++;
+        return ops
+            .map(
+              (op) => SyncBatchItemResult(
+                clientUuid: op['clientUuid'] as String,
+                type: SyncOperationType.createTransfer,
+                status: SyncBatchOutcome.success,
+                serverId: 'server-transfer-1',
+              ),
+            )
+            .toList();
+      });
+
+      await queueDao.insert(
+        _item('merchant-1').copyWith(
+          attemptCount: 1,
+          nextRetryAt: DateTime.now().add(const Duration(minutes: 5)),
+        ),
+      );
+      await service.enqueue(
+        SyncQueueItem(
+          clientUuid: 'transfer-1',
+          type: SyncOperationType.createTransfer,
+          payload: <String, dynamic>{'toPartyId': 'merchant-1'},
+          createdAt: DateTime.now().toUtc(),
+          status: SyncItemStatus.pending,
+        ),
+      );
+
+      await service.pushPending();
+      expect(calls, 0, reason: 'the transfer must wait for its merchant to resolve first');
+      expect((await service.findByClientUuid('transfer-1'))!.status, SyncItemStatus.pending);
+
+      // The merchant resolves (its own retry, or a manual retry — either way
+      // it leaves the queue) and the transfer becomes pushable.
+      await queueDao.delete('merchant-1');
+
+      await service.pushPending();
+      expect(calls, 1);
+      expect(await service.findByClientUuid('transfer-1'), isNull);
+    },
+  );
+
+  test(
+    'a subscription referencing an unresolved offline merchant waits for it too',
+    () async {
+      int calls = 0;
+      final SyncQueueService service = buildService((ops) {
+        calls++;
+        return ops
+            .map(
+              (op) => SyncBatchItemResult(
+                clientUuid: op['clientUuid'] as String,
+                type: SyncOperationType.createSubscription,
+                status: SyncBatchOutcome.success,
+                serverId: 'server-sub-1',
+              ),
+            )
+            .toList();
+      });
+
+      await service.enqueue(_item('merchant-1'));
+      await service.enqueue(
+        SyncQueueItem(
+          clientUuid: 'sub-1',
+          type: SyncOperationType.createSubscription,
+          payload: <String, dynamic>{'merchantId': 'merchant-1'},
+          createdAt: DateTime.now().toUtc().add(const Duration(milliseconds: 1)),
+          status: SyncItemStatus.pending,
+        ),
+      );
+
+      await service.pushPending();
+
+      // Neither item was backing off, so `pushPending`'s own drain loop
+      // gets both out in one call — but as two separate batches, not one:
+      // the subscription is judged against the queue as it stood when that
+      // round's candidates were collected, before the merchant's own push
+      // (in the earlier round) had removed it. Splitting them is the safe
+      // default rather than a client-side guess that same-batch ordering
+      // would have been fine.
+      expect(calls, 2);
+      expect(await service.findByClientUuid('merchant-1'), isNull);
+      expect(await service.findByClientUuid('sub-1'), isNull);
+    },
+  );
+
   test('CompositePendingSyncCounter sums every underlying counter', () async {
     final SyncQueueService service = buildService((ops) => <SyncBatchItemResult>[]);
     await service.enqueue(_item('op-1'));

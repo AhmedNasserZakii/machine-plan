@@ -48,12 +48,12 @@ class _MerchantDetailScreenState extends State<MerchantDetailScreen> {
   }
 
   Future<void> _edit(MerchantEntity merchant) async {
-    final bool? saved = await AppRoute.goToMerchantForm(
+    final MerchantEntity? saved = await AppRoute.goToMerchantForm(
       context: context,
       existing: merchant,
     );
 
-    if ((saved ?? false) && mounted) {
+    if (saved != null && mounted) {
       _changed = true;
       await context.read<MerchantDetailCubit>().load();
     }

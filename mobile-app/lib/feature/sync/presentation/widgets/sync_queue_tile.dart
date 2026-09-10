@@ -26,7 +26,10 @@ class SyncQueueTile extends StatelessWidget {
   String get _typeLabel => switch (display.item.type) {
     SyncOperationType.createTransfer => LocaleKeys.syncItemTypeCreateTransfer.tr(),
     SyncOperationType.confirmTransfer => LocaleKeys.syncItemTypeConfirmTransfer.tr(),
+    SyncOperationType.rejectTransfer => LocaleKeys.syncItemTypeRejectTransfer.tr(),
     SyncOperationType.createMerchant => LocaleKeys.syncItemTypeCreateMerchant.tr(),
+    SyncOperationType.createSubscription =>
+      LocaleKeys.syncItemTypeCreateSubscription.tr(),
     SyncOperationType.createFinanceTransaction =>
       LocaleKeys.syncItemTypeCreateFinanceTransaction.tr(),
   };

@@ -118,8 +118,12 @@ class LocaleKeys {
       'sync_item_type_create_transfer';
   static const String syncItemTypeConfirmTransfer =
       'sync_item_type_confirm_transfer';
+  static const String syncItemTypeRejectTransfer =
+      'sync_item_type_reject_transfer';
   static const String syncItemTypeCreateMerchant =
       'sync_item_type_create_merchant';
+  static const String syncItemTypeCreateSubscription =
+      'sync_item_type_create_subscription';
   static const String syncItemTypeCreateFinanceTransaction =
       'sync_item_type_create_finance_transaction';
   static const String syncItemTypeUploadMedia = 'sync_item_type_upload_media';
@@ -560,14 +564,25 @@ class LocaleKeys {
   // Confirm screen
   static const String transferConfirmTitle = 'transfer_confirm_title';
   static const String transferConfirmIntro = 'transfer_confirm_intro';
-  static const String transferConfirmAdjustedCount =
-      'transfer_confirm_adjusted_count';
+  static const String transferConfirmSummaryTitle =
+      'transfer_confirm_summary_title';
   static const String transferSignatureTitle = 'transfer_signature_title';
   static const String transferSignatureHint = 'transfer_signature_hint';
   static const String transferSignatureClear = 'transfer_signature_clear';
+  static const String transferSignatureUndo = 'transfer_signature_undo';
   static const String transferSignatureRequired = 'transfer_signature_required';
   static const String transferSubmitSignature = 'transfer_submit_signature';
   static const String transferItemReset = 'transfer_item_reset';
+  static const String signatureMethodBiometric = 'signature_method_biometric';
+  static const String signatureMethodDrawn = 'signature_method_drawn';
+  static const String signatureBiometricConfirm = 'signature_biometric_confirm';
+  static const String signatureBiometricVerified = 'signature_biometric_verified';
+  static const String signatureBiometricFailed = 'signature_biometric_failed';
+  static const String signatureBiometricRequired = 'signature_biometric_required';
+  static const String signatureBiometricReasonReceive =
+      'signature_biometric_reason_receive';
+  static const String signatureBiometricReasonSend =
+      'signature_biometric_reason_send';
 
   // Create wizard
   static const String transferCreateTitle = 'transfer_create_title';
@@ -579,11 +594,22 @@ class LocaleKeys {
   static const String transferSelectRecipient = 'transfer_select_recipient';
   static const String transferSelectWarehouse = 'transfer_select_warehouse';
   static const String transferMerchantIdHint = 'transfer_merchant_id_hint';
+  static const String transferNewMerchant = 'transfer_new_merchant';
+  static const String transferMerchantSelected = 'transfer_merchant_selected';
+  static const String transferMerchantChange = 'transfer_merchant_change';
   static const String transferNoRecipients = 'transfer_no_recipients';
   static const String transferNoRecipientNeeded =
       'transfer_no_recipient_needed';
   static const String transferAddMachines = 'transfer_add_machines';
   static const String transferScanToAdd = 'transfer_scan_to_add';
+  static const String transferPickFromList = 'transfer_pick_from_list';
+  static const String transferPickerTitle = 'transfer_picker_title';
+  static const String transferPickerSearchHint =
+      'transfer_picker_search_hint';
+  static const String transferPickerEmpty = 'transfer_picker_empty';
+  static const String transferPickerAddSelected =
+      'transfer_picker_add_selected';
+  static const String transferPickerAdded = 'transfer_picker_added';
   static const String transferNoMachinesYet = 'transfer_no_machines_yet';
   static const String transferMachineNotEligible =
       'transfer_machine_not_eligible';
@@ -591,7 +617,24 @@ class LocaleKeys {
       'transfer_machine_already_added';
   static const String transferScanBattery = 'transfer_scan_battery';
   static const String transferBatteryMatch = 'transfer_battery_match';
+  static const String transferItemNotes = 'transfer_item_notes';
+  static const String transferItemPhotos = 'transfer_item_photos';
+  static const String transferAddPhoto = 'transfer_add_photo';
+  static const String transferPhotoSourceCamera = 'transfer_photo_source_camera';
+  static const String transferPhotoSourceGallery = 'transfer_photo_source_gallery';
+  static const String transferPhotoUploadFailed = 'transfer_photo_upload_failed';
+  static const String transferApplyToAll = 'transfer_apply_to_all';
+  static const String transferApplyToAllApply = 'transfer_apply_to_all_apply';
+  static const String transferApplyToAllApplied = 'transfer_apply_to_all_applied';
   static const String transferReviewTitle = 'transfer_review_title';
+  static const String transferSigner = 'transfer_signer';
+  static const String transferPayloadFingerprint =
+      'transfer_payload_fingerprint';
+  static const String transferSignatureDevice = 'transfer_signature_device';
+  static const String transferSignatureImageFailed =
+      'transfer_signature_image_failed';
+  static const String transferSignatureViewerTitle =
+      'transfer_signature_viewer_title';
   static const String transferReviewMismatches = 'transfer_review_mismatches';
   static const String transferReviewMissingChargers =
       'transfer_review_missing_chargers';
@@ -793,4 +836,183 @@ class LocaleKeys {
   static const String violationTrendSteady = 'violation_trend_steady';
   static const String violationTrendWorsening = 'violation_trend_worsening';
   static const String violationTrendUnknown = 'violation_trend_unknown';
+
+  // ── Maintenance (`11.1`/`11.2`) ──────────────────────────────────────────
+  static const String maintenanceStatusOpen = 'maintenance_status_open';
+  static const String maintenanceStatusInProgress =
+      'maintenance_status_in_progress';
+  static const String maintenanceStatusReturned =
+      'maintenance_status_returned';
+  static const String maintenanceStatusClosed = 'maintenance_status_closed';
+  static const String maintenanceStatusCancelled =
+      'maintenance_status_cancelled';
+  static const String maintenanceStatusUnknown = 'maintenance_status_unknown';
+
+  static const String maintenanceResultRepaired =
+      'maintenance_result_repaired';
+  static const String maintenanceResultReplaced =
+      'maintenance_result_replaced';
+  static const String maintenanceResultUnrepairable =
+      'maintenance_result_unrepairable';
+  static const String maintenanceResultUnknown = 'maintenance_result_unknown';
+
+  static const String maintenanceResponsibleCompany =
+      'maintenance_responsible_company';
+  static const String maintenanceResponsibleRepresentative =
+      'maintenance_responsible_representative';
+  static const String maintenanceResponsibleMerchant =
+      'maintenance_responsible_merchant';
+  static const String maintenanceResponsibleFactory =
+      'maintenance_responsible_factory';
+  static const String maintenanceResponsibleUnknown =
+      'maintenance_responsible_unknown';
+
+  static const String maintenanceListTitle = 'maintenance_list_title';
+  static const String maintenanceEmptyTitle = 'maintenance_empty_title';
+  static const String maintenanceEmptySubtitle =
+      'maintenance_empty_subtitle';
+  static const String maintenanceNoSearchResults =
+      'maintenance_no_search_results';
+  static const String maintenanceFilterTitle = 'maintenance_filter_title';
+
+  static const String maintenanceDetailTitle = 'maintenance_detail_title';
+  static const String maintenanceReportedFault =
+      'maintenance_reported_fault';
+  static const String maintenanceLocation = 'maintenance_location';
+  static const String maintenanceSentAt = 'maintenance_sent_at';
+  static const String maintenanceReturnedAt = 'maintenance_returned_at';
+  static const String maintenanceCost = 'maintenance_cost';
+  static const String maintenanceFreeUnderWarranty =
+      'maintenance_free_under_warranty';
+  static const String maintenanceResponsibleParty =
+      'maintenance_responsible_party';
+  static const String maintenancePerformedBy = 'maintenance_performed_by';
+  static const String maintenanceNotes = 'maintenance_notes';
+  static const String maintenanceCancelledAt = 'maintenance_cancelled_at';
+  static const String maintenanceCancelReasonLabel =
+      'maintenance_cancel_reason_label';
+  static const String maintenanceClosedAt = 'maintenance_closed_at';
+
+  static const String maintenanceCreateTitle = 'maintenance_create_title';
+  static const String maintenanceSelectMachine =
+      'maintenance_select_machine';
+  static const String maintenanceSelectLocation =
+      'maintenance_select_location';
+  static const String maintenanceReportedFaultHint =
+      'maintenance_reported_fault_hint';
+  static const String maintenanceCreateSubmit = 'maintenance_create_submit';
+  static const String maintenanceCreatedSuccess =
+      'maintenance_created_success';
+
+  static const String maintenanceActionSend = 'maintenance_action_send';
+  static const String maintenanceActionReceive =
+      'maintenance_action_receive';
+  static const String maintenanceActionCancel =
+      'maintenance_action_cancel';
+  static const String maintenanceActionClose = 'maintenance_action_close';
+  static const String maintenanceActionEdit = 'maintenance_action_edit';
+
+  static const String maintenanceSendTitle = 'maintenance_send_title';
+  static const String maintenanceReceiveTitle = 'maintenance_receive_title';
+  static const String maintenanceCancelTitle = 'maintenance_cancel_title';
+  static const String maintenanceCancelHint = 'maintenance_cancel_hint';
+  static const String maintenanceCancelReasonRequired =
+      'maintenance_cancel_reason_required';
+
+  static const String maintenanceSentSuccess = 'maintenance_sent_success';
+  static const String maintenanceReceivedSuccess =
+      'maintenance_received_success';
+  static const String maintenanceCancelledSuccess =
+      'maintenance_cancelled_success';
+  static const String maintenanceClosedSuccess =
+      'maintenance_closed_success';
+  static const String maintenanceUpdatedSuccess =
+      'maintenance_updated_success';
+
+  static const String maintenanceCloseTitle = 'maintenance_close_title';
+  static const String maintenanceCloseResult = 'maintenance_close_result';
+  static const String maintenanceCloseFreeUnderWarranty =
+      'maintenance_close_free_under_warranty';
+  static const String maintenanceCloseCost = 'maintenance_close_cost';
+  static const String maintenanceCloseCostRequired =
+      'maintenance_close_cost_required';
+  static const String maintenanceCloseResponsibleParty =
+      'maintenance_close_responsible_party';
+  static const String maintenanceCloseResponsibleUser =
+      'maintenance_close_responsible_user';
+  static const String maintenanceCloseResponsibleMerchant =
+      'maintenance_close_responsible_merchant';
+  static const String maintenanceClosePaymentMethod =
+      'maintenance_close_payment_method';
+  static const String maintenanceCloseSupplier =
+      'maintenance_close_supplier';
+  static const String maintenanceCloseInvoice = 'maintenance_close_invoice';
+  static const String maintenanceCloseReturnedAt =
+      'maintenance_close_returned_at';
+  static const String maintenanceCloseSubmit = 'maintenance_close_submit';
+  static const String maintenanceCloseNeedsReplacement =
+      'maintenance_close_needs_replacement';
+
+  static const String maintenanceClosePreviewTitle =
+      'maintenance_close_preview_title';
+  static const String maintenanceClosePreviewNone =
+      'maintenance_close_preview_none';
+  static const String maintenanceClosePreviewExpense =
+      'maintenance_close_preview_expense';
+  static const String maintenanceClosePreviewViolation =
+      'maintenance_close_preview_violation';
+  static const String maintenanceClosePreviewSubscriptionFee =
+      'maintenance_close_preview_subscription_fee';
+
+  // ── Replacement (`11.3`) ──────────────────────────────────────────────────
+  static const String machineReplaceTitle = 'machine_replace_title';
+  static const String replacementNewSerial = 'replacement_new_serial';
+  static const String replacementNewBattery = 'replacement_new_battery';
+  static const String replacementNewSim = 'replacement_new_sim';
+  static const String replacementNewBox = 'replacement_new_box';
+  static const String replacementHasBox = 'replacement_has_box';
+  static const String replacementReason = 'replacement_reason';
+  static const String replacementReplacedAt = 'replacement_replaced_at';
+  static const String replacementSubmit = 'replacement_submit';
+  static const String replacementSuccess = 'replacement_success';
+
+  // ── Decommission (`11.4`/`11.5`) ─────────────────────────────────────────
+  static const String machineDecommissionTitle = 'machine_decommission_title';
+  static const String decommissionReason = 'decommission_reason';
+  static const String decommissionNotes = 'decommission_notes';
+  static const String decommissionAt = 'decommission_at';
+  static const String decommissionSubmit = 'decommission_submit';
+  static const String decommissionSuccess = 'decommission_success';
+  static const String decommissionSnapshotTitle =
+      'decommission_snapshot_title';
+  static const String decommissionRepairCount = 'decommission_repair_count';
+  static const String decommissionCumulativeCost =
+      'decommission_cumulative_cost';
+  static const String decommissionCostRatio = 'decommission_cost_ratio';
+
+  static const String decommissionRevertTitle = 'decommission_revert_title';
+  static const String decommissionRevertReason =
+      'decommission_revert_reason';
+  static const String decommissionRevertSubmit =
+      'decommission_revert_submit';
+  static const String decommissionRevertSuccess =
+      'decommission_revert_success';
+  static const String decommissionRevertedBadge =
+      'decommission_reverted_badge';
+
+  static const String decommissionsListTitle = 'decommissions_list_title';
+  static const String decommissionsEmpty = 'decommissions_empty';
+
+  static const String decommissionCandidatesTitle =
+      'decommission_candidates_title';
+  static const String decommissionCandidatesEmpty =
+      'decommission_candidates_empty';
+  static const String decommissionRecommendationKeep =
+      'decommission_recommendation_keep';
+  static const String decommissionRecommendationReview =
+      'decommission_recommendation_review';
+  static const String decommissionRecommendationConsider =
+      'decommission_recommendation_consider';
+  static const String decommissionCandidateAction =
+      'decommission_candidate_action';
 }

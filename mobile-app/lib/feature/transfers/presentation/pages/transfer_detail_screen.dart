@@ -2,12 +2,13 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
+import 'package:machinery/core/di/service_locator.dart';
 import 'package:machinery/core/permissions/permission_keys.dart';
+import 'package:machinery/core/permissions/permission_service.dart';
 import 'package:machinery/core/shared_widgets/app_error_view.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
 import 'package:machinery/core/shared_widgets/detail_card.dart';
 import 'package:machinery/core/shared_widgets/error_toast.dart';
-import 'package:machinery/core/shared_widgets/permission_gate.dart';
 import 'package:machinery/core/shared_widgets/success_toast.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/core/utils/app_route.dart';
@@ -149,25 +150,35 @@ class _TransferDetailScreenState extends State<TransferDetailScreen> {
                     .toList(growable: false),
               ),
               const SizedBox(height: AppSpacing.md),
-              TransferSignaturesCard(signatures: transfer.signatures),
+              TransferSignaturesCard(
+                transferId: transfer.id,
+                signatures: transfer.signatures,
+              ),
             ],
           ),
         ),
         // Only a pending transfer has anything to do. A confirmed one is a
         // record, and a rejected one is an argument that already happened.
+        //
+        // Each action is gated on its own permission rather than bundled
+        // behind `transfersConfirm` — a representative holds that one but not
+        // `transfersReject`/`transfersCancel`, and showing a button the
+        // server will 403 on is worse than not showing it at all.
         if (transfer.isPending)
-          PermissionGate(
-            permission: P.transfersConfirm,
-            fallback: TransferActionsBar(
-              isBusy: state.isActing,
-              onCancel: _cancel,
-            ),
-            child: TransferActionsBar(
-              isBusy: state.isActing,
-              onConfirm: () => _confirm(transfer),
-              onReject: _reject,
-              onCancel: _cancel,
-            ),
+          ValueListenableBuilder<List<String>>(
+            valueListenable: getIt<PermissionService>().permissions,
+            builder: (BuildContext context, List<String> permissions, _) {
+              final PermissionService service = getIt<PermissionService>();
+
+              return TransferActionsBar(
+                isBusy: state.isActing,
+                onConfirm: service.has(P.transfersConfirm)
+                    ? () => _confirm(transfer)
+                    : null,
+                onReject: service.has(P.transfersReject) ? _reject : null,
+                onCancel: service.has(P.transfersCancel) ? _cancel : null,
+              );
+            },
           ),
       ],
     );

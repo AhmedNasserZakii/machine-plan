@@ -80,6 +80,7 @@ function toItemResponse(item: TransferItem, locale: Locale): TransferItemRespons
 
 function toSignatureResponse(signature: TransferSignature): TransferSignatureResponse {
   return {
+    id: signature.id,
     partyRole: signature.partyRole,
     userId: signature.userId,
     userFullName: signature.user?.fullName ?? null,

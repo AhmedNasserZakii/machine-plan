@@ -7,17 +7,30 @@ import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/core/theme/styles/app_text_styles.dart';
 import 'package:machinery/feature/transfers/data/logic/create_transfer/create_transfer_state.dart';
+import 'package:machinery/feature/transfers/domain/params/transfer_payload_hash.dart';
 import 'package:machinery/feature/transfers/presentation/helpers/transfer_labels.dart';
+import 'package:machinery/feature/transfers/presentation/widgets/handover_signature_card.dart';
 
 /// Step four: what is about to be sent, and what is wrong with it.
 ///
 /// The exceptions lead. Nobody re-reads forty rows on a phone, so the two
 /// numbers that matter — wrong batteries, missing chargers — are stated at the
 /// top where they can still change someone's mind.
+///
+/// A signature only appears here for a self-attested type (`needsSenderSignature`)
+/// — every other move is signed for by the receiver on `confirm` (`9.4`), and
+/// the server never asks this call for a sender signature at all.
 class TransferReviewStep extends StatelessWidget {
-  const TransferReviewStep({required this.state, super.key});
+  const TransferReviewStep({
+    required this.state,
+    required this.signerName,
+    this.signature,
+    super.key,
+  });
 
   final CreateTransferState state;
+  final String signerName;
+  final HandoverSignatureController? signature;
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +51,12 @@ class TransferReviewStep extends StatelessWidget {
                   ? null
                   : TransferLabels.type(state.type!),
             ),
+            if (state.recipientDisplayName != null)
+              DetailRow(
+                label: LocaleKeys.transferTo.tr(),
+                value: state.recipientDisplayName,
+              ),
+            DetailRow(label: LocaleKeys.transferSigner.tr(), value: signerName),
             DetailRow(
               label: LocaleKeys.transferMachinesTitle.tr(),
               value: LocaleKeys.transferItemsCount.tr(
@@ -73,6 +92,23 @@ class TransferReviewStep extends StatelessWidget {
               .map((DraftItem item) => _ReviewRow(item: item))
               .toList(growable: false),
         ),
+        if (state.needsSenderSignature && signature != null) ...<Widget>[
+          const SizedBox(height: AppSpacing.md),
+          HandoverSignatureCard(
+            controller: signature!,
+            reason: LocaleKeys.signatureBiometricReasonSend.tr(),
+            trailing: LtrText(
+              LocaleKeys.transferPayloadFingerprint.tr(
+                args: <String>[
+                  TransferPayloadHash.compute(state.items).substring(0, 12),
+                ],
+              ),
+              style: Styles.s12(
+                context,
+              ).copyWith(color: AppColors.textSecondaryColor),
+            ),
+          ),
+        ],
       ],
     );
   }

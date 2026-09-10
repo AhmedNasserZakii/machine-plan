@@ -71,6 +71,14 @@ abstract class TransfersRepo {
     required Uint8List jpeg,
   });
 
+  /// A short-lived, viewable URL for one signature's drawn image — authorized
+  /// by being able to read this transfer, not by having uploaded the media, so
+  /// this works for the transfer's other party too.
+  Future<Either<ServerFailure, String>> fetchSignatureMediaUrl({
+    required String transferId,
+    required String signatureId,
+  });
+
   /// Which hand-offs the signed-in user may start.
   Future<Either<ServerFailure, List<CreatableTransferType>>>
   fetchCreatableTypes();

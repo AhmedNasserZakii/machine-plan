@@ -1,16 +1,26 @@
+import 'dart:typed_data';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/shared_widgets/custom_button.dart';
 import 'package:machinery/core/shared_widgets/error_toast.dart';
+import 'package:machinery/core/shared_widgets/success_toast.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/core/utils/app_route.dart';
+import 'package:machinery/core/utils/enums.dart';
+import 'package:machinery/feature/auth/data/logic/auth/auth_cubit.dart';
+import 'package:machinery/feature/auth/data/logic/auth/auth_state.dart';
+import 'package:machinery/feature/machines/domain/entities/machine_entity.dart';
 import 'package:machinery/feature/machines/domain/entities/machine_lookup_result.dart';
 import 'package:machinery/feature/scanning/domain/entities/scan_decision.dart';
 import 'package:machinery/feature/transfers/data/logic/create_transfer/create_transfer_cubit.dart';
 import 'package:machinery/feature/transfers/data/logic/create_transfer/create_transfer_state.dart';
+import 'package:machinery/feature/transfers/domain/params/transfer_write_params.dart';
+import 'package:machinery/feature/transfers/presentation/widgets/handover_signature_card.dart';
+import 'package:machinery/feature/transfers/presentation/widgets/machine_picker_sheet.dart';
 import 'package:machinery/feature/transfers/presentation/widgets/transfer_details_step.dart';
 import 'package:machinery/feature/transfers/presentation/widgets/transfer_machines_step.dart';
 import 'package:machinery/feature/transfers/presentation/widgets/transfer_review_step.dart';
@@ -31,10 +41,49 @@ class CreateTransferScreen extends StatefulWidget {
 }
 
 class _CreateTransferScreenState extends State<CreateTransferScreen> {
+  final HandoverSignatureController _signature = HandoverSignatureController();
+
   @override
   void initState() {
     super.initState();
     context.read<CreateTransferCubit>().loadTypes();
+  }
+
+  @override
+  void dispose() {
+    _signature.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submitWithSignature() async {
+    if (_signature.method == SignatureMethod.biometric) {
+      if (!_signature.isBiometricVerified) {
+        showErrorToast(LocaleKeys.signatureBiometricRequired.tr(), context);
+        return;
+      }
+
+      await context.read<CreateTransferCubit>().submitWithSignature(
+        biometricSignature: SignatureParams(
+          method: SignatureMethod.biometric,
+          deviceId: _signature.verifiedDeviceId,
+          deviceModel: _signature.verifiedDeviceModel,
+        ),
+      );
+      return;
+    }
+
+    final Uint8List? png = await _signature.drawn.toPngBytes();
+
+    if (!mounted) return;
+
+    if (png == null) {
+      showErrorToast(LocaleKeys.transferSignatureRequired.tr(), context);
+      return;
+    }
+
+    await context.read<CreateTransferCubit>().submitWithSignature(
+      signaturePng: png,
+    );
   }
 
   /// Machines are added by scan, one after another without the camera
@@ -67,6 +116,48 @@ class _CreateTransferScreenState extends State<CreateTransferScreen> {
         return const ScanDecision.accept();
       },
     );
+  }
+
+  /// The alternative to scanning one at a time (`9.1`) — clearing an entire
+  /// custody list in one hand-off is a search-and-tick job, not forty trips
+  /// through the camera. Selectability and "already added" are enforced by
+  /// the sheet itself; the filter here is only a defensive re-check.
+  Future<void> _pickFromList() async {
+    final CreateTransferCubit cubit = context.read<CreateTransferCubit>();
+    final AuthState authState = context.read<AuthCubit>().state;
+
+    if (authState is! Authenticated) return;
+
+    final List<MachineEntity>? picked = await MachinePickerSheet.show(
+      context: context,
+      holderId: authState.profile.user.id,
+      isSelectable: (MachineEntity machine) => cubit.state.isEligible(machine),
+      alreadySelectedIds: cubit.state.items
+          .map((DraftItem item) => item.machine.id)
+          .toSet(),
+    );
+
+    if (picked == null || picked.isEmpty || !mounted) return;
+
+    int added = 0;
+    for (final MachineEntity machine in picked) {
+      final CreateTransferState state = cubit.state;
+      final bool alreadyAdded = state.items.any(
+        (DraftItem item) => item.machine.id == machine.id,
+      );
+
+      if (alreadyAdded || !state.isEligible(machine)) continue;
+
+      cubit.addMachine(machine);
+      added++;
+    }
+
+    if (added > 0 && mounted) {
+      showSuccessToast(
+        LocaleKeys.transferPickerAdded.tr(args: ['$added']),
+        context,
+      );
+    }
   }
 
   void _onStateChanged(BuildContext context, CreateTransferState state) {
@@ -112,10 +203,20 @@ class _CreateTransferScreenState extends State<CreateTransferScreen> {
     CreateTransferStep.pickMachines => TransferMachinesStep(
       state: state,
       onScan: _scan,
+      onPickFromList: _pickFromList,
     ),
     CreateTransferStep.itemDetails => TransferDetailsStep(state: state),
-    CreateTransferStep.review => TransferReviewStep(state: state),
+    CreateTransferStep.review => TransferReviewStep(
+      state: state,
+      signerName: _signerName(),
+      signature: _signature,
+    ),
   };
+
+  String _signerName() {
+    final AuthState authState = context.read<AuthCubit>().state;
+    return authState is Authenticated ? authState.profile.user.name : '';
+  }
 
   Widget _buildFooter(BuildContext context, CreateTransferState state) {
     final CreateTransferCubit cubit = context.read<CreateTransferCubit>();
@@ -145,11 +246,16 @@ class _CreateTransferScreenState extends State<CreateTransferScreen> {
         cubit.validateAndReview,
         state.isValidating,
       ),
-      CreateTransferStep.review => (
-        LocaleKeys.transferSubmit.tr(),
-        cubit.submit,
-        state.isSubmitting,
-      ),
+      // A self-attested type closes with the sender's own signature
+      // (`9.3`) — every other type submits plainly and the receiver signs
+      // later, on `confirm` (`9.4`).
+      CreateTransferStep.review => state.needsSenderSignature
+          ? (
+              LocaleKeys.transferSubmitSignature.tr(),
+              _submitWithSignature,
+              state.isSubmitting,
+            )
+          : (LocaleKeys.transferSubmit.tr(), cubit.submit, state.isSubmitting),
     };
 
     return SafeArea(

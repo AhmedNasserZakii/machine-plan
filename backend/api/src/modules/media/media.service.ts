@@ -232,6 +232,25 @@ export class MediaService implements OnModuleInit, OnModuleDestroy {
     return { media, url, expiresAt };
   }
 
+  /**
+   * The same signed-URL mint as `signedUrl`, but for a caller who has already been authorized
+   * through a *different* door — a transfer signature's viewer, checked against that transfer's
+   * own read scope (`TransfersService.signatureMedia`), not media ownership.
+   *
+   * Never expose this to a route that takes a bare media id from the request: the whole point
+   * of `signedUrl`'s ownership check is that a media id travelling in a payload is not itself
+   * proof of the right to read it. This exists only for callers that did that proof themselves.
+   */
+  async signedUrlForAuthorizedMedia(
+    mediaId: string,
+  ): Promise<{ media: Media; url: string; expiresAt: Date } | null> {
+    const media = await this.media.findOne({ where: { id: mediaId } });
+    if (!media) return null;
+
+    const { url, expiresAt } = await this.storage.downloadUrl(media.storageKey);
+    return { media, url, expiresAt };
+  }
+
   async remove(mediaId: string, actorId: string, canManage: boolean): Promise<void> {
     const media = canManage
       ? await this.media.findOne({ where: { id: mediaId } })

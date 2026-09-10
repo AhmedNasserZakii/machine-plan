@@ -15,6 +15,7 @@ class MachinesQueryParams extends Equatable {
     this.machineModelId,
     this.branchId,
     this.holderType,
+    this.holderId,
     this.warrantyExpiringBefore,
     this.minRepairCost,
     this.includeRetired = false,
@@ -31,6 +32,10 @@ class MachinesQueryParams extends Equatable {
   final String? machineModelId;
   final String? branchId;
   final PartyType? holderType;
+
+  /// Scopes to whatever one specific party currently holds — the machine
+  /// picker sheet's "in your custody" list, in particular.
+  final String? holderId;
   final String? warrantyExpiringBefore;
   final double? minRepairCost;
 
@@ -70,6 +75,7 @@ class MachinesQueryParams extends Equatable {
     String? machineModelId,
     String? branchId,
     PartyType? holderType,
+    String? holderId,
     String? warrantyExpiringBefore,
     double? minRepairCost,
     bool? includeRetired,
@@ -78,6 +84,7 @@ class MachinesQueryParams extends Equatable {
     bool resetModel = false,
     bool resetBranch = false,
     bool resetHolderType = false,
+    bool resetHolderId = false,
     bool resetWarranty = false,
     bool resetMinRepairCost = false,
   }) {
@@ -92,6 +99,7 @@ class MachinesQueryParams extends Equatable {
           : (machineModelId ?? this.machineModelId),
       branchId: resetBranch ? null : (branchId ?? this.branchId),
       holderType: resetHolderType ? null : (holderType ?? this.holderType),
+      holderId: resetHolderId ? null : (holderId ?? this.holderId),
       warrantyExpiringBefore: resetWarranty
           ? null
           : (warrantyExpiringBefore ?? this.warrantyExpiringBefore),
@@ -123,6 +131,7 @@ class MachinesQueryParams extends Equatable {
       if (machineModelId != null) ApiKeys.machineModelId: machineModelId,
       if (branchId != null) ApiKeys.branchId: branchId,
       if (holderType != null) ApiKeys.holderType: holderType!.value,
+      if (holderId != null) ApiKeys.holderId: holderId,
       if (warrantyExpiringBefore != null)
         ApiKeys.warrantyExpiringBefore: warrantyExpiringBefore,
       if (minRepairCost != null) ApiKeys.minRepairCost: minRepairCost,
@@ -140,6 +149,7 @@ class MachinesQueryParams extends Equatable {
     machineModelId,
     branchId,
     holderType,
+    holderId,
     warrantyExpiringBefore,
     minRepairCost,
     includeRetired,

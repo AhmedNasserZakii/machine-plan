@@ -13,6 +13,7 @@ import 'package:machinery/core/lookups/lookups_repo.dart';
 import 'package:machinery/core/network_services/api_service.dart';
 import 'package:machinery/core/permissions/permission_service.dart';
 import 'package:machinery/core/services/biometric/biometric_service.dart';
+import 'package:machinery/core/services/biometric/handover_biometric_service.dart';
 import 'package:machinery/core/services/locale_service.dart';
 import 'package:machinery/core/services/sync/pending_sync_counter.dart';
 import 'package:machinery/core/services/sync/finance_sync_queue.dart';
@@ -47,6 +48,12 @@ import 'package:machinery/feature/machines/data/logic/machines_list/machines_lis
 import 'package:machinery/feature/machines/domain/entities/machine_entity.dart';
 import 'package:machinery/feature/machines/domain/repos/machines_repo.dart';
 import 'package:machinery/feature/machines/domain/repos/machines_repo_impl.dart';
+import 'package:machinery/feature/maintenance/data/logic/maintenance_create/maintenance_create_cubit.dart';
+import 'package:machinery/feature/maintenance/data/logic/maintenance_detail/maintenance_detail_cubit.dart';
+import 'package:machinery/feature/maintenance/data/logic/maintenance_list/maintenance_list_cubit.dart';
+import 'package:machinery/feature/maintenance/domain/entities/maintenance_entity.dart';
+import 'package:machinery/feature/maintenance/domain/repos/maintenance_repo.dart';
+import 'package:machinery/feature/maintenance/domain/repos/maintenance_repo_impl.dart';
 import 'package:machinery/feature/merchants/data/logic/merchant_detail/merchant_detail_cubit.dart';
 import 'package:machinery/feature/merchants/data/logic/merchant_form/merchant_form_cubit.dart';
 import 'package:machinery/feature/merchants/data/logic/merchants_list/merchants_list_cubit.dart';
@@ -156,6 +163,9 @@ void setupServiceLocator(AppDatabase appDatabase) {
   getIt.registerLazySingleton<PermissionService>(PermissionService.new);
   getIt.registerLazySingleton<LocaleService>(LocaleService.new);
   getIt.registerLazySingleton<BiometricService>(BiometricService.new);
+  getIt.registerLazySingleton<HandoverBiometricService>(
+    HandoverBiometricService.new,
+  );
 
   // Reference tables are held for the session, so this has to outlive the
   // screens that read them.
@@ -393,6 +403,33 @@ void setupServiceLocator(AppDatabase appDatabase) {
   getIt.registerFactoryParam<ViolationSummaryCubit, String, void>(
     (String userId, _) =>
         ViolationSummaryCubit(violationsRepo: getIt(), userId: userId),
+  );
+
+  // ── Maintenance, replacement, decommission ─────────────────────────────────
+  getIt.registerLazySingleton<MaintenanceRepo>(
+    () => MaintenanceRepoImpl(apiService: getIt(), networkInfo: getIt()),
+  );
+
+  getIt.registerFactory<MaintenanceListCubit>(
+    () => MaintenanceListCubit(maintenanceRepo: getIt()),
+  );
+
+  getIt
+      .registerFactoryParam<
+        MaintenanceDetailCubit,
+        String,
+        MaintenanceOrderEntity?
+      >(
+        (String orderId, MaintenanceOrderEntity? initial) =>
+            MaintenanceDetailCubit(
+              maintenanceRepo: getIt(),
+              orderId: orderId,
+              initial: initial,
+            ),
+      );
+
+  getIt.registerFactory<MaintenanceCreateCubit>(
+    () => MaintenanceCreateCubit(maintenanceRepo: getIt()),
   );
 
   // ── Home dashboard ───────────────────────────────────────────────────────

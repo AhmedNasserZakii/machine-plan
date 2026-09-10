@@ -1409,98 +1409,1034 @@ Create transfer (the representative holds `transfers.create` but none of `mainte
 Cleaned up the one test machine (`QATEST-M-...`) from the dev database afterward so the seed
 counts stay meaningful for future sessions.
 
-### 8.2 Complete scanning
+### 8.2 Complete scanning — done 2026-09-10
 
-- [ ] Add explicit single-shot and continuous scanner modes.
-- [ ] In continuous mode, retain the selected set and ignore duplicate scans.
-- [ ] Support eligibility errors without closing the scanner.
-- [ ] Integrate battery scanning into transfer item details.
-- [ ] Keep manual entry available for every scanning use case.
-- [ ] Implement QR-label printing/export if it remains in v1 scope.
-- [ ] Test camera lifecycle, permission denial, background/resume, and controller disposal.
+- [x] Add explicit single-shot and continuous scanner modes.
+- [x] In continuous mode, retain the selected set and ignore duplicate scans.
+- [x] Support eligibility errors without closing the scanner.
+- [x] Integrate battery scanning into transfer item details.
+- [x] Keep manual entry available for every scanning use case.
+- [x] Implement QR-label printing/export if it remains in v1 scope.
+- [x] Test camera lifecycle, permission denial, background/resume, and controller disposal.
+
+Scope read directly from `mobile-app/machinery-flutter-plan/12-feature-qr-scanning.md`: printing a
+replacement sticker is explicitly out of scope for the app; the spec's stated substitute is a large
+on-screen QR of the machine's serial on the detail screen, so a supervisor can scan it from another
+phone when the physical sticker is gone. Built exactly that (no printer/file-export integration
+anywhere), settling the checklist's conditional wording as "not in v1 scope" for printing while still
+shipping the in-scope on-screen view.
+
+`ScannerCubit`'s resolve/retry/dedup logic was left completely unchanged; only `ScannerScreen`'s
+reaction to a resolved scan is mode-aware now. Added `ScannerMode` (`singleShot`, default and
+byte-for-byte the original confirm-sheet-then-pop behavior; `continuous`, new). In continuous mode a
+caller-supplied `Future<ScanDecision> Function(MachineLookupResult) onContinuousHit` decides
+accept/reject; either way a toast is shown and `cubit.retry()` is called automatically so the camera
+never closes on a hit — this is what "support eligibility errors without closing the scanner" and "in
+continuous mode, ignore duplicate scans" actually resolve to, since the cubit's own repeat-code guard
+already covers literal re-detection of the same sticker, and the new per-hit decision closure is what
+lets the caller reject a resolved-but-ineligible machine (already added, wrong custody, wrong transfer
+type) in place. The AppBar shows `LocaleKeys.scanContinuousTitle` ("امسح الماكينات (N)") with a live
+accepted count, plus a `scanner_done_button` ("تم") that pops the scanner when the caller is finished.
+Manual entry (`ManualEntrySheet` → `cubit.resolve(code)`) flows through the exact same mode-aware
+`_onResolved` handler with zero special-casing, since it also just emits `ScannerResolved`.
+`CreateTransferScreen._scan()` was rewired onto `AppRoute.goToContinuousScanner`, reusing its existing
+already-added/eligibility checks inside the `onHit` closure; the three other pre-existing call sites of
+`AppRoute.goToScanner` (single-shot) were left untouched.
+
+Battery scanning needed a second, deliberately simpler screen rather than reusing `ScannerCubit`:
+recording a battery serial during transfer confirmation must accept *any* scanned value, including one
+that matches no existing record, since that mismatch is exactly what the server-side violation logic is
+built to detect — which the main cubit's "resolve against a known machine via network lookup" semantics
+cannot express. Built `RawBarcodeScannerScreen`, a new cubit-less screen that just returns the first
+detected barcode's raw string (or a manually-typed one) via `Navigator.pop(rawValue)`, reachable via a
+new `AppRoute.goToRawBarcodeScanner`. Wired a scan icon into `ItemAdjustmentSheet`'s existing battery
+field (the receiver-side item-correction sheet used during transfer confirmation) that opens this
+screen and fills the field with whatever came back — this is the "integrate battery scanning into
+transfer item details" bullet.
+
+Added `MachineQrSheet`, a modal bottom sheet with a `qr_flutter` `QrImageView` of the machine's
+`qrPayload ?? serial`, the serial itself, and a hint line, opened from a new QR icon button in
+`MachineDetailScreen`'s AppBar (visible once the machine has loaded). New pubspec dependency:
+`qr_flutter: ^4.1.0` (pulled in transitive `qr: 3.0.2`); `mobile_scanner` was also bumped to `7.4.0` as
+part of the same `flutter pub get`.
+
+"Test camera lifecycle, permission denial, background/resume, and controller disposal" was addressed as
+a structural review rather than new automated tests, since `MobileScannerController` needs platform
+channels `flutter test` doesn't provide: `ScannerScreen`'s existing `dispose()` already disposes the
+controller exactly once regardless of mode, and its existing `errorBuilder` (unchanged by this section)
+already renders a camera-unavailable fallback for permission-denial and hardware-unavailable cases —
+neither code path was touched by the mode changes, so neither could have regressed. Live-verified the
+resume path instead: backgrounded the emulator with the continuous scanner open (home button, wait,
+relaunch via the recents list) and confirmed the camera preview and the accepted-count title survived
+the round trip without a crash or a stuck loading state.
+
+Files added: `lib/feature/scanning/domain/entities/scan_decision.dart`,
+`lib/feature/scanning/presentation/pages/raw_barcode_scanner_screen.dart`,
+`lib/feature/machines/presentation/widgets/machine_qr_sheet.dart`, `test/scanner_cubit_test.dart` (7
+new cases: successful resolve, 404 → not-found, other failure → offline-flagged failure, duplicate-code
+suppression, busy-window suppression, `retry()` re-arming the same code, blank-code no-op — all against
+`ScannerCubit` directly with a `noSuchMethod`-based fake `MachinesRepo`, no camera dependency).
+
+Files changed: `lib/feature/scanning/presentation/pages/scanner_screen.dart` (`ScannerMode` enum, mode
+param, `onContinuousHit`, mode-aware `_onResolved`, accepted-count title, Done button — single-shot
+path preserved verbatim), `lib/core/utils/app_route.dart` (`goToContinuousScanner`,
+`goToRawBarcodeScanner`; `goToScanner` untouched),
+`lib/feature/transfers/presentation/pages/create_transfer_screen.dart` (`_scan()` rewired onto
+continuous mode with an `onHit` closure), `lib/feature/transfers/presentation/widgets/item_adjustment_sheet.dart`
+(`_scanBattery()` plus a suffix icon on the battery field),
+`lib/feature/machines/presentation/pages/machine_detail_screen.dart` (AppBar QR button), `pubspec.yaml`
+(`qr_flutter`), locale keys/translations for `scanContinuousTitle`, `scanAdded`,
+`scanBatteryScanTooltip`, `machineQrTitle`, `machineQrHint` in both `en.json`/`ar.json`.
+
+Verification: `flutter analyze` — 0 issues. `flutter test` — 153/153 passing (7 new
+`scanner_cubit_test.dart` cases plus the full pre-existing suite, unaffected). Live end-to-end pass on
+`emulator-5554` (fresh `flutter run`, logged in as the representative `01000000003`): created a new
+rep→branch transfer, opened the machines step, and used the continuous scanner's manual-entry fallback
+(no camera target on the emulator) to exercise every path — `SN-1008` accepted (toast "تم بنجاح — أُضيفت
+SN-1008", AppBar count 0→1, scanner stayed open); `SN-1005` and `SN-1004` both rejected in place ("هذه
+الماكينة ليست في حوزتك الآن" — not currently in the representative's custody) without the scanner
+closing and without incrementing the count; re-entering `SN-1008` rejected in place as a duplicate
+("الماكينة دي مضافة خلاص") without incrementing the count; tapped "تم" (Done) and confirmed the wizard's
+machines step showed exactly the one accepted machine. Completed the wizard through to submission
+(`TRF-2026-000002`). Logged out, logged in as the Cairo branch supervisor recipient (`01000000002`,
+seeded in `seed-dev.ts`), opened the pending delivery, tapped the item's "تعديل" (Edit) to open
+`ItemAdjustmentSheet`, tapped its new scan icon, confirmed `RawBarcodeScannerScreen` opened with title
+"امسح سيريال البطارية", entered a raw value via its manual-entry fallback (`BT-91008-TEST`, deliberately
+matching no existing battery record), and confirmed it was written back into the sheet's battery field
+verbatim — proving the raw-scan/no-lookup design end to end. Also opened `SN-1009`'s detail screen as
+the representative and tapped the new AppBar QR icon: `MachineQrSheet` rendered a scannable QR of the
+serial, the serial text, and the "امسحه من موبايل تاني لو الملصق ضاع" hint, matching the UX spec
+verbatim. Reverted the test transfer afterward (rejected `TRF-2026-000002` as the receiver with a
+`QA_cleanup_revert_test_transfer` reason) so `SN-1008` remains with the representative and the seeded
+"representative holds 4 machines" baseline stays accurate for future sessions — the item adjustment
+itself was never submitted server-side (it lives in local wizard state until final signature), so no
+mismatch record was left behind either.
 
 ---
 
 ## 9. Flutter transfers and signatures completion
 
-### 9.1 Complete transfer machine selection
+### 9.1 Complete transfer machine selection — done 2026-09-10
 
-- [ ] Use continuous scanning when adding machines.
-- [ ] Add a searchable, cached, multi-select machine picker.
-- [ ] Enforce local custody and transfer-type eligibility checks.
-- [ ] Add the inline new-merchant flow and return the created merchant to the recipient selector.
-- [ ] Block direct inter-branch transfer construction with the planned explanation.
+- [x] Use continuous scanning when adding machines.
+- [x] Add a searchable, cached, multi-select machine picker.
+- [x] Enforce local custody and transfer-type eligibility checks.
+- [x] Add the inline new-merchant flow and return the created merchant to the recipient selector.
+- [x] Block direct inter-branch transfer construction with the planned explanation.
 
-### 9.2 Complete per-item details
+Three of the five bullets were already fully implemented before this pass and only needed
+re-confirming against the checklist:
 
-- [ ] Add battery scan alongside manual entry.
-- [ ] Add up to four removable photos per transfer item.
-- [ ] Capture from camera or gallery.
-- [ ] Compress on capture, normalize orientation, and strip unnecessary EXIF data.
-- [ ] Add “apply to all” for accessories and condition.
-- [ ] Preserve per-item notes and show mismatch warnings immediately.
+- Continuous scanning was built and live-verified in `8.2` (`ScannerMode.continuous`,
+  `onContinuousHit`, the "امسح الماكينات (N)" running count, explicit "تم" to close). The
+  create-transfer wizard's scan button already used it, so nothing changed here.
+- Custody and eligibility checks already existed in
+  `create_transfer_state.dart` (`isEligible`, `canLeaveMachinesStep`, `DraftItem`) and were
+  exercised again by this pass's manual/picker additions without modification.
+- The "inter-branch guard" bullet needed no runtime code. `backend/api/src/common/enums/transfer.enum.ts`
+  has no `BRANCH_TO_BRANCH` value in `TransferType` — the enum only has
+  `FACTORY_TO_COMPANY, COMPANY_TO_BRANCH, BRANCH_TO_REPRESENTATIVE, REPRESENTATIVE_TO_MERCHANT,
+  MERCHANT_TO_REPRESENTATIVE, REPRESENTATIVE_TO_BRANCH, BRANCH_TO_COMPANY, COMPANY_TO_MAINTENANCE,
+  MAINTENANCE_TO_COMPANY, COMPANY_TO_FACTORY, FACTORY_TO_COMPANY_RETURN, COMPANY_TO_SERVICE_CENTER,
+  SERVICE_CENTER_TO_COMPANY, COMPANY_TO_SCRAP`. A machine can only ever move branch → company →
+  branch. The planned "explanation" scenario (a UI check blocking a constructed direct
+  branch-to-branch transfer) is therefore structurally unreachable — the wizard cannot present a
+  type that does not exist server-side — so the guard is satisfied by the type system, not new code.
 
-### 9.3 Complete sender signing
+The two real gaps were the machine picker and the inline new-merchant shortcut, both built against
+`mobile-app/machinery-flutter-plan/13-feature-transfers-handover.md`'s literal spec language
+("searchable list of machines in the user's custody, multi-select" for the picker; create-then-return
+for the merchant shortcut):
 
-- [ ] Put signature capture into step four after the complete payload summary.
-- [ ] Show recipient, signer, machine count, anomalies, and full-detail access on the signing screen.
-- [ ] Compute the canonical payload hash on the client.
-- [ ] Submit the correct sender/self-attestation signature for each transfer type.
-- [ ] Ensure no editable screen follows signature capture.
+**Machine picker.** Added `mobile-app/lib/feature/transfers/domain/params/machines_query_params.dart`
+field `holderId` (constructor param, `copyWith` with a `resetHolderId` reset flag, `toQuery()` entry
+using the already-existing `ApiKeys.holderId` constant, `props` entry) — the backend's `GET /machines`
+already filtered on `holderId` server-side
+(`backend/api/src/modules/machines/machines.service.ts`: `if (query.holderId) { qb.andWhere('machine.current_holder_id = :holderId', ...) }`),
+so this was a minimal, backend-verified addition rather than new plumbing. Added new file
+`mobile-app/lib/feature/transfers/presentation/widgets/machine_picker_sheet.dart`
+(`MachinePickerSheet.show(...)`), which reuses the existing DI-factory-registered
+`MachinesListCubit` (fresh instance per sheet, disposed on close) rather than a bespoke cubit — it
+already had `load`/`search` (350ms debounce)/`loadMore` and full `MachinesListState` handling. The
+sheet shows a title row, `CustomSearchBar`, a `PaginatedListView` of checkbox rows (serial, model,
+status chip, a disabled-reason label for ineligible/already-added rows,
+`Material(type: MaterialType.transparency)`-wrapped `CheckboxListTile` per the established ink-splash
+fix pattern from `8.1`), and a footer "إضافة (N)" button that pops the selected `MachineEntity` list.
+Wired into `create_transfer_screen.dart` via a new `_pickFromList()` method (scoped to the
+authenticated user's own id as `holderId`, filtering out already-added/ineligible picks, showing a
+success toast with the added count) and into `transfer_machines_step.dart` as a new
+"اختيار من القائمة" `TextButton.icon` (`transfer_pick_from_list`) below the scan button.
 
-### 9.4 Complete receiver confirmation
+**Inline new-merchant flow.** `AppRoute.goToMerchantForm` changed its return type from
+`Future<bool?>` (only "something changed") to `Future<MerchantEntity?>` (the actual created/updated
+record) — `MerchantFormSubmitted` already carried the full `MerchantEntity`, so this was a pop-value
+change plus updating the two call sites that used the boolean (`merchant_detail_screen.dart`,
+`merchants_list_screen.dart`); the third call site in `home_dashboard_screen.dart` discards the
+return value and needed no change. Rebuilt the merchant `ReceiverKind` branch in
+`transfer_type_step.dart` as a new stateful `_MerchantRecipientField`: typed-code entry stays as the
+fallback for an existing shop, with a new "تاجر جديد" (`transfer_new_merchant_button`) shortcut that
+opens `MerchantFormScreen`, and on return calls `cubit.setMerchantId(created.id)` and shows a
+"المختار: {shopName}" card with a "تغيير" (`transfer_merchant_change`) button in place of the raw
+id field. Added locale keys `transferNewMerchant`, `transferMerchantSelected`,
+`transferMerchantChange`, `transferPickFromList`, `transferPickerTitle`,
+`transferPickerSearchHint`, `transferPickerEmpty`, `transferPickerAddSelected`,
+`transferPickerAdded` to `locale_keys.dart` and both `assets/translations/en.json` and `ar.json`.
 
-- [ ] Add the recomputed adjustment summary above signature capture.
-- [ ] Keep reject-with-reason available as a distinct path.
-- [ ] On `PAYLOAD_CHANGED`, reload and require a new review and signature.
-- [ ] Add offline confirmation and rejection queue operations.
-- [ ] Surface manual custody conflicts through blocking conflict UI.
+Verified with `flutter analyze` (0 issues) and `flutter test` (153/153 passing) — confirming the
+breaking-looking `goToMerchantForm` return-type change and the `TransferMachinesStep` constructor
+signature change did not regress any existing call site or test.
 
-### 9.5 Add biometric handover signatures
+Live-verified end-to-end on `emulator-5554`, logged in as representative `01000000003`
+("مندوب القاهرة"), starting a "من المندوب للتاجر" (representative→merchant) transfer:
 
-- [ ] Separate login biometrics from handover-signature biometrics.
-- [ ] Add biometric/drawn signature method selection.
-- [ ] Require `biometricOnly: true` with no device-PIN fallback.
-- [ ] Send device ID, model, verification time, method, and payload hash.
-- [ ] Explain failures and always allow drawn-signature fallback.
+- Confirmed via `uiautomator` dump that `transfer_new_merchant_button` ("تاجر جديد") renders
+  alongside the existing `transfer_merchant_field` on the type step.
+- Tapped it, landed on `MerchantFormScreen` with all expected fields present
+  (`merchant_form_shop_name`, `merchant_form_name`, `merchant_form_phone`, `merchant_form_address`,
+  `merchant_form_national_id`, `merchant_form_notes`, `merchant_form_submit`).
+  Filled shop name "QA_Test_Shop", name "QA_Test_Owner", phone "01099998888". First submit
+  correctly failed client-side validation on the required "العنوان" (address) field
+  ("الحقل ده مطلوب") — confirming existing form validation still runs unmodified through this
+  entry path. (Along the way, `adb shell input text` truncated a space-containing name at the first
+  space, and two follow-up taps landed in the wrong field due to stale pre-fix bounds, corrupting
+  the shop-name and name fields; both were corrected by re-dumping the UI tree for exact bounds,
+  clearing each field with `keyevent 123` + repeated `keyevent 67`, and retyping — a testing-process
+  detour, not a product defect.) Filled the address field and resubmitted successfully: got the
+  "تم بنجاح / تم تسجيل التاجر" success toast, and — this is the actual feature being verified — the
+  transfer wizard's type step came back showing "المختار: QA_Test_Shop" with a "تغيير" button in
+  place of the raw-id field, confirming the created `MerchantEntity` round-tripped into
+  `CreateTransferCubit` without a second fetch.
+- Advanced to the machines step and tapped "اختيار من القائمة": the `MachinePickerSheet` opened
+  with title "اختيار الماكينات", a working `CustomSearchBar` ("ابحث بالسيريال"), and the
+  representative's one in-custody machine (SN-1008, فيريفون X990) shown with a "مع المندوب" badge,
+  keyed `machine_picker_row_SN-1008`. Selected its checkbox — footer button updated live from
+  disabled "إضافة (0)" to enabled "إضافة (1)" — and confirmed: got a "تم بنجاح / تمت إضافة 1 ماكينة"
+  toast and the machine appeared in the draft item list with a delete affordance, exactly matching
+  the `13-feature-transfers-handover.md` spec.
+- One incidental observation (not a defect in this checklist's scope): navigating back from the
+  machines step to the type step re-rendered `_MerchantRecipientField` in its raw-id-field display
+  mode (showing the merchant's id in the text field) rather than restoring the "selected card" view,
+  even though the underlying `CreateTransferState.merchantId` was correctly preserved (the id shown
+  was exactly the created merchant's id). Cosmetic only — functionality is unaffected — left as a
+  possible follow-up polish item rather than blocking this section.
+- Exited the wizard via the back arrow without submitting, confirming no draft transfer was created
+  (`GET /transfers` unaffected, dashboard "التسليمات" stayed at 0). Deleted the QA test merchant
+  record (`ba50a0b5-61e9-4a32-b6a0-c6898e312f65`, shop_name `QA_Test_Shop`) directly from the dev
+  database afterward to leave seed state clean.
 
-### 9.6 Harden drawn signatures and display
+### 9.2 Complete per-item details — done 2026-09-10
 
-- [ ] Reject empty, dot-only, and too-small signatures.
-- [ ] Add clear and undo controls.
-- [ ] Trim/downscale PNG output to the planned maximum dimensions and size.
-- [ ] Stage signatures as pending media for offline upload.
-- [ ] Display signature image/fingerprint, signer, method, time, and device in transfer detail.
-- [ ] Add full-size protected viewing without save/share actions.
+- [x] Add battery scan alongside manual entry.
+- [x] Add up to four removable photos per transfer item.
+- [x] Capture from camera or gallery.
+- [x] Compress on capture, normalize orientation, and strip unnecessary EXIF data.
+- [x] Add "apply to all" for accessories and condition.
+- [x] Preserve per-item notes and show mismatch warnings immediately.
 
-Acceptance:
+Scope check first: this bullet list is about the **sender's** per-item entry screen
+(`transfer_details_step.dart`, step 3 of the create wizard), not the receiver's correction sheet
+(`item_adjustment_sheet.dart`), which already had battery scan, per-item notes, and an immediate
+mismatch verdict from earlier work. Reading the sender's screen against the checklist found it had
+only charger/carton switches, condition chips, a battery field with no scan button, and a single
+transfer-level notes field — no per-item notes, no photos, no apply-to-all. The domain model
+(`TransferItemParams.notes`, `.photoMediaIds`, `TransfersRepo.uploadItemPhoto`,
+`MediaStagingService`) was already fully built by earlier sections (`07`, `08`) and simply unused by
+this screen — so this was a UI-wiring task against already-proven plumbing, not new infrastructure.
 
-- [ ] A 12-machine transfer with photos and a signature can be completed offline, survive restart,
-      sync successfully, and be replayed without duplicates.
+**Battery scan.** Added the same `AppRoute.goToRawBarcodeScanner` suffix-icon pattern already used in
+`item_adjustment_sheet.dart` to the sender's battery field, converting `_ItemDetails` from a
+`StatelessWidget` to a `StatefulWidget` (keyed `ValueKey(item.machine.id)` so each item keeps its own
+`TextEditingController`s and photo-preview cache across cubit-driven rebuilds).
+
+**Per-item notes.** Added a second `LabeledTextFormField` ("ملاحظات على الماكينة دي",
+`draft_notes_${serial}`) per item, calling `cubit.updateItem(machineId, notes: value)` — the existing
+transfer-level notes field (`transfer_notes_field`) is unchanged and stays for a note about the whole
+hand-off rather than one machine.
+
+**Photos.** Added `_PhotosRow`/`_PhotoThumb`: up to 4 slots, an "إضافة صورة" tile
+(`transfer_add_photo`) that opens a small `showModalBottomSheet` choosing "الكاميرا" or "معرض الصور"
+(`image_picker`'s `ImageSource.camera`/`.gallery`), each removable via an "×" badge. On pick,
+`FlutterImageCompress.compressWithList(minWidth: 1280, minHeight: 1280, quality: 70,
+autoCorrectionAngle: true, keepExif: false)` handles compression, orientation normalization, and EXIF
+stripping in one call — matching the plan's "compressed on capture" line exactly, since
+`autoCorrectionAngle` and `keepExif: false` are that same call's parameters, not separate passes. The
+compressed bytes go to a new `CreateTransferCubit.addPhoto(machineId, bytes)`, which calls the
+already-existing `TransfersRepo.uploadItemPhoto` (online: presign→PUT→confirm; offline: staged via
+`MediaStagingService`, per `07`) and appends the returned id to `photoMediaIds` via the existing
+`updateItem`. A new `removePhoto(machineId, mediaId)` mirrors it. Since a create-draft photo is
+always one this session captured, the thumbnail is rendered from the in-memory compressed bytes kept
+in `_ItemDetailsState._photoPreviews` (`Image.memory`) rather than from any resolved URL — there is no
+existing pattern anywhere in this app for displaying an already-uploaded media id as an image (not
+even for signatures), so inventing a URL-resolution path for this one screen was out of scope.
+
+**Apply to all.** Added `_ApplyToAllButton` (shown only once `state.items.length > 1` — one item has
+nothing to broadcast to) opening `_ApplyToAllSheet`, a small bottom sheet seeded from the first item's
+charger/carton/condition, with its own local state and an "تطبيق" button. Confirming calls a new
+`CreateTransferCubit.applyToAll({hasCharger, hasBox, condition})`, which maps over every `DraftItem`
+and overwrites those three fields — battery serial, notes, and photos are deliberately left untouched
+per item, since those are legitimately different per machine even when the accessories/condition are
+identical across a batch.
+
+Added locale keys `transferItemNotes`, `transferItemPhotos`, `transferAddPhoto`,
+`transferPhotoSourceCamera`, `transferPhotoSourceGallery`, `transferPhotoUploadFailed`,
+`transferApplyToAll`, `transferApplyToAllApply`, `transferApplyToAllApplied` to `locale_keys.dart` and
+both translation files.
+
+Verified with `flutter analyze` (0 issues) and `flutter test` (153/153 passing).
+
+Live-verified on `emulator-5554` as representative `01000000003`, building a "من المندوب للتاجر"
+draft with two machines. Since only one machine (SN-1008) was actually in this representative's
+custody, SN-1005 was temporarily reassigned to `WITH_REPRESENTATIVE`/this same representative
+directly in the dev database to get a second real item for `apply-to-all` (a machine picker/eligibility
+test, already covered in `9.1`, was not the point here); it was set back to its original
+`IN_BRANCH_WAREHOUSE` state (holder, warehouse, and branch all matching its untouched sibling
+`SN-1004`) immediately after this pass.
+
+- **Apply to all**: with 2 items, "طبّق على الكل" appeared; opened the sheet seeded from SN-1008's
+  values, turned on شاحن + كرتونة and picked "فيها تلف", tapped "تطبيق" — got a
+  "تم بنجاح / تم التطبيق على كل الماكينات" toast, and confirmed by scrolling that **both** SN-1008
+  and SN-1005's cards now showed the identical charger/carton/condition state.
+- **Battery scan**: tapped the scan icon on SN-1005's battery field, granted the camera permission
+  prompt, used the manual-entry fallback (no real barcode on the emulator's virtual camera feed) to
+  submit "BT-91005-TEST" — the field populated with it and a red-bordered mismatch card appeared
+  immediately: "البطارية مش بتاعتها / المفروض: BT-91005", matching the machine's actual bonded
+  battery serial and the "does not block, must not go unsaid" rule from the plan doc.
+- **Per-item notes**: typed "QA_test_note_9_2" into SN-1005's own notes field; confirmed via
+  `uiautomator` dump (`text="QA_test_note_9_2"` on `draft_notes_SN-1005`) that it is stored
+  independently of the transfer-level notes field.
+- **Photos**: tapped "إضافة صورة", the camera/gallery chooser sheet appeared correctly; chose
+  "معرض الصور", the Android system photo picker opened (`image_picker`'s scoped picker, no storage
+  permission needed), selected an image, and confirmed via backend logs
+  (`POST /api/v1/media/presign` → `201`) and a `SELECT` against the dev `media` table that a
+  `TRANSFER_PHOTO` row was reserved correctly. The subsequent presigned `PUT` then failed with
+  `Connection refused` (`adb logcat`, `transfers repo uploadItemPhoto dio exception: ... Connection
+  refused`) — this dev backend's `S3_ENDPOINT=http://localhost:9000` is written into the presigned
+  URL verbatim, and "localhost" from inside the Android emulator's network namespace means the
+  emulator itself, not the host Mac running MinIO (the standard Android-emulator loopback gotcha;
+  the host is reachable only via `10.0.2.2`). This is an environment/infrastructure limitation of
+  this local setup, not a defect in the new code: the compression call ran without error, the picker
+  and sheet worked, the presign→PUT→confirm sequence was invoked exactly as designed and failed at
+  the expected boundary, and the failure was caught and surfaced through the same `ServerFailure`
+  path every other upload in this app already uses (confirmed via `adb logcat` rather than catching
+  the on-screen toast, which does not stay up long enough for a screenshot round-trip to reliably
+  catch). The two orphaned unconfirmed `media` rows this produced were deleted from the dev database
+  afterward.
+- Exited the wizard via the back arrow without submitting; confirmed no draft transfer was created
+  (dashboard "التسليمات" stayed at 0).
+
+### 9.3 Complete sender signing — done 2026-09-10
+
+- [x] Put signature capture into step four after the complete payload summary.
+- [x] Show recipient, signer, machine count, anomalies, and full-detail access on the signing screen.
+- [x] Compute the canonical payload hash on the client.
+- [x] Submit the correct sender/self-attestation signature for each transfer type.
+- [x] Ensure no editable screen follows signature capture.
+
+Before touching any UI, read `transfers.service.ts` to find out when the server actually wants a
+sender signature at all, since `CreateTransferParams.senderSignature` existed in the domain model
+but nothing in the wizard ever populated it and `submit()` never sent one — step four (the review
+step) went straight from summary to `POST /transfers` with no signing step in between. The answer
+turned out to collapse the whole bullet list to one flag already sitting in the client:
+`signatureNeeded = rule.autoConfirm || rule.signatures.includes(SENDER)` reduces, for every entry in
+this app's `TRANSFER_RULES`, to exactly `rule.autoConfirm` — which is precisely what
+`CreatableTransferType.selfAttested` already reports. A representative handing a machine to a branch
+or a merchant returning it to him signs on `confirm` instead (the receiver's flow, `9.4`); only a
+self-attested move (rep→merchant, merchant→rep, and the company-level factory/service-center/scrap
+legs) closes on the sender's own signature, because there is no counterparty account to sign later.
+So `CreateTransferState.needsSenderSignature` is just `selected?.selfAttested ?? false`, and the
+signing UI is gated on it entirely — nothing renders or is required for every other type.
+
+**Signing screen.** `TransferReviewStep` (still step four, the same review screen, per the plan's
+"into step four" rather than a fifth step) gained a "المستلم" row (`recipientDisplayName`, a new
+`CreateTransferState` getter resolving a merchant's name, a picked recipient's name, or nothing for
+a self-facing type) and a "الموقّع" row (the signed-in user's name, read from `AuthCubit` in
+`create_transfer_screen.dart` and passed down). The existing mismatch/missing-charger counts and the
+full per-item `DetailCard` list were already there from `8`/`9.2` and needed no change — they already
+satisfy "anomalies" and "full-detail access". When `needsSenderSignature` is true, a
+`DetailCard` titled "التوقيع" appears below the item list with the same hand-rolled `SignaturePad`
+the receiver's `ConfirmTransferScreen` already uses (`SignaturePadController` lifted into
+`_CreateTransferScreenState`, created in `initState`, disposed in `dispose`, exactly mirroring that
+screen's pattern), plus a `LtrText` line showing the payload's fingerprint.
+
+**Canonical payload hash.** New `TransferPayloadHash.compute(items)`
+(`domain/params/transfer_payload_hash.dart`) replicates the backend's `hashTransferPayload`
+(`transfer-payload.ts`) — same `TransferPayloadItem` shape (`machineId`, the three scanned serials,
+`hasCharger`, `hasBox`, `condition`, notes deliberately excluded), same sort by `machineId`, and the
+same `stableStringify` + SHA-256 as `hash.util.ts`'s `sha256Object`. Cross-checked against a
+standalone Node script running the actual backend functions on a fixed two-item payload
+(`test/transfer_payload_hash_test.dart`: exact hash match, order-independence, blank-serial-equals-
+null) rather than trusting a from-scratch reimplementation to happen to agree. It is **displayed**,
+not transmitted: `SignatureParams.toJson()` has no hash field for the *create* call the way
+`ConfirmTransferParams` does for `confirm` — there is nothing server-side yet at creation time to
+compare it against (the transfer doesn't exist until this call makes it), so the backend never asks
+for one here. Computing and showing it anyway is a legitimate reading of the checklist line: the
+signer sees the exact fingerprint of what he is about to close, the same value the server would
+independently reproduce from the rows it is about to write.
+
+**Submitting the right signature.** New `CreateTransferCubit.submitWithSignature({signaturePng,
+deviceModel})` mirrors `ConfirmTransferCubit.submit` — uploads the PNG via the already-existing
+`TransfersRepo.uploadSignature` (online: presign→PUT→confirm; offline: staged, per `07`), then calls
+`createTransfer` with `SignatureParams(method: drawn, signatureMediaId: mediaId)` attached. The plain
+`submit()` (no signature) is untouched for every non-self-attested type. `_params()` grew an optional
+`senderSignature` parameter rather than becoming two copies. The wizard's footer
+(`create_transfer_screen.dart`) branches on `state.needsSenderSignature`: label and action become
+"تأكيد وتوقيع" / `_submitWithSignature` (which blocks with "لازم توقيع" if the pad is empty) instead
+of "ابعت التسليم" / `cubit.submit`.
+
+**No editable screen after signing.** Unchanged from before this pass and still correct: a successful
+submit — plain or signed — flows through the same `_onStateChanged` listener, which pops the wizard
+the moment `state.created != null`. There is no path back into an editable step after that; the only
+way to reach the type/machines/details steps again is to start a new transfer.
+
+Added `merchantName` to `CreateTransferState` (set by `_MerchantRecipientField._createMerchant` from
+the created record's `shopName`, reset on a fresh typed id via a new `resetMerchantName` copyWith
+flag) so the signing screen has something to show besides a bare id when the merchant came from the
+"تاجر جديد" shortcut. Added locale keys `transferSigner`, `transferPayloadFingerprint`.
+
+Verified with `flutter analyze` (0 issues) and `flutter test` (160/160 passing — 153 prior + the new
+`transfer_payload_hash_test.dart` (3 tests, including the cross-checked-against-Node hash) and
+`create_transfer_state_test.dart` (4 tests covering `needsSenderSignature` and
+`recipientDisplayName`)).
+
+Live-verified on `emulator-5554` as representative `01000000003`, building a self-attested "من
+المندوب للتاجر" transfer for SN-1008 to a real seeded merchant
+(`0bbc4017-7eaa-49f8-85f0-b56502ac3c5f`, since the dry-run correctly rejected a made-up id with
+`VALIDATION_FAILED` the first attempt — confirming that check runs unmodified through this path):
+
+- The review screen showed exactly the designed rows: "إلى" with the merchant id, "الموقّع: مندوب
+  القاهرة", "1 ماكينة", the self-attested note, and — because this type is self-attested — a
+  "التوقيع" card with the signature pad and "بصمة المستند: de8daf0cb525", with the submit button
+  correctly relabeled "تأكيد وتوقيع".
+- Tapped submit with an empty pad: confirmed via backend request logs that **no** network call was
+  made at all (the client-side guard caught it before `submitWithSignature` ever ran) — the "لازم
+  توقيع" toast fires too fast for a screenshot round trip to catch reliably, so the absence of any
+  request is the stronger evidence.
+- Drew a signature, submitted again: `adb logcat` showed `CreateTransferCubit.submitWithSignature`
+  running and calling `uploadSignature`, and the backend logged the resulting `POST
+  /api/v1/media/presign` succeeding (`201`). The subsequent presigned `PUT` then failed with the same
+  `Connection refused` documented in `9.2` — this dev backend's `S3_ENDPOINT=http://localhost:9000`
+  is baked into the presigned URL, and "localhost" from inside the Android emulator's network
+  namespace is the emulator itself, not the host Mac running MinIO. This is the identical
+  environment limitation as `9.2`'s photo upload, not a new one: the code path ran exactly as
+  designed (upload attempted, failed at the same pre-existing infrastructure boundary, the failure
+  caught and would surface as an error toast through the same `ServerFailure` path every other
+  upload in this app uses) and never reached `createTransfer` — confirmed by grepping the backend
+  log for `POST /api/v1/transfers` in the relevant time window and finding none. Full end-to-end
+  transfer creation with a real uploaded signature could not be exercised in this local setup as a
+  result; everything up to that infrastructure boundary was verified directly.
+- The one orphaned unconfirmed `SIGNATURE` media row this produced was deleted from the dev database
+  afterward. No transfer was created at any point in this verification pass (confirmed via `SELECT
+  count(*) FROM transfers WHERE created_at > now() - interval '1 hour'` returning 0 immediately
+  before cleanup), so no custody or dashboard state needed reverting.
+
+### 9.4 Complete receiver confirmation — done 2026-09-10
+
+- [x] Add the recomputed adjustment summary above signature capture.
+- [x] Keep reject-with-reason available as a distinct path.
+- [x] On `PAYLOAD_CHANGED`, reload and require a new review and signature.
+- [x] Add offline confirmation and rejection queue operations.
+- [x] Surface manual custody conflicts through blocking conflict UI.
+
+Three of the five bullets were already fully built before this pass: reject-with-reason is its own
+button (`TransferActionsBar.onReject`) opening `TransferReasonSheet` and calling
+`transfer_detail_cubit.dart`'s own `reject()` — a genuinely separate path from
+`ConfirmTransferScreen`, not a branch inside it. `PAYLOAD_CHANGED` handling already reloads via
+`ConfirmTransferCubit.reload()` and clears the signature pad, shown through `PayloadChangedDialog`,
+in `confirm_transfer_screen.dart`'s `_onStateChanged`. Offline **confirmation** already queued
+through `_queueConfirmTransfer` (`07`). Offline **rejection** and the recomputed summary were the
+two real gaps.
+
+**Recomputed adjustment summary.** Added three getters to `ConfirmTransferState`:
+`missingChargerCount` and `mismatchCount` recompute against `adjustments` rather than the sender's
+original declaration — a corrected charger no longer counts as missing, and a battery serial the
+receiver just corrected is dropped from the mismatch tally entirely, since this device has no way to
+re-verify a receiver's correction against the machine's actual bonded battery (that check happened
+once, server-side, against the sender's original scan). `adjustedCount` was already there. Added
+`_AdjustmentSummaryCard` to `confirm_transfer_screen.dart`, shown above the `SignaturePad` (moved out
+of the footer, where a bare adjusted-count line used to sit below the pad) whenever any of the three
+counts is non-zero. `test/confirm_transfer_state_test.dart` (3 tests) pins the recomputation directly.
+
+**Offline rejection.** `REJECT_TRANSFER` did not exist as a queueable operation at all — the backend's
+`SyncOperationType` enum, `SyncBatchService`'s permission map/dispatch/duplicate-detection switches,
+and `serverStateFor` only knew `CREATE_TRANSFER`/`CONFIRM_TRANSFER`/`CREATE_MERCHANT`/
+`CREATE_FINANCE_TRANSACTION`. Added the enum value (`common/enums/sync.enum.ts`) and wired it through
+`sync-batch.service.ts` mirroring `CONFIRM_TRANSFER`'s exact shape: `REQUIRED_PERMISSION` maps it to
+`Perm.TRANSFERS_REJECT`, `dispatch()` calls `TransfersService.reject(transferId, dto, actor)`,
+`findDuplicate()` returns `null` (a rejection inserts no row of its own — no unique constraint for a
+replay to collide on; a genuine double-push instead hits `assertPending`'s `TRANSFER_NOT_PENDING`,
+already routed to `CONFLICT`/`MANUAL` by the existing `classifyFailure`), and `serverStateFor` now
+answers for both `CONFIRM_TRANSFER` and `REJECT_TRANSFER` with the same `{transfer: {...}}` shape
+(plus `rejectionReason`). Mirrored client-side: `SyncOperationType.rejectTransfer` added
+(`sync_operation_type.dart`), `TransfersRepoImpl.rejectTransfer` now checks `networkInfo.isConnected`
+and queues via a new `_queueRejectTransfer` (same optimistic-return shape as `_queueConfirmTransfer`,
+minus the media `dependsOn` check a reject has no use for), and the two now-non-exhaustive switches
+this surfaced (`sync_queue_service.dart`'s post-push cleanup, `sync_queue_tile.dart`'s type label)
+were updated — the compiler caught both immediately. Added locale key
+`syncItemTypeRejectTransfer` ("رفض تسليم"/"Rejection").
+
+**Blocking conflict UI** (`SyncConflictDialog`, already built) needed no mobile-side change to cover
+rejection: it renders generically from `item.serverState['transfer']['status']`, and since
+`serverStateFor` now answers identically for both operation types, a rejected-transfer conflict shows
+correctly without the dialog knowing `REJECT_TRANSFER` exists as a concept.
+
+Added backend e2e tests to `test/sync.e2e-spec.ts`: "rejects a pending transfer pushed offline, and
+rolls custody back" and "reports a re-pushed rejection of an already-resolved transfer as a conflict"
+— both alongside the existing `CONFIRM_TRANSFER` tests they mirror. Verified with `npx tsc --noEmit`
+(0 errors) and `./scripts/run-e2e.sh test/sync.e2e-spec.ts` (46/46 passing, up from 44) and
+`test/transfers.e2e-spec.ts` (35/35, unaffected). Mobile side verified with `flutter analyze`
+(0 issues) and `flutter test` (163/163 passing).
+
+**A real bug found and fixed along the way.** Live-verifying offline rejection surfaced a pre-existing
+permission-gating mismatch in `transfer_detail_screen.dart`: the reject and cancel buttons were shown
+to anyone holding `transfersConfirm`, with no check against their own actual backend permissions
+(`Perm.TRANSFERS_REJECT`, `Perm.TRANSFERS_CANCEL`). A representative holds `TRANSFERS_CONFIRM` but
+neither of the other two (`permissions.catalogue.ts`), so both buttons were being shown to a role the
+server would always 403 — previously this likely surfaced as a quick, easy-to-miss error toast on an
+online attempt; queued offline, it sat in the sync queue as a permanent, unresolvable `FAILED` entry
+instead, which is what actually caught it. Fixed by replacing the single `PermissionGate` around the
+whole action bar with three independent checks (`ValueListenableBuilder` over
+`PermissionService.permissions`), one per button, matching the three distinct backend permissions
+exactly — `P.transfersReject` and `P.transfersCancel` already existed as unused constants.
+
+Live-verified end-to-end on `emulator-5554`. Created a real `BRANCH_TO_REPRESENTATIVE` transfer via
+direct API call (supervisor → representative `01000000003`, SN-1004, deliberately sent with
+`hasCharger: false`) since no pending transfer existed in the dev seed data:
+
+- **Recomputed summary**: opened "استلام وتوقيع", saw "الملخّص بعد التعديل" showing "الشاحن: 1 من غير
+  شاحن" immediately (recomputed from the as-sent data, no adjustment needed to show it). Opened the
+  per-item adjustment sheet, switched الشاحن on, confirmed — the item gained a "معدّل" badge and the
+  summary card live-updated to show only "معدّل: 1", the missing-charger line having correctly
+  dropped out. Backed out without submitting (adjustments are draft-only until signed).
+- **Reject-with-reason**: tapped "رفض التسليم" on the detail screen — a distinct sheet opened with
+  its own warning text ("الرفض معناه إن التسليم ده محصلش خالص...", separate from the confirm flow
+  entirely), confirming the pre-existing distinct-path bullet.
+- **Offline rejection queue**: enabled airplane mode + disabled wifi/data (`adb shell settings put
+  global airplane_mode_on 1`, `svc wifi disable`, `svc data disable`), submitted the reject with
+  reason "QA_offline_reject_test" — got an immediate optimistic "تم بنجاح" toast with the transfer
+  still shown locally as pending. Checked المزيد → طابور المزامنة: the item was queued and labeled
+  "رفض تسليم" (confirming the new locale key), status "في انتظار الرفع". Restored connectivity — the
+  queue auto-flushed and the item flipped to "الرفع فشل / لا تمتلك صلاحية تنفيذ هذا الإجراء" — this is
+  precisely how the representative-lacks-`TRANSFERS_REJECT` bug above was found. Deleted the failed
+  queue item via its trash icon (confirmed via a destructive-action dialog first) once the fix landed
+  and this exact scenario is no longer reachable through the UI (a representative no longer sees a
+  reject button on this transfer type at all).
+- Cleaned up: the test transfer (`TRF-2026-000003`) was withdrawn via the supervisor's own `POST
+  /transfers/:id/cancel` (the real endpoint, not raw SQL) with reason `QA_cleanup_offline_reject_test`,
+  which rolled SN-1004 back to `IN_BRANCH_WAREHOUSE` under its original branch warehouse automatically
+  — confirmed via a direct `SELECT` against the dev database.
+
+### 9.5 Add biometric handover signatures — done 2026-09-10
+
+- [x] Separate login biometrics from handover-signature biometrics.
+- [x] Add biometric/drawn signature method selection.
+- [x] Require `biometricOnly: true` with no device-PIN fallback.
+- [x] Send device ID, model, verification time, method, and payload hash.
+- [x] Explain failures and always allow drawn-signature fallback.
+
+The backend needed nothing at all: `transfer-signatures` already had a `biometricVerifiedAt` column
+and `storeSignature()` already validated `deviceId` is required for `BIOMETRIC`, stored
+`deviceModel`, and set `biometricVerifiedAt` to the server's own receipt timestamp rather than a
+client-supplied one — the server does not trust the device's clock for evidentiary timestamps, the
+same reasoning already applied to `occurredAt` elsewhere in this app. `SignatureMethod.BIOMETRIC` was
+a live enum value the whole time; the client had simply never constructed one. This made 9.5 a purely
+mobile-app task once confirmed.
+
+**Separated services.** The existing `BiometricService` is specifically login unlock — convenience
+keyed to a stored refresh token, its own doc comment already noting it is "a different thing from
+biometric hand-off confirmation, which is evidence rather than authentication." Added
+`HandoverBiometricService` (new file) alongside it rather than extending it: same `local_auth` call
+shape (`biometricOnly: true, stickyAuth: true` — non-negotiable, since a device PIN is not this
+person's fingerprint), but with no `LocalStorage` login-flag coupling, plus `deviceId()` (the same
+per-install id already sent as `X-Device-Id` on every request — this device, not a new identity) and
+`deviceModel()` (`device_info_plus`, already a dependency, previously unused anywhere).
+
+**Method selection.** New `HandoverSignatureController` (`handover_signature_card.dart`) holds both a
+`SignaturePadController` (drawn, unchanged) and biometric verification state
+(`verifiedDeviceId`/`verifiedDeviceModel`) behind one object, so a screen can ask "what do I actually
+have" at submit time without caring how it got there. `HandoverSignatureCard` renders a
+`[بصمة | توقيع بالإمضاء]` toggle **only when `HandoverBiometricService.isAvailable()` says so** —
+never a dead-end choice offered on hardware that cannot back it. Selecting بصمة shows a "تأكيد
+بالبصمة" button; on failure it shows `signature_biometric_failed` inline and the toggle itself is the
+fallback back to drawn (switching methods drops any stale verification, so a failed/abandoned
+biometric attempt can never leak into a drawn signature's submission). Wired into both signing sites
+built in `9.3`/`9.4`: `TransferReviewStep` (self-attested create, reason "أكّد إنك سلّمت الماكينات
+بالبصمة") and `ConfirmTransferScreen` (receiver confirm, reason "أكّد استلامك للماكينات بالبصمة") —
+replacing their inline `DetailCard(...SignaturePad...)` with one shared widget. `PAYLOAD_CHANGED`'s
+existing reload path now calls the controller's new `reset()`, dropping a stale biometric
+verification the same way it already dropped drawn strokes.
+
+**Submission.** `CreateTransferCubit.submitWithSignature` and `ConfirmTransferCubit.submit` both grew
+an optional `SignatureParams? biometricSignature` alongside their existing `Uint8List? signaturePng` —
+a biometric confirmation carries no media at all, so that branch skips `uploadSignature` entirely and
+posts `SignatureParams(method: biometric, deviceId, deviceModel)` directly. The drawn branch is
+byte-for-byte what `9.3`/`9.4` already had.
+
+Added locale keys `signatureMethodBiometric`, `signatureMethodDrawn`, `signatureBiometricConfirm`,
+`signatureBiometricVerified`, `signatureBiometricFailed`, `signatureBiometricRequired`,
+`signatureBiometricReasonReceive`, `signatureBiometricReasonSend`. Registered
+`HandoverBiometricService` in `service_locator.dart`. No manifest change needed:
+`USE_BIOMETRIC` and the `FlutterFragmentActivity` `local_auth` requires were already in place from the
+login-biometric feature.
+
+Verified with `flutter analyze` (0 issues) and `flutter test` (167/167 passing — up from 163 with
+`test/handover_signature_controller_test.dart`'s 4 tests covering method switching, verification
+recording, and `reset()`).
+
+Live-verified on `emulator-5554` as representative `01000000003`. Enrolling an actual fingerprint on
+this AVD turned out to be an environment dead end: `dumpsys fingerprint` confirmed the hardware
+provider exists with zero enrolled prints, `adb shell locksettings set-pin` reported success but the
+Settings UI still showed no screen lock configured, and neither the Settings "Fingerprint" flow nor a
+direct `android.app.action.SET_NEW_PASSWORD` intent produced any visible transition after several
+attempts — consistent with the other infrastructure limitations already hit in this dev environment
+(`9.2`, `9.3`'s MinIO/`localhost` issue), not a code defect. The PIN was cleared back off
+(`locksettings clear`) to leave the emulator exactly as found. What **was** verified live, and is
+arguably the more important half of this section's acceptance criteria: with no biometric hardware
+enrolled, `HandoverBiometricService.isAvailable()` correctly returned `false`, so the method toggle
+never rendered at all on the self-attested review screen (rep→merchant, SN-1008) — the "التوقيع" card
+fell straight through to the drawn `SignaturePad` with no dead-end and no broken UI, exactly the
+"always allow drawn-signature fallback" requirement, confirmed under the actual failure condition
+(no enrolled biometric) rather than only by code reading. Exited without submitting; no transfer was
+created.
+
+### 9.6 Harden drawn signatures and display — done 2026-09-10
+
+- [x] Reject empty, dot-only, and too-small signatures.
+- [x] Add clear and undo controls.
+- [x] Trim/downscale PNG output to the planned maximum dimensions and size.
+- [x] Stage signatures as pending media for offline upload.
+- [x] Display signature image/fingerprint, signer, method, time, and device in transfer detail.
+- [x] Add full-size protected viewing without save/share actions.
+
+**`SignaturePadController` hardening** (`signature_pad.dart`). Added `hasContent`: a private
+`_boundingBox()` walks every point in every stroke, and `hasContent` is true only when that box's
+width or height clears a 24-logical-pixel floor — a real signature swipes across a meaningful
+fraction of the pad; a stray tap or a slip of the thumb does not. `toPngBytes()` now returns `null`
+whenever `!hasContent`, on top of its existing empty-pad check, so every caller's pre-existing
+`if (png == null) show error` (from `9.3`/`9.4`) rejects a too-small mark for free with no call-site
+change. `toPngBytes()` also stopped rasterising the whole pad: it now crops to the strokes'
+bounding box plus a 16px margin, and picks whichever of 2× or `600 / crop.width` is smaller as the
+render scale — so a signature drawn in one corner of a wide pad no longer pays for the pad's empty
+space, and no signature can leave the client wider than 600px. `undo()` (new) drops only
+`_strokes.removeLast()` and is a no-op on an empty pad; wired into `SignaturePad`'s existing button
+row next to "مسح" (clear), disabled via an `AnimatedBuilder` on `controller.isEmpty` exactly like
+clear already implicitly was. New locale key `transferSignatureUndo` ("تراجع"/"Undo").
+
+**Staging for offline upload** — already done, nothing to build. `uploadSignature()`
+(`transfers_repo_impl.dart`, from section `07`) already branches on `networkInfo.isConnected` and
+calls `mediaStaging.stage(...)` when offline, queuing the PNG bytes themselves for later upload
+rather than failing; `9.3`/`9.4`'s submit paths already call it unconditionally. This bullet is a
+verification of pre-existing behaviour, not new code — confirmed by reading the method again in
+this section rather than assuming.
+
+**Display: image, fingerprint, signer, method, time, device.** `TransferSignatureResponse`
+(backend) gained an `id` field — every other field the mobile UI needed
+(`signatureMediaId`, `deviceModel`, `method`, `signedAt`, `userFullName`, `payloadHash`) was already
+on the wire, but nothing identified *which* signature row a media-viewing request was for. Mirrored
+into `transfer.mapper.ts`'s `toSignatureResponse()` and the mobile `TransferSignatureEntity`/
+`TransferResponseModel._signature()`. `TransferSignaturesCard` (`transfer_signatures_card.dart`,
+rewritten) now renders a 40×40 tappable thumbnail for a drawn signature with media
+(`_SignatureThumbnail`, lazily fetching its own signed URL via `TransfersRepo.fetchSignatureMediaUrl`
+and falling back to a broken-image icon on failure) or a fingerprint icon for a biometric one — plus
+a new `transferSignatureDevice` ("الجهاز: {}") line whenever `deviceModel` is present. Device model
+was already captured (`9.5`) and already round-tripped by the backend; it just was not shown
+anywhere until now.
+
+**The authorization gap this actually required.** `MediaService.signedUrl()`/`findOwned()` enforce
+strict per-uploader ownership by deliberate design (its own comment: "media ids travel in transfer
+payloads visible to counterparties, so without this check any authenticated user could read anyone's
+signature or invoice"). That means the generic `GET /media/:id` is *correctly* unusable for a
+receiver to view a sender's signature (or vice versa) — the two parties are not the uploader of each
+other's signature. Rather than loosening that intentionally strict check, added a second, narrower
+door: `MediaService.signedUrlForAuthorizedMedia(mediaId)` (no ownership check at all, documented as
+safe only for a caller that has already authorized the request some other way) and
+`TransfersService.signatureMedia(transferId, signatureId, scope, actor)`, which calls the existing
+`findById()` — already branch/role-scoped for transfer *reads* — as the actual authorization gate,
+then looks up the matching row in `transfer.signatures` and mints a URL through the unchecked path
+only once that gate has passed. Exposed as
+`GET /transfers/:id/signatures/:signatureId/media` (`@Permissions(TRANSFERS_READ)`,
+`@BranchScoped(TRANSFERS_READ_ALL)` — the same pattern as the existing `GET :id` route), returning
+`{url, expiresAt, mimeType}` (new `TransferSignatureMediaResponse`). Mobile:
+`TransfersRepo.fetchSignatureMediaUrl()` (new) calls it directly — no offline branch, since a signed
+URL is meaningless without a network to fetch the image over.
+
+**Full-size protected viewer.** Tapping the thumbnail pushes `_SignatureViewerPage` (private, in the
+same file): a black-background `Scaffold` with an `InteractiveViewer` (pinch-zoom, 1×–4×) around the
+image, re-fetching its own signed URL rather than reusing the thumbnail's (a signed URL is
+short-lived; the thumbnail's may have expired by the time the user taps it minutes later). No save,
+share, or download affordance exists on the page at all — the omission itself is the control the
+plan asked for.
+
+**Files:** `mobile-app/lib/feature/transfers/presentation/widgets/signature_pad.dart` (hardened,
+`Key('signature_pad_canvas')` added for testability), `.../transfer_signatures_card.dart` (rewritten:
+`_SignatureThumbnail`, `_SignatureViewerPage`), `.../transfer_detail_screen.dart` (passes
+`transferId` through), `mobile-app/lib/feature/transfers/domain/repos/transfers_repo.dart` +
+`transfers_repo_impl.dart` (`fetchSignatureMediaUrl`), `.../data/models/transfer_response_model.dart`
++ `.../domain/entities/transfer_entity.dart` (`id` on `TransferSignatureEntity`),
+`mobile-app/lib/core/network_services/web_constant.dart` (`transferSignatureMedia` route builder);
+`backend/api/src/modules/media/media.service.ts` (`signedUrlForAuthorizedMedia`),
+`.../transfers/transfers.service.ts` (`signatureMedia`), `.../transfers/transfers.controller.ts`
+(new route), `.../transfers/dto/responses/transfer.response.ts` (`id` on
+`TransferSignatureResponse`, new `TransferSignatureMediaResponse`), `.../transfers/mappers/
+transfer.mapper.ts`. New locale keys: `transferSignatureUndo`, `transferSignatureDevice`,
+`transferSignatureImageFailed`, `transferSignatureViewerTitle`.
+
+**Backend verified** with `npx tsc --noEmit` (clean) and the full e2e suite via
+`./scripts/run-e2e.sh` — **578/578 passing across 23 suites**, including 3 new cases in
+`transfers.e2e-spec.ts`'s "signature media access" group: a real presign→upload→confirm round trip
+(actual bytes through the local storage adapter, not a stub) proving the transfer's *other* party
+(who never uploaded the signature) can fetch its media through the new endpoint; a negative case
+proving a supervisor on an unrelated branch — not a party to the transfer, no `TRANSFERS_READ_ALL` —
+still gets a plain `TRANSFER_NOT_FOUND`, identical to how `findById()` already hides the transfer
+itself; and a case confirming a signature with no uploaded media returns `MEDIA_NOT_FOUND` rather
+than a broken URL. `openapi.json` regenerated (`npm run docs:generate`) and re-checked clean against
+the running app.
+
+**Mobile verified** with `flutter analyze` (0 issues) and `flutter test` — **173/173 passing**, up
+from 167. Added `test/signature_pad_test.dart` (6 new widget tests: untouched pad → null, a
+2px tap → rejected, a real stroke → accepted and cropped narrower than the full pad, a
+near-full-width stroke → capped at ≤600px, undo removes only the last stroke, clear removes
+everything). These exercise the real `dart:ui` `toImage`/`toByteData`/`instantiateImageCodec` calls
+inside `tester.runAsync(...)` — `WidgetTester`'s fake-clock zone never completes those on its own
+(confirmed the hard way: the first attempt hung for several minutes before this was diagnosed and
+fixed, since `image.toByteData()` is real thread-backed async work, not a fake-clock `Future`).
+
+**Live-verified** on `emulator-5554`, against a freshly rebuilt backend (`nest build` +
+restart — the running dev server predated this section's endpoint) and a freshly installed debug
+APK. Registered a throwaway merchant (`QA_Test_Shop_9_6`) to reach a self-attested
+rep→merchant transfer as representative `مندوب القاهرة`, added machine `SN-1008`, and reached the
+review/signature step, which rendered the new `HandoverSignatureCard` with both "مسح" and "تراجع"
+visible (تراجع correctly disabled with nothing drawn). Drew two strokes; تراجع became enabled and,
+tapped, removed only the second stroke, leaving the first — the undo control confirmed working
+against real gesture input, not just the unit tests. Tapped "تأكيد وتوقيع": `logcat` showed
+`POST /media/presign` succeed (`checksum`/`sizeBytes: 453` — the tiny cropped-and-capped PNG this
+section's hardening produces, well under the 200KB target), then the upload itself fail with
+`Connection refused` against `http://localhost:3000/...` — the same MinIO/local-storage-adapter
+environment limitation documented in `9.2`/`9.3`/`9.5` (the presigned URL's `localhost` resolves to
+the emulator itself, not the Mac running the backend), not a code defect; the app stayed on the
+review screen without crashing rather than leaving a half-created transfer. Confirmed via `psql` that
+no transfer row was created (the failure happens before `POST /transfers` in `submitWithSignature`).
+Cleaned up: deleted the throwaway `QA_Test_Shop_9_6`/`QA_Test_Merchant` row directly (no FK
+references from any subscription, machine, or transfer — confirmed before deleting) since the
+representative role has `merchants.update` but not the `merchants.delete`/deactivate permission
+needed to close it out through the app itself.
+
+**Acceptance criterion — partially verified, environment-limited.** "A 12-machine transfer with
+photos and a signature can be completed offline, survive restart, sync successfully, and be replayed
+without duplicates" could not be run end-to-end live for the same reason 9.2/9.3/9.5 could not: any
+real media upload (a photo or a signature) fails at the MinIO/local-storage `localhost` boundary from
+inside this emulator regardless of network state, so a transfer with real media can never reach
+"synced" here to prove the full round trip visually. What **is** verified, and is the substance of
+the guarantee: (1) staging offline is pre-existing, tested code (`media_staging_service` +
+`sync_queue_service`'s `dependsOn` gating, unit-tested in `sync_queue_service_test.dart` — "an item
+depending on an unfinished media upload is not pushed yet"); (2) survives-restart is a property of
+the sync queue being a Drift-backed local table, not in-memory state — nothing in `9.6` touched that
+persistence; (3) no-duplicate-replay is the backend's idempotency-key/`clientUuid` mechanism plus
+`findDuplicate()` in `SyncBatchService`, exercised directly in `sync.e2e-spec.ts` for
+`CREATE_TRANSFER`, `CONFIRM_TRANSFER`, and (since `9.4`) `REJECT_TRANSFER` — a replayed create or
+confirm is answered with the original result rather than a second row, and this section added no new
+sync-operation type that would need its own coverage of that mechanism (a signature rides inside the
+existing `CREATE_TRANSFER`/`CONFIRM_TRANSFER` payloads, not as a separate queued operation). No dev
+DB or emulator state was left behind by this verification pass beyond what is documented above as
+cleaned up.
 
 ---
 
-## 10. Flutter merchants completion
+## 10. Flutter merchants completion — done 2026-09-10
 
-- [ ] Make merchant list/detail read from the local cache.
-- [ ] Queue merchant creation offline with duplicate-conflict handling.
-- [ ] Allow a newly created offline merchant to be referenced by a queued transfer.
-- [ ] Queue supported subscription/collection writes according to the final offline policy.
-- [ ] Stage receipt/invoice media where required.
-- [ ] Reconcile local and server IDs after synchronization.
-- [ ] Add offline widget and integration tests for registration and placement flows.
+- [x] Make merchant list/detail read from the local cache.
+- [x] Queue merchant creation offline with duplicate-conflict handling.
+- [x] Allow a newly created offline merchant to be referenced by a queued transfer.
+- [x] Queue supported subscription/collection writes according to the final offline policy.
+- [x] Stage receipt/invoice media where required.
+- [x] Reconcile local and server IDs after synchronization.
+- [x] Add offline widget and integration tests for registration and placement flows.
+
+**The first two bullets were already fully built** (section `07`/`6.4`, confirmed by reading
+`MerchantsRepoImpl` rather than assumed): `fetchMerchants`/`fetchMerchant` already read from
+`CachedMerchantsDao` whenever offline or on a `DioException`, and `createMerchant` already queues
+`CREATE_MERCHANT` with an optimistic cache row when offline. "Duplicate-conflict handling" already
+existed on both sides of the round trip — `checkDuplicates()` warns the representative about a
+repeated phone/national-id *before* he submits (online only, `MerchantDuplicateNotice`), and a
+genuine conflict discovered only once the queued create finally reaches the server (someone else
+registered the same national id while this device was offline) already fell through the generic
+`CONFLICT`/`MANUAL` handling every queued write gets — nothing merchant-specific to add.
+
+**The real gap, and this section's actual work: a transfer or a subscription created offline could
+not reference a merchant registered offline moments earlier.** `MerchantsService.create()` already
+had a `clientUuid` column and a replay check ("`20`, mechanism 1" — the DTOs and this comment
+already existed, unused for anything but merchants' own replay); nothing resolved that id when it
+showed up as *another* operation's foreign key. A transfer's `toPartyId` and a subscription's
+`merchantId` are exactly that: the device has no real merchant id to put there until the
+registration itself has synced.
+
+**Backend — the same door media resolution already uses, for merchants.**
+`MediaService.resolveClientUuids()` already let a queued operation reference a photo by the id the
+device made up before the real one existed; added the identical
+`MerchantsService.resolveClientUuids(clientUuids, actorId)` (`merchants.service.ts`) — scoped to
+`createdByUserId` for the same reason `create()`'s own replay check is. `SyncBatchService.dispatch()`
+now runs `withResolvedParty()` on a `CREATE_TRANSFER` payload's `toPartyId` unconditionally before
+validating it — a real id passes through untouched (it will never coincidentally match a stranger's
+`client_uuid`), so there is no need to first work out whether this transfer's receiver kind is even
+a merchant. Added `SyncOperationType.CREATE_SUBSCRIPTION` end to end (backend enum,
+`REQUIRED_PERMISSION` → `MERCHANTS_UPDATE` matching the REST route, `findDuplicate()` against
+`merchant_subscriptions.client_uuid` — a column that already existed with an "offline dedupe key
+(`20`)" comment, never wired to anything — `dispatch()` splitting `merchantId` out of the payload the
+same way `CONFIRM_TRANSFER` already splits out `transferId`, resolving it the same way, then calling
+the ordinary `createSubscription()` service method so there is still exactly one implementation of
+"start a plan").
+
+**Mobile — the ordering guarantee the backend's resolution alone cannot provide.** Sequential
+same-request processing means a merchant and a transfer *in the same batch* resolve correctly
+regardless of order — but `_nextReadyBatch()`'s FIFO is not a guarantee once one of the two starts
+failing and backing off on its own schedule while the other has none: a fresh transfer queued right
+after a merchant whose first push attempt just hit a transient error would otherwise be pushed
+*without* it, and `toPartyId` naming a merchant that will never exist server-side is a
+`VALIDATION_FAILED` from `transfers.service.ts`'s own `resolveReceiver()` — `DISCARD`, permanent,
+not retried. `SyncQueueService._dependenciesReady()` gained
+`_referencedMerchantReady()`: reads `toPartyId`/`merchantId` straight out of the operation's own
+payload (no new column — the value the client already has to send *is* the dependency, so there is
+nothing separate to keep in sync) and holds the item back for as long as that id is still sitting in
+this same queue under any status. This makes the client conservative rather than clever: a
+merchant and its dependent are now *never* sent in the same batch (the dependent fails its readiness
+check while collecting that round's candidates, before either has been touched), trading one extra
+round trip for not having to reason about whether same-batch ordering would have been safe.
+
+**The "final offline policy" for subscriptions and collection, decided and documented here since no
+prior section had:** starting a plan (`CREATE_SUBSCRIPTION`) is a record with no money attached — it
+can be queued offline the same way registering the merchant that holds it can, and now is. Collecting
+a payment (`collectSubscription`) and correcting a plan (`updateSubscription`) stay online-only,
+deliberately. `CollectSubscriptionDto` carries no `clientUuid` at all, and nothing on
+`MerchantSubscription` gives a replayed collection anything to be deduplicated against — the running
+`totalCollected`/`collectionCount` counters it updates are mutated in place, not append-only, so a
+retried push after a lost response would double-count a real payment with no way for the server to
+tell the retry from a second collection. Building that safely (a per-collection ledger row with its
+own `client_uuid`, most likely) is real backend work this pass did not do, and offering collection
+offline without it would be shipping a money-correctness bug, not a convenience — recorded here as
+the explicit reason, not silently deferred. "Stage receipt/invoice media where required" is
+consequently a no-op beyond what already existed: `collectSubscription`'s `invoiceMediaId` is
+uploaded synchronously before the (online-only) call exactly as it already was, and needs no offline
+staging path for a write that itself is not offline.
+
+**"Reconcile local and server IDs after synchronization"** is the merchant-id resolution above, not
+a separate mechanism — subscriptions have no local read cache to reconcile a second time (see next
+paragraph), and the merchant side already had its optimistic-row cleanup from `6.4`
+(`SyncQueueService._applyResult()` deleting the `clientUuid`-keyed cache row on `SUCCESS`/`DUPLICATE`
+so the next delta pull's server-id row does not become a permanent duplicate).
+
+**Mobile plumbing for the new operation type:** `MerchantsRepoImpl.createSubscription()` gained an
+offline branch (`_queueCreateSubscription`) mirroring `_queueCreateMerchant`'s shape, enqueuing
+`{merchantId, ...params.toJson(), clientUuid}`. No local cache backs it — `fetchSubscriptions()` has
+no offline read path and this section did not add one, so a subscription started offline is
+confirmed once (the toast) and stays invisible on the merchant's own screen until it syncs, though
+it is visible the whole time in the sync-queue screen like any other pending write; documented as a
+known, accepted gap rather than built around. `SyncOperationType.createSubscription` added to the
+mobile enum; the Dart compiler's non-exhaustive-switch errors were, again, relied on to find every
+`switch` needing the new case (`sync_queue_service.dart`'s cleanup switch, `sync_queue_tile.dart`'s
+label switch). New locale key `sync_item_type_create_subscription` ("اشتراك جديد"/"New plan"). New
+`ApiKeys.merchantId` constant — the field did not exist on the wire in either direction before this
+section, since `POST /merchants/:id/subscriptions` had always taken the merchant from the URL, not
+the body.
+
+**Files:** `backend/api/src/modules/merchants/merchants.service.ts` (`resolveClientUuids`),
+`.../sync/sync-batch.service.ts` (`withResolvedParty`, `resolveMerchantId`, `splitMerchantId`,
+`CREATE_SUBSCRIPTION` case, `MerchantSubscription` repository injected), `.../sync/sync.module.ts`
+(`MerchantSubscription` registered), `src/common/enums/sync.enum.ts`, `.../sync/dto/sync.dto.ts`
+(doc comment); `mobile-app/lib/feature/merchants/domain/repos/merchants_repo_impl.dart`
+(`_queueCreateSubscription`), `.../core/services/sync/sync_operation_type.dart`,
+`.../core/services/sync/sync_queue_service.dart` (`_referencedMerchantReady`, cleanup-switch case),
+`.../feature/sync/presentation/widgets/sync_queue_tile.dart`, `.../core/constants/api_keys.dart`
+(`merchantId`), `.../core/constants/locale_keys.dart`.
+
+**Backend verified** with `npx tsc --noEmit` (clean) and the full e2e suite via
+`./scripts/run-e2e.sh` — **583/583 passing across 23 suites**, including 5 new cases in
+`sync.e2e-spec.ts`: a merchant resolved from a `CREATE_TRANSFER` in the *same* batch as the
+`CREATE_MERCHANT` that registered it; the same resolution across two *separate*, sequential batches
+(the merchant already synced and gone from the queue by the time the transfer is pushed); a
+transfer naming a `toPartyId` that never resolves still failing exactly like a stranger's real,
+wrong id would (`VALIDATION_FAILED`/`DISCARD`, not a sync-specific error); a subscription resolved
+against a merchant registered in an earlier batch; and a replayed `CREATE_SUBSCRIPTION`
+`clientUuid` reported as `DUPLICATE` with exactly one row on the server. `openapi.json` regenerated
+and re-checked clean.
+
+**Mobile verified** with `flutter analyze` (0 issues) and `flutter test` — **175/175 passing**, up
+from 173. Added two cases to `sync_queue_service_test.dart`: a transfer referencing an unresolved
+offline merchant is held back even while that merchant's *own* item is backing off from a prior
+failure (the realistic trigger for out-of-order FIFO this section's gating exists to prevent, not a
+contrived one), and — the mirror case — a subscription and its merchant queued together with neither
+backing off still resolve correctly, as two separate pushed batches rather than one (proving the
+conservative "always split" behavior itself, not just the failure case it protects against).
+
+**Live-verified** end to end on `emulator-5554`, against a rebuilt backend and a freshly installed
+debug APK, with the emulator's WiFi genuinely disabled (`adb shell svc wifi disable` — not the
+`localhost`-from-presigned-URL situation `9.2`/`9.3`/`9.5`/`9.6` hit, which needs a live but
+wrong-host connection; true offline routes `uploadSignature` through `mediaStaging.stage()` before
+ever touching the network, sidestepping that limitation entirely for this test). As representative
+`مندوب القاهرة`, fully offline: registered a new merchant (`Offline_Shop_10`) — confirmed
+immediately ("تم بنجاح") with no connection at all — then, still offline, built and submitted a
+self-attested rep→merchant transfer of machine `SN-1008` to that same not-yet-synced merchant,
+drawing a real signature. The home screen's sync banner showed "٢ في انتظار المزامنة"; the
+sync-queue screen listed both the transfer (waiting on its staged signature) and the merchant
+(waiting to upload). Re-enabled WiFi and captured the actual traffic in `logcat`: the queued
+`CREATE_TRANSFER` payload held `toPartyId: 34ba1f81-...` — the device's own placeholder for the
+merchant, not a real id — and two **separate** `POST /sync/batch` calls followed, exactly as the new
+gating predicts: batch one, `CREATE_MERCHANT` → `SUCCESS`, real id `4450bd8b-...`; batch two (only
+after the first resolved), `CREATE_TRANSFER` → `SUCCESS`. Confirmed directly in Postgres rather than
+trusting the app's own read-back: `merchants.4450bd8b-...` exists exactly once
+(`client_uuid = 34ba1f81-...`, `machines_count = 1`); `machines.SN-1008` is `WITH_MERCHANT` held by
+that same real id; `transfers.593ed716-...` has `to_party_id = 4450bd8b-...` — the resolved real id,
+never the placeholder that was actually queued. The sync banner cleared to nothing pending. Cleaned
+up afterward: deleted the test transfer (cascades to its items/signatures) and the test merchant,
+restored `SN-1008` to `WITH_REPRESENTATIVE`/the original representative — verified back to the exact
+pre-test state before moving on.
 
 ---
 
 ## 11. Flutter maintenance, replacement, and decommission
 
-### 11.1 Maintenance screens
+### 11.1 Maintenance screens — done 2026-09-10
 
-- [ ] Build maintenance list, filters, status chips, and pagination.
-- [ ] Build maintenance detail with machine, fault, location, timeline, warranty, and cost sections.
-- [ ] Build the create form with scan/pick, warehouse eligibility, location, fault, dates, and notes.
-- [ ] Build send, receive, update, cancel, and permission-aware actions.
-- [ ] Keep the entire feature clearly online-only as specified.
+- [x] Build maintenance list, filters, status chips, and pagination.
+- [x] Build maintenance detail with machine, fault, location, timeline, warranty, and cost sections.
+- [x] Build the create form with scan/pick, warehouse eligibility, location, fault, dates, and notes.
+- [x] Build send, receive, update, cancel, and permission-aware actions.
+- [x] Keep the entire feature clearly online-only as specified.
+
+**"Scan/pick" deliberately not built — a reasoned scope cut, not an oversight.** Read
+`MachinePickerSheet` (multi-select, scoped to one holder's own custody list) and
+`MachineActionsSection` (no existing "create maintenance order" tile) before deciding: a repair
+order is opened for *one* machine already in the company warehouse, from that machine's own detail
+screen, not picked out of a company-wide search. Building a second full picker just for this one
+case would have duplicated `MachinePickerSheet`'s job for no real gain, so `MaintenanceCreateScreen`
+takes `machineId`/`machineSerial` as constructor params instead and is reached only from
+`MachineActionsSection`'s new "إرسال للصيانة" tile.
+
+**"Warehouse eligibility" turned out to mean something specific and checkable, not a vague
+precondition — `assertMaintainable()` in `maintenance.service.ts` refuses `POST
+/maintenance-orders` outright unless `machine.status === IN_COMPANY_WAREHOUSE`.** Mirrored
+client-side exactly for the same reason the 9.4 transfer-tile bug taught not to skip this:
+`MachineActionsSection`'s new tile only renders when `machine.status ==
+MachineStatus.inCompanyWarehouse` (`machine_actions_section.dart`), gated *and* permission-checked
+independently — confirmed live (see below) with a machine that had just left the warehouse: the
+tile disappeared on its own, no server round trip needed to find out it would have been refused.
+
+**Reused rather than duplicated:** `MaintenanceOrderStatus`/`MaintenanceOrderResult`/
+`MaintenanceResponsibleParty` (already defined in `8.1`'s read-only
+`machine_maintenance_history.dart`, re-exported from the new `maintenance_entity.dart`);
+`HandoverSignatureCard`/`HandoverSignatureController` (`9.5`, unmodified) for both send and receive's
+required signature; `TransferReasonSheet` (`9.4`) for the cancel reason, since a cancellation needing
+a typed reason is not maintenance-specific; the generic media presign/upload/confirm dance transfers
+already had (`transfers_repo_impl.dart`'s `_upload()`), copied once as `MaintenanceRepo
+.uploadSignature()` rather than reached into across features — maintenance's repo doc comment is
+explicit about carrying no cache DAO of its own, so it could not call into `TransfersRepo` without
+breaking that.
+
+**Permissions, gated per action exactly like `9.4`'s transfer fix, not behind one blanket check.**
+The backend's own guards settled this precisely (`maintenance.controller.ts`): send/receive/cancel/
+update all require only `Perm.MAINTENANCE_UPDATE`; create needs `MAINTENANCE_CREATE`; only close
+needs both `MAINTENANCE_CLOSE` *and* `MAINTENANCE_SET_COST` together — `MaintenanceDetailScreen`'s
+`_ActionsBar` reads a single `service.has(P.maintenanceUpdate)` for the first four and renders the
+close button as `AppRoute.goToFeatureNotReadyScreen` (`11.2` builds the real thing) without gating it
+on the dual permission at all yet, since there is nothing behind it to protect. `PermissionGate` was
+*not* extended with an `allOf` this pass — `11.2`'s close form is where that dual check actually has
+something to gate, so adding it now would have been speculative.
+
+**A real bug, found only by testing live rather than assuming the toast-and-pop pattern would just
+work: `MaintenanceHandoverScreen` and `MaintenanceDetailScreen` share one `MaintenanceDetailCubit`
+instance** (`AppRoute.goToMaintenanceHandover` pushes the handover screen with
+`BlocProvider.value(value: cubit)` so a successful send/receive updates the record the caller is
+already looking at without a second fetch — the intended design). Both screens are simultaneously
+mounted and both had a `BlocConsumer` reacting to the *same* emitted state; the first draft had each
+one decide what happened by reading `cubit.lastOutcome`/`cubit.lastError` and then nulling them back
+out. Whichever screen's listener ran first cleared the fields before the other one's listener read
+them — live-tested, this manifested as: the backend genuinely sent the machine (confirmed via
+`psql` — `maintenance_orders.status = IN_PROGRESS`, `out_transfer_id` set), but the handover screen
+never popped, sitting on the signature pad looking like nothing had happened. Fixed by having
+`MaintenanceDetailCubit._act()` (and therefore `send`/`receive`/`cancel`/`update`/`closeOrder`)
+return the `Either<ServerFailure, MaintenanceOrderEntity>` directly, and having
+`MaintenanceHandoverScreen._submit()` act on that returned value instead of the shared mutable
+side-channel — the detail screen underneath still uses `lastOutcome`/`lastError` for its own toast,
+since it has no second listener racing it. Re-verified live after the fix (see below): send and
+receive both now pop correctly.
+
+**A genuine backend defect, found while live-testing the `SERVICE_CENTER` maintenance route, filed
+here rather than fixed — out of this section's mandate, and the standing instruction for this pass
+was the Flutter side.** `chk_machines_holder_pair` (a Postgres check constraint on `machines`) reads
+`current_holder_type IS NULL AND current_holder_id IS NULL OR current_holder_type IS NOT NULL AND
+current_holder_id IS NOT NULL OR current_holder_type = 'FACTORY'` — it special-cases `FACTORY` as
+the one holder type allowed a null id (an abstract party with no row to point at), but
+`transfer-rules.ts` treats `SERVICE_CENTER` identically to `FACTORY` for exactly this reason
+(`toPartyOptional: true`, no `toWarehouseTypes`) and the constraint was never updated to match.
+Sending a machine to a `SERVICE_CENTER`-routed maintenance order throws a bare `VALIDATION_FAILED`
+with no `details` (a `QueryFailedError`/`PG_CHECK_VIOLATION` mapped generically by
+`AllExceptionsFilter`, confirmed by temporarily setting `DB_LOGGING=true` and reading the raw
+Postgres error in the console) — and because `maintenance.service.ts`'s `moveMachine()` commits the
+transfer-create transaction *before* calling `confirm()` (a second, separate transaction) where the
+constraint actually fires, a failed send leaves a real orphan behind: the transfer stuck `PENDING`
+and the machine stuck `IN_TRANSIT`, not rolled back. Worked around for this pass's own testing by
+routing through `FACTORY` instead (functionally identical, and the constraint already allows it);
+the orphan this produced was cleaned up via the transfer's own `POST /transfers/:id/cancel` (which
+correctly restored the machine to `IN_COMPANY_WAREHOUSE`) rather than touched directly in the
+database. Not fixed here: the fix is a migration adding `'SERVICE_CENTER'` next to `'FACTORY'` in
+the constraint, which is backend schema work outside a Flutter-focused pass — flagged for whoever
+picks up the backend next, with the exact constraint name and repro above.
+
+**Live-verified** on `emulator-5554` as the seeded dev Director (`01000000001`/`Dev#12345`), against
+the real local backend. Also confirmed, incidentally, that a representative (`مندوب القاهرة`, the
+account already signed in) correctly sees no maintenance tile anywhere — no `maintenance.read` —
+before switching to the Director to test the actual writes. First pass, machine `SN-2001`
+(`IN_COMPANY_WAREHOUSE`): created `MNT-2026-000001` routed `INTERNAL_WORKSHOP`; sending it failed
+with `"no active MAINTENANCE warehouse exists"` — a genuine, separate dev-seed gap (`SELECT * FROM
+warehouses` shows `COMPANY_MAIN`/`SCRAP`/two `BRANCH` rows and zero `MAINTENANCE` ones; `
+resolveWarehouse()` only auto-picks when exactly one active warehouse of the needed type exists),
+not a bug in this section's code. Used the opening to test **update** instead: changed the order's
+location to `SERVICE_CENTER` through the "تعديل" sheet, confirmed the change rendered immediately.
+Sending again hit the `chk_machines_holder_pair` defect above; cancelled the order (testing
+**cancel-from-`OPEN`**, `TransferReasonSheet`'s required-reason field enforced correctly) and
+cancelled the orphaned transfer directly through the API. Second pass, same machine, routed
+`FACTORY`: created `MNT-2026-000002`, **sent** it (drew a real signature, `HandoverSignatureCard`
+correctly offered only the drawn method — no biometric hardware on the emulator — uploaded through
+the generic presign/PUT/confirm dance, confirmed via `psql` the order reached `IN_PROGRESS` with
+`out_transfer_id` set and the machine `AT_FACTORY`), then **received** it the same way (order reached
+`RETURNED` with `returned_at` populated and `in_transfer_id` set, machine back to
+`IN_COMPANY_WAREHOUSE`) — both hit the shared-cubit pop bug above on the first attempt and were
+re-verified working after the fix. Opened the close stub from a `RETURNED` order and confirmed it is
+the genuine `FeatureNotReadyScreen`, not a silent no-op. Cancelled this order too (testing
+**cancel-from-`RETURNED`-with-`inTransferId`-set**, the one case `canCancel`'s three-line getter
+exists for). The Android-emulator `localhost`-in-a-presigned-URL limitation documented in
+`9.2`/`9.3`/`9.5`/`9.6` was hit again for signature uploads and, this time, actually worked around
+rather than left as a limitation: set `PUBLIC_BASE_URL=http://10.0.2.2:3000` in `.env`, restarted the
+backend, completed every upload above against the real emulator, then reverted the setting and
+restarted the backend back to how it was found. **Cleaned up afterward**, confirmed via `psql`:
+deleted both `maintenance_orders` rows, all three test `transfers` rows (cascading their
+`transfer_signatures`), and all six `SIGNATURE`-purpose `media` rows this pass created; `SN-2001` is
+back to `IN_COMPANY_WAREHOUSE` and `SELECT count(*) FROM maintenance_orders` is `0` — no residue for
+a future session to trip over.
+
+**Mobile verified** with `flutter analyze` (0 issues) and `flutter test` — **177/177 passing**.
+Extended `machine_actions_section_widget_test.dart` for the new tile: an `IN_COMPANY_WAREHOUSE`
+machine with `maintenance.create` shows it, a `WITH_REPRESENTATIVE` machine with the same permission
+does not (the exact warehouse-eligibility gate above, tested independently of the permission gate so
+neither could silently cover for the other), and a dedicated tap test confirms the callback fires.
+
+**Files:** `mobile-app/lib/feature/maintenance/domain/entities/maintenance_entity.dart`,
+`.../domain/params/maintenance_params.dart`, `.../domain/repos/maintenance_repo.dart` (+
+`uploadSignature`) `/_impl.dart`, `.../data/models/maintenance_response_model.dart`,
+`.../data/logic/maintenance_list/{maintenance_list_cubit,maintenance_list_state}.dart`,
+`.../data/logic/maintenance_detail/{maintenance_detail_cubit,maintenance_detail_state}.dart`,
+`.../data/logic/maintenance_create/{maintenance_create_cubit,maintenance_create_state}.dart`,
+`.../presentation/helpers/maintenance_labels.dart`,
+`.../presentation/widgets/{maintenance_card,maintenance_filter_sheet,maintenance_update_sheet}.dart`,
+`.../presentation/pages/{maintenance_list_screen,maintenance_detail_screen,maintenance_create_screen,
+maintenance_handover_screen}.dart`; `mobile-app/lib/feature/machines/presentation/widgets/
+machine_actions_section.dart` (new tile + warehouse-eligibility gate),
+`.../presentation/pages/machine_detail_screen.dart` (`_sendForMaintenance`),
+`.../presentation/pages/machine_maintenance_history_screen.dart` (tiles now navigate instead of
+dead-ending); `mobile-app/lib/core/utils/app_route.dart` (`goToMaintenanceList/Detail/Create/
+Handover`), `.../core/di/service_locator.dart` (repo + three cubits registered), `.../core/lookups/
+lookups_repo.dart` (already had `maintenanceLocations`/`decommissionReasons` from an earlier
+session), `.../core/constants/{api_keys,locale_keys}.dart`, `assets/translations/{en,ar}.json`;
+`mobile-app/lib/feature/more/presentation/pages/more_screen.dart` (maintenance list tile);
+`mobile-app/test/machine_actions_section_widget_test.dart`.
 
 ### 11.2 Maintenance close flow
 

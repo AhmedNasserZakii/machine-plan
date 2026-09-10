@@ -31,6 +31,14 @@ class LookupsRepo {
     return _fetch(WebConstant.violationTypes, ViolationTypeEntity.fromJson);
   }
 
+  Future<Either<ServerFailure, List<LookupEntity>>> maintenanceLocations() {
+    return _fetch(WebConstant.maintenanceLocations, LookupEntity.fromJson);
+  }
+
+  Future<Either<ServerFailure, List<LookupEntity>>> decommissionReasons() {
+    return _fetch(WebConstant.decommissionReasons, LookupEntity.fromJson);
+  }
+
   /// Called when the locale changes: every cached `name` is in the old
   /// language.
   void clear() => _cache.clear();

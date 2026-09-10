@@ -296,11 +296,20 @@ class MerchantsRepoImpl implements MerchantsRepo {
     });
   }
 
+  /// The second of the app's offline-capable writes tied to a merchant
+  /// (`10`): starting a plan is a record, not money moving, so it can be
+  /// taken standing in the shop with no connection the same way registering
+  /// the merchant itself can. Collecting a payment is not offered offline —
+  /// see `collectSubscription`.
   @override
   Future<Either<ServerFailure, SubscriptionEntity>> createSubscription({
     required String merchantId,
     required CreateSubscriptionParams params,
-  }) {
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return _queueCreateSubscription(merchantId, params);
+    }
+
     return _guard('createSubscription', () async {
       final Response<dynamic> response = await apiService
           .client()
@@ -313,6 +322,51 @@ class MerchantsRepoImpl implements MerchantsRepo {
         _data(response.data),
       ).toEntity();
     });
+  }
+
+  /// No local cache backs subscriptions (`fetchSubscriptions` has no offline
+  /// read path), so unlike a queued merchant this optimistic row is not
+  /// written anywhere the merchant-detail screen's next load will see — it
+  /// is returned once, to confirm the plan was accepted, and the real one
+  /// appears only once this syncs. It stays visible meanwhile in the sync
+  /// queue screen like every other pending write.
+  Future<Either<ServerFailure, SubscriptionEntity>> _queueCreateSubscription(
+    String merchantId,
+    CreateSubscriptionParams params,
+  ) async {
+    final String clientUuid = const Uuid().v4();
+    final DateTime now = DateTime.now().toUtc();
+
+    await syncQueueService.enqueue(
+      SyncQueueItem(
+        clientUuid: clientUuid,
+        type: SyncOperationType.createSubscription,
+        payload: <String, dynamic>{
+          ApiKeys.merchantId: merchantId,
+          ...params.toJson(),
+          ApiKeys.clientUuid: clientUuid,
+        },
+        createdAt: now,
+        occurredAt: now,
+        status: SyncItemStatus.pending,
+      ),
+    );
+
+    syncCoordinator.notifyChange();
+    unawaited(syncCoordinator.flush());
+
+    return Right(
+      SubscriptionEntity(
+        id: clientUuid,
+        planType: params.planType,
+        amount: params.amount,
+        startDate: params.startDate,
+        endDate: params.endDate,
+        machineId: params.machineId,
+        notes: params.notes,
+        isActive: true,
+      ),
+    );
   }
 
   @override

@@ -71,6 +71,10 @@ abstract class WebConstant {
   static String machineDecommission(String id) => '$machines/$id/decommission';
   static String machineDecommissionRevert(String id) =>
       '$machines/$id/decommission/revert';
+  static String machineReplace(String id) => '$machines/$id/replace';
+
+  static const String decommissions = 'decommissions';
+  static const String replacements = 'replacements';
 
   // ── Transfers ────────────────────────────────────────────────────────────
   static const String transfers = 'transfers';
@@ -97,6 +101,8 @@ abstract class WebConstant {
   static String transferConfirm(String id) => '$transfers/$id/confirm';
   static String transferReject(String id) => '$transfers/$id/reject';
   static String transferCancel(String id) => '$transfers/$id/cancel';
+  static String transferSignatureMedia(String id, String signatureId) =>
+      '$transfers/$id/signatures/$signatureId/media';
 
   // ── Merchants ────────────────────────────────────────────────────────────
   static const String merchants = 'merchants';
@@ -123,6 +129,12 @@ abstract class WebConstant {
   static const String maintenanceOrders = 'maintenance-orders';
 
   static String maintenanceOrder(String id) => '$maintenanceOrders/$id';
+  static String maintenanceOrderSend(String id) =>
+      '$maintenanceOrders/$id/send';
+  static String maintenanceOrderReceive(String id) =>
+      '$maintenanceOrders/$id/receive';
+  static String maintenanceOrderCancel(String id) =>
+      '$maintenanceOrders/$id/cancel';
   static String maintenanceOrderClose(String id) =>
       '$maintenanceOrders/$id/close';
 

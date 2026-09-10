@@ -6,6 +6,7 @@ import 'package:machinery/core/shared_widgets/detail_card.dart';
 import 'package:machinery/core/shared_widgets/permission_gate.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_text_styles.dart';
+import 'package:machinery/core/utils/enums.dart';
 import 'package:machinery/feature/machines/domain/entities/machine_entity.dart';
 
 /// Where the detail screen's actions live (`8.1`): the timeline and
@@ -20,6 +21,7 @@ class MachineActionsSection extends StatelessWidget {
     required this.onViewTimeline,
     required this.onViewMaintenanceHistory,
     required this.onCreateTransfer,
+    required this.onSendForMaintenance,
     required this.onReplace,
     required this.onDecommission,
     super.key,
@@ -29,6 +31,7 @@ class MachineActionsSection extends StatelessWidget {
   final VoidCallback onViewTimeline;
   final VoidCallback onViewMaintenanceHistory;
   final VoidCallback onCreateTransfer;
+  final VoidCallback onSendForMaintenance;
   final VoidCallback onReplace;
   final VoidCallback onDecommission;
 
@@ -64,6 +67,20 @@ class MachineActionsSection extends StatelessWidget {
               onTap: onCreateTransfer,
             ),
           ),
+          // A repair opens while the unit sits in the company warehouse (the
+          // dispatch leg starts there) — the server refuses one for a machine
+          // still with a representative or merchant, so the tile is not shown
+          // for a tap that can only fail.
+          if (machine.status == MachineStatus.inCompanyWarehouse)
+            PermissionGate(
+              permission: P.maintenanceCreate,
+              child: _ActionTile(
+                identifier: 'machine_action_send_maintenance',
+                icon: Icons.build_outlined,
+                label: LocaleKeys.maintenanceActionSend.tr(),
+                onTap: onSendForMaintenance,
+              ),
+            ),
           PermissionGate(
             permission: P.maintenanceClose,
             child: _ActionTile(

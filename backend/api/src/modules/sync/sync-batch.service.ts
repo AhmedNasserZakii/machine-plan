@@ -15,11 +15,16 @@ import { CreateFinanceTransactionDto } from 'src/modules/finance/dto/finance-tra
 import { FinanceTransactionsService } from 'src/modules/finance/services/finance-transactions.service';
 import { Machine } from 'src/modules/machines/entities/machine.entity';
 import { MediaService } from 'src/modules/media/media.service';
-import { CreateMerchantDto } from 'src/modules/merchants/dto/merchant.dto';
+import { CreateMerchantDto, CreateSubscriptionDto } from 'src/modules/merchants/dto/merchant.dto';
 import { Merchant } from 'src/modules/merchants/entities/merchant.entity';
+import { MerchantSubscription } from 'src/modules/merchants/entities/merchant-subscription.entity';
 import { MerchantsService } from 'src/modules/merchants/merchants.service';
 import { Perm, PermissionCode } from 'src/modules/roles/permissions.catalogue';
-import { ConfirmTransferDto, CreateTransferDto } from 'src/modules/transfers/dto/transfer.dto';
+import {
+  ConfirmTransferDto,
+  CreateTransferDto,
+  RejectTransferDto,
+} from 'src/modules/transfers/dto/transfer.dto';
 import { Transfer } from 'src/modules/transfers/entities/transfer.entity';
 import { TransfersService } from 'src/modules/transfers/transfers.service';
 import { classifyFailure } from './batch-outcome';
@@ -31,7 +36,9 @@ import { collectMediaReferences, resolveMediaReferences } from './media-referenc
 const REQUIRED_PERMISSION: Record<SyncOperationType, PermissionCode> = {
   [SyncOperationType.CREATE_TRANSFER]: Perm.TRANSFERS_CREATE,
   [SyncOperationType.CONFIRM_TRANSFER]: Perm.TRANSFERS_CONFIRM,
+  [SyncOperationType.REJECT_TRANSFER]: Perm.TRANSFERS_REJECT,
   [SyncOperationType.CREATE_MERCHANT]: Perm.MERCHANTS_CREATE,
+  [SyncOperationType.CREATE_SUBSCRIPTION]: Perm.MERCHANTS_UPDATE,
   [SyncOperationType.CREATE_FINANCE_TRANSACTION]: Perm.FINANCE_CREATE,
 };
 
@@ -62,6 +69,8 @@ export class SyncBatchService {
     private readonly media: MediaService,
     @InjectRepository(Transfer) private readonly transferRows: Repository<Transfer>,
     @InjectRepository(Merchant) private readonly merchantRows: Repository<Merchant>,
+    @InjectRepository(MerchantSubscription)
+    private readonly subscriptionRows: Repository<MerchantSubscription>,
     @InjectRepository(FinanceTransaction)
     private readonly financeRows: Repository<FinanceTransaction>,
     @InjectRepository(Machine) private readonly machineRows: Repository<Machine>,
@@ -139,7 +148,7 @@ export class SyncBatchService {
     switch (operation.type) {
       case SyncOperationType.CREATE_TRANSFER: {
         const dto = await this.asDto(CreateTransferDto, {
-          ...payload,
+          ...(await this.withResolvedParty(payload, actor.user.id)),
           ...(operation.occurredAt ? { occurredAt: operation.occurredAt } : {}),
           clientUuid: operation.clientUuid,
         });
@@ -162,6 +171,17 @@ export class SyncBatchService {
         return confirmed.id;
       }
 
+      case SyncOperationType.REJECT_TRANSFER: {
+        const { transferId, rest } = splitTransferId(payload);
+        const dto = await this.asDto(RejectTransferDto, rest);
+
+        const rejected = await this.transfers.reject(transferId, dto, {
+          user: actor.user,
+          ipAddress: actor.ipAddress,
+        });
+        return rejected.id;
+      }
+
       case SyncOperationType.CREATE_MERCHANT: {
         const dto = await this.asDto(CreateMerchantDto, {
           ...payload,
@@ -170,6 +190,24 @@ export class SyncBatchService {
 
         const created = await this.merchants.create(dto, actor.user);
         return created.merchant.id;
+      }
+
+      case SyncOperationType.CREATE_SUBSCRIPTION: {
+        const { merchantId, rest } = splitMerchantId(payload);
+        const resolvedMerchantId = await this.resolveMerchantId(merchantId, actor.user.id);
+
+        const dto = await this.asDto(CreateSubscriptionDto, {
+          ...rest,
+          clientUuid: operation.clientUuid,
+        });
+
+        const created = await this.merchants.createSubscription(
+          resolvedMerchantId,
+          dto,
+          this.scopeFor(actor.user, Perm.MERCHANTS_READ_ALL),
+          actor.user,
+        );
+        return created.id;
       }
 
       case SyncOperationType.CREATE_FINANCE_TRANSACTION: {
@@ -206,6 +244,29 @@ export class SyncBatchService {
   }
 
   /**
+   * A `CREATE_TRANSFER` queued while offline names its merchant receiver by whatever `toPartyId`
+   * held at the time — a device-generated id when the merchant itself was registered offline in
+   * the same session, a real one otherwise. `resolveMerchantId` already passes a real id straight
+   * through (no row will ever match a stranger's server-assigned uuid against `client_uuid`), so
+   * this can run unconditionally rather than needing to know the transfer's receiver kind first.
+   */
+  private async withResolvedParty(
+    payload: Record<string, unknown>,
+    actorId: string,
+  ): Promise<Record<string, unknown>> {
+    const toPartyId = payload.toPartyId;
+    if (typeof toPartyId !== 'string') return payload;
+
+    return { ...payload, toPartyId: await this.resolveMerchantId(toPartyId, actorId) };
+  }
+
+  /** Passes a real id through unchanged; rewrites a device-generated one to what it became. */
+  private async resolveMerchantId(id: string, actorId: string): Promise<string> {
+    const resolved = await this.merchants.resolveClientUuids([id], actorId);
+    return resolved.get(id) ?? id;
+  }
+
+  /**
    * Has this operation already been applied?
    *
    * The creates answer from their `client_uuid` column. A confirmation creates no row of its own,
@@ -230,6 +291,14 @@ export class SyncBatchService {
         return row?.id ?? null;
       }
 
+      case SyncOperationType.CREATE_SUBSCRIPTION: {
+        const row = await this.subscriptionRows.findOne({
+          where: { clientUuid: operation.clientUuid, createdBy: user.id },
+          select: { id: true },
+        });
+        return row?.id ?? null;
+      }
+
       case SyncOperationType.CREATE_FINANCE_TRANSACTION: {
         const row = await this.financeRows.findOne({
           where: { clientUuid: operation.clientUuid, createdBy: user.id },
@@ -247,6 +316,14 @@ export class SyncBatchService {
         });
         return row?.id ?? null;
       }
+
+      // A rejection inserts no row of its own (it only flips the transfer's own status), so
+      // there is no unique constraint for a race to collide on — this branch is never reached
+      // from the unique-violation catch above. A genuine replay (the same reject pushed twice)
+      // instead hits `assertPending` and answers `TRANSFER_NOT_PENDING`, which `classifyFailure`
+      // already routes to `CONFLICT`/`MANUAL` rather than a hard failure.
+      case SyncOperationType.REJECT_TRANSFER:
+        return null;
     }
   }
 
@@ -318,7 +395,10 @@ export class SyncBatchService {
   private async serverStateFor(
     operation: SyncOperationDto,
   ): Promise<Record<string, unknown> | null> {
-    if (operation.type === SyncOperationType.CONFIRM_TRANSFER) {
+    if (
+      operation.type === SyncOperationType.CONFIRM_TRANSFER ||
+      operation.type === SyncOperationType.REJECT_TRANSFER
+    ) {
       const { transferId } = splitTransferId(operation.payload);
 
       const transfer = await this.transferRows.findOne({ where: { id: transferId } });
@@ -331,6 +411,7 @@ export class SyncBatchService {
           status: transfer.status,
           confirmedAt: transfer.confirmedAt?.toISOString() ?? null,
           confirmedByUserId: transfer.confirmedByUserId,
+          rejectionReason: transfer.rejectionReason ?? null,
           updatedAt: transfer.updatedAt.toISOString(),
         },
       };
@@ -378,11 +459,32 @@ function splitTransferId(payload: Record<string, unknown>): {
 
   if (typeof transferId !== 'string' || !transferId) {
     throw new AppException(ErrorCode.VALIDATION_FAILED, {
-      details: [{ field: 'payload.transferId', constraint: 'required for CONFIRM_TRANSFER' }],
+      details: [
+        { field: 'payload.transferId', constraint: 'required for CONFIRM_TRANSFER/REJECT_TRANSFER' },
+      ],
     });
   }
 
   return { transferId, rest };
+}
+
+/**
+ * `CREATE_SUBSCRIPTION` names its merchant inside the payload for the same reason a confirmation
+ * names its transfer there: the queued item has no URL to carry it in.
+ */
+function splitMerchantId(payload: Record<string, unknown>): {
+  merchantId: string;
+  rest: Record<string, unknown>;
+} {
+  const { merchantId, ...rest } = payload;
+
+  if (typeof merchantId !== 'string' || !merchantId) {
+    throw new AppException(ErrorCode.VALIDATION_FAILED, {
+      details: [{ field: 'payload.merchantId', constraint: 'required for CREATE_SUBSCRIPTION' }],
+    });
+  }
+
+  return { merchantId, rest };
 }
 
 function machineIdsIn(payload: Record<string, unknown>): string[] {

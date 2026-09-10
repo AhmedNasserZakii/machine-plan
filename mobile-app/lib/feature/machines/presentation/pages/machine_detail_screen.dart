@@ -80,6 +80,18 @@ class _MachineDetailScreenState extends State<MachineDetailScreen> {
     }
   }
 
+  Future<void> _sendForMaintenance(MachineEntity machine) async {
+    final created = await AppRoute.goToMaintenanceCreate(
+      context: context,
+      machineId: machine.id,
+      machineSerial: machine.serial,
+    );
+
+    if (created != null && mounted) {
+      _didChange = true;
+    }
+  }
+
   /// Both land on the same placeholder until `11` builds the real screens
   /// (`8.1`) — see `MachineActionsSection`'s doc comment.
   void _openNotReady({required String titleKey, required IconData icon}) {
@@ -180,6 +192,7 @@ class _MachineDetailScreenState extends State<MachineDetailScreen> {
             onViewTimeline: () => _viewTimeline(machine),
             onViewMaintenanceHistory: () => _viewMaintenanceHistory(machine),
             onCreateTransfer: _createTransfer,
+            onSendForMaintenance: () => _sendForMaintenance(machine),
             onReplace: () => _openNotReady(
               titleKey: LocaleKeys.machineReplaceAction,
               icon: Icons.change_circle_outlined,

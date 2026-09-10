@@ -79,39 +79,56 @@ class ConfirmTransferCubit extends Cubit<ConfirmTransferState> {
     );
   }
 
-  /// Uploads the drawn signature, then signs for the delivery. The two are one
-  /// action from the user's point of view, so a failed upload must not leave the
-  /// button looking ready.
+  /// A drawn signature uploads its PNG first — the two are one action from
+  /// the user's point of view, so a failed upload must not leave the button
+  /// looking ready. A biometric one carries no media at all: [biometricSignature]
+  /// already has everything the server needs, verified on this device before
+  /// this method was ever called.
   Future<void> submit({
-    required Uint8List signaturePng,
+    Uint8List? signaturePng,
+    SignatureParams? biometricSignature,
     String? deviceModel,
   }) async {
+    assert(
+      signaturePng != null || biometricSignature != null,
+      'submit needs either a drawn signature or a verified biometric one',
+    );
     if (state.isSubmitting) return;
 
     emit(state.copyWith(isSubmitting: true, clearError: true));
 
-    final Either<ServerFailure, String> upload = await transfersRepo
-        .uploadSignature(png: signaturePng);
+    final SignatureParams? signature;
+    if (biometricSignature != null) {
+      signature = biometricSignature;
+    } else {
+      final Either<ServerFailure, String> upload = await transfersRepo
+          .uploadSignature(png: signaturePng!);
 
-    if (isClosed) return;
+      if (isClosed) return;
 
-    final String? mediaId = upload.fold((ServerFailure failure) {
-      emit(
-        state.copyWith(isSubmitting: false, errorMessage: failure.errorMessage),
+      final String? mediaId = upload.fold((ServerFailure failure) {
+        emit(
+          state.copyWith(
+            isSubmitting: false,
+            errorMessage: failure.errorMessage,
+          ),
+        );
+        return null;
+      }, (String id) => id);
+
+      if (mediaId == null) return;
+
+      signature = SignatureParams(
+        method: SignatureMethod.drawn,
+        signatureMediaId: mediaId,
+        deviceModel: deviceModel,
       );
-      return null;
-    }, (String id) => id);
-
-    if (mediaId == null) return;
+    }
 
     final result = await transfersRepo.confirmTransfer(
       id: state.transfer.id,
       params: ConfirmTransferParams(
-        signature: SignatureParams(
-          method: SignatureMethod.drawn,
-          signatureMediaId: mediaId,
-          deviceModel: deviceModel,
-        ),
+        signature: signature,
         payloadHash: state.transfer.payloadHash ?? '',
         adjustments: state.adjustments.values
             .where((ItemAdjustmentParams a) => !a.isEmpty)

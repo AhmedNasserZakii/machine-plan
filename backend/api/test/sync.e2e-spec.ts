@@ -972,6 +972,59 @@ describe('Offline sync (e2e)', () => {
       });
     });
 
+    it('rejects a pending transfer pushed offline, and rolls custody back', async () => {
+      const machine = await createMachine();
+      const pending = await sendToSupervisor(machine);
+
+      const { results } = await batch(supervisor.api, [
+        {
+          clientUuid: randomUUID(),
+          type: SyncOperationType.REJECT_TRANSFER,
+          payload: {
+            transferId: pending.id,
+            reason: 'الماكينة معطوبة',
+          },
+        },
+      ]);
+
+      expect(results[0]).toMatchObject({
+        status: SyncOperationStatus.SUCCESS,
+        serverId: pending.id,
+      });
+
+      const rejected = await ok<TransferResponse>(director.get(`/transfers/${pending.id}`));
+      expect(rejected.status).toBe(TransferStatus.REJECTED);
+      expect((await readMachine(machine.id)).status).toBe(MachineStatus.IN_COMPANY_WAREHOUSE);
+    });
+
+    it('reports a re-pushed rejection of an already-resolved transfer as a conflict', async () => {
+      const machine = await createMachine();
+      const pending = await sendToSupervisor(machine);
+
+      await ok<TransferResponse>(
+        supervisor.api.post(`/transfers/${pending.id}/reject`, { reason: 'رفض أول مرة' }),
+      );
+
+      const { results } = await batch(supervisor.api, [
+        {
+          clientUuid: randomUUID(),
+          type: SyncOperationType.REJECT_TRANSFER,
+          payload: {
+            transferId: pending.id,
+            reason: 'رفض تاني بالغلط',
+          },
+        },
+      ]);
+
+      expect(results[0]).toMatchObject({
+        status: SyncOperationStatus.CONFLICT,
+        resolution: SyncResolution.MANUAL,
+      });
+
+      const state = results[0].serverState as { transfer: { id: string; status: string } };
+      expect(state.transfer).toMatchObject({ id: pending.id, status: TransferStatus.REJECTED });
+    });
+
     it('resolves a photo the device referenced by the id it made up offline', async () => {
       const machine = await createMachine();
       await deliverToRepresentative(machine);
@@ -1027,6 +1080,168 @@ describe('Offline sync (e2e)', () => {
       });
       expect(results[0].error!.code).toBe('MEDIA_NOT_FOUND');
       expect((await readMachine(machine.id)).status).toBe(MachineStatus.WITH_REPRESENTATIVE);
+    });
+
+    it('resolves a merchant registered offline in the very same batch', async () => {
+      const machine = await createMachine();
+      await deliverToRepresentative(machine);
+
+      const merchantClientUuid = randomUUID();
+      const transferClientUuid = randomUUID();
+
+      const { results } = await batch(representative.api, [
+        {
+          clientUuid: merchantClientUuid,
+          type: SyncOperationType.CREATE_MERCHANT,
+          payload: merchantPayload('تاجر اليوم نفسه'),
+        },
+        {
+          clientUuid: transferClientUuid,
+          type: SyncOperationType.CREATE_TRANSFER,
+          occurredAt: new Date().toISOString(),
+          payload: {
+            type: TransferType.REPRESENTATIVE_TO_MERCHANT,
+            // Named by the id the device made up when it registered the merchant a moment
+            // earlier — the real merchant id did not exist on the device at all.
+            toPartyId: merchantClientUuid,
+            items: [itemFor(machine)],
+            senderSignature: DRAWN,
+          },
+        },
+      ]);
+
+      expect(results.map((result) => result.status)).toEqual([
+        SyncOperationStatus.SUCCESS,
+        SyncOperationStatus.SUCCESS,
+      ]);
+
+      const transfer = await ok<TransferResponse & { to: { id: string } }>(
+        director.get(`/transfers/${results[1].serverId}`),
+      );
+      expect(transfer.to.id).toBe(results[0].serverId);
+    });
+
+    it('resolves a merchant registered offline in an earlier, already-synced batch', async () => {
+      const machine = await createMachine();
+      await deliverToRepresentative(machine);
+
+      const merchantClientUuid = randomUUID();
+      const first = await batch(representative.api, [
+        {
+          clientUuid: merchantClientUuid,
+          type: SyncOperationType.CREATE_MERCHANT,
+          payload: merchantPayload('تاجر أمس'),
+        },
+      ]);
+      const merchantServerId = first.results[0].serverId;
+
+      const { results } = await batch(representative.api, [
+        {
+          clientUuid: randomUUID(),
+          type: SyncOperationType.CREATE_TRANSFER,
+          occurredAt: new Date().toISOString(),
+          payload: {
+            type: TransferType.REPRESENTATIVE_TO_MERCHANT,
+            toPartyId: merchantClientUuid,
+            items: [itemFor(machine)],
+            senderSignature: DRAWN,
+          },
+        },
+      ]);
+
+      expect(results[0].status).toBe(SyncOperationStatus.SUCCESS);
+
+      const transfer = await ok<TransferResponse & { to: { id: string } }>(
+        director.get(`/transfers/${results[0].serverId}`),
+      );
+      expect(transfer.to.id).toBe(merchantServerId);
+    });
+
+    it('discards a transfer naming a merchant that was never registered, offline or otherwise', async () => {
+      const machine = await createMachine();
+      await deliverToRepresentative(machine);
+
+      const { results } = await batch(representative.api, [
+        {
+          clientUuid: randomUUID(),
+          type: SyncOperationType.CREATE_TRANSFER,
+          occurredAt: new Date().toISOString(),
+          payload: {
+            type: TransferType.REPRESENTATIVE_TO_MERCHANT,
+            toPartyId: randomUUID(),
+            items: [itemFor(machine)],
+            senderSignature: DRAWN,
+          },
+        },
+      ]);
+
+      // A `clientUuid` that never resolves reads exactly like a stranger's real id would:
+      // "unknown merchant", not a sync-specific complaint.
+      expect(results[0]).toMatchObject({
+        status: SyncOperationStatus.FAILED,
+        resolution: SyncResolution.DISCARD,
+      });
+      expect(results[0].error!.code).toBe('VALIDATION_FAILED');
+    });
+
+    it('queues a subscription for a merchant registered offline in an earlier batch', async () => {
+      const merchantClientUuid = randomUUID();
+      const created = await batch(representative.api, [
+        {
+          clientUuid: merchantClientUuid,
+          type: SyncOperationType.CREATE_MERCHANT,
+          payload: merchantPayload('تاجر الاشتراك'),
+        },
+      ]);
+      const merchantServerId = created.results[0].serverId!;
+
+      const { results } = await batch(representative.api, [
+        {
+          clientUuid: randomUUID(),
+          type: SyncOperationType.CREATE_SUBSCRIPTION,
+          payload: {
+            merchantId: merchantClientUuid,
+            planType: 'MONTHLY',
+            amount: 300,
+            startDate: '2026-09-01',
+          },
+        },
+      ]);
+
+      expect(results[0].status).toBe(SyncOperationStatus.SUCCESS);
+
+      const subscriptions = await ok<{ id: string; amount: number }[]>(
+        director.get(`/merchants/${merchantServerId}/subscriptions`),
+      );
+      expect(subscriptions.map((row) => row.id)).toContain(results[0].serverId);
+    });
+
+    it('reports the second push of the same subscription clientUuid as a duplicate', async () => {
+      const merchant = await createMerchant(representative.api, 'تاجر التكرار');
+      const operation = {
+        clientUuid: randomUUID(),
+        type: SyncOperationType.CREATE_SUBSCRIPTION,
+        payload: {
+          merchantId: merchant.id,
+          planType: 'MONTHLY',
+          amount: 300,
+          startDate: '2026-09-01',
+        },
+      };
+
+      const first = await batch(representative.api, [operation]);
+      expect(first.results[0].status).toBe(SyncOperationStatus.SUCCESS);
+
+      const again = await batch(representative.api, [operation]);
+      expect(again.results[0]).toMatchObject({
+        status: SyncOperationStatus.DUPLICATE,
+        serverId: first.results[0].serverId,
+      });
+
+      const subscriptions = await ok<{ id: string }[]>(
+        director.get(`/merchants/${merchant.id}/subscriptions`),
+      );
+      expect(subscriptions).toHaveLength(1);
     });
 
     it('discards an operation the caller has no permission for', async () => {

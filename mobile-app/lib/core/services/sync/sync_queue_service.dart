@@ -1,4 +1,5 @@
 import 'package:machinery/core/connection/network_info.dart';
+import 'package:machinery/core/constants/api_keys.dart';
 import 'package:machinery/core/local_db/daos/cached_merchants_dao.dart';
 import 'package:machinery/core/local_db/daos/cached_transfers_dao.dart';
 import 'package:machinery/core/local_db/daos/pending_media_dao.dart';
@@ -140,12 +141,44 @@ class SyncQueueService implements PendingSyncCounter {
   }
 
   Future<bool> _dependenciesReady(SyncQueueItem item) async {
-    if (item.dependsOn.isEmpty) return true;
+    if (item.dependsOn.isNotEmpty) {
+      final List<PendingMediaItem> media = await pendingMediaDao.findByClientUuids(item.dependsOn);
+      if (media.length != item.dependsOn.length) return false;
+      if (!media.every((PendingMediaItem row) => row.uploadState == MediaUploadState.uploaded)) {
+        return false;
+      }
+    }
 
-    final List<PendingMediaItem> media = await pendingMediaDao.findByClientUuids(item.dependsOn);
-    if (media.length != item.dependsOn.length) return false;
+    return _referencedMerchantReady(item);
+  }
 
-    return media.every((PendingMediaItem row) => row.uploadState == MediaUploadState.uploaded);
+  /// A `CREATE_TRANSFER`/`CREATE_SUBSCRIPTION` queued against a merchant that
+  /// was itself registered offline moments earlier names it by that
+  /// still-unresolved id — nothing distinguishes it from a real one on this
+  /// device, since an offline `createMerchant()` hands back the very
+  /// `clientUuid` it queued under. `dependsOn` cannot express this (it is
+  /// media-shaped: a list of upload ids, checked against `pending_media`),
+  /// so this reads the referenced id straight out of the operation's own
+  /// payload instead — no separate bookkeeping to keep in sync with it.
+  ///
+  /// Ready as soon as that id is no longer sitting in this same queue: gone
+  /// means either it was never a local id at all, or it resolved and its
+  /// `CREATE_MERCHANT` item was deleted (`_applyResult`, `SUCCESS`/`DUPLICATE`).
+  /// This is what stops a merchant's own item sitting in backoff from letting
+  /// a freshly-queued dependent transfer jump ahead of it in the same push —
+  /// FIFO order alone does not guarantee that once one of the two has failed
+  /// and is retrying on its own schedule.
+  Future<bool> _referencedMerchantReady(SyncQueueItem item) async {
+    final String? merchantId = switch (item.type) {
+      SyncOperationType.createTransfer =>
+        item.payload[ApiKeys.toPartyId] as String?,
+      SyncOperationType.createSubscription =>
+        item.payload[ApiKeys.merchantId] as String?,
+      _ => null,
+    };
+
+    if (merchantId == null) return true;
+    return await queueDao.findByClientUuid(merchantId) == null;
   }
 
   Future<void> _pushOneBatch(List<SyncQueueItem> items) async {
@@ -216,6 +249,8 @@ class SyncQueueService implements PendingSyncCounter {
           case SyncOperationType.createTransfer:
             await cachedTransfersDao.deleteByIds(<String>[item.clientUuid]);
           case SyncOperationType.confirmTransfer:
+          case SyncOperationType.rejectTransfer:
+          case SyncOperationType.createSubscription:
           case SyncOperationType.createFinanceTransaction:
             break;
         }

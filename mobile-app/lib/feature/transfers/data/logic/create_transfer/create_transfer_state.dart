@@ -51,6 +51,7 @@ class CreateTransferState extends Equatable {
     this.recipients = const <TransferRecipient>[],
     this.recipientId,
     this.merchantId,
+    this.merchantName,
     this.items = const <DraftItem>[],
     this.notes,
     this.isLoadingRecipients = false,
@@ -82,6 +83,11 @@ class CreateTransferState extends Equatable {
   /// merchants module lands.
   final String? merchantId;
 
+  /// Set only when the merchant was picked via the "تاجر جديد" shortcut or an
+  /// existing merchant lookup; `null` for a bare typed id, which the signing
+  /// screen then shows as-is rather than blank.
+  final String? merchantName;
+
   final List<DraftItem> items;
   final String? notes;
   final bool isValidating;
@@ -102,6 +108,29 @@ class CreateTransferState extends Equatable {
     ReceiverKind.user || ReceiverKind.warehouse => recipientId,
     _ => null,
   };
+
+  /// What the signing screen shows as "المستلم" — resolved from whichever
+  /// list this receiver kind actually picks from, since a merchant's name
+  /// lives nowhere but this state and a user/warehouse's lives in [recipients].
+  String? get recipientDisplayName => switch (selected?.receiverKind) {
+    ReceiverKind.merchant => merchantName ?? merchantId,
+    ReceiverKind.user || ReceiverKind.warehouse => recipients
+        .cast<TransferRecipient?>()
+        .firstWhere(
+          (TransferRecipient? r) => r?.id == recipientId,
+          orElse: () => null,
+        )
+        ?.name,
+    _ => null,
+  };
+
+  /// A signature is needed on the client only when the sender closes the
+  /// document himself — every other move signs on `confirm`, which the
+  /// receiver does (`9.4`). Mirrors the backend's own gate exactly:
+  /// `signatureNeeded = rule.autoConfirm || rule.signatures.includes(SENDER)`
+  /// (`transfers.service.ts`) reduces to `rule.autoConfirm` for every type in
+  /// this app's `TRANSFER_RULES`, which is exactly what `selfAttested` is.
+  bool get needsSenderSignature => selected?.selfAttested ?? false;
 
   int get mismatchCount =>
       items.where((DraftItem item) => item.batteryMatches == false).length;
@@ -128,6 +157,7 @@ class CreateTransferState extends Equatable {
     List<TransferRecipient>? recipients,
     String? recipientId,
     String? merchantId,
+    String? merchantName,
     List<DraftItem>? items,
     String? notes,
     bool? isLoadingRecipients,
@@ -138,6 +168,7 @@ class CreateTransferState extends Equatable {
     TransferEntity? created,
     bool clearError = false,
     bool clearRecipient = false,
+    bool resetMerchantName = false,
   }) {
     return CreateTransferState(
       clientUuid: clientUuid,
@@ -148,6 +179,9 @@ class CreateTransferState extends Equatable {
       recipients: recipients ?? this.recipients,
       recipientId: clearRecipient ? null : (recipientId ?? this.recipientId),
       merchantId: clearRecipient ? null : (merchantId ?? this.merchantId),
+      merchantName: (clearRecipient || resetMerchantName)
+          ? merchantName
+          : (merchantName ?? this.merchantName),
       items: items ?? this.items,
       notes: notes ?? this.notes,
       isLoadingRecipients: isLoadingRecipients ?? this.isLoadingRecipients,
@@ -169,6 +203,7 @@ class CreateTransferState extends Equatable {
     recipients,
     recipientId,
     merchantId,
+    merchantName,
     items,
     notes,
     isLoadingRecipients,

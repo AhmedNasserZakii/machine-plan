@@ -35,6 +35,26 @@ class ConfirmTransferState extends Equatable {
   int get adjustedCount =>
       adjustments.values.where((ItemAdjustmentParams a) => !a.isEmpty).length;
 
+  bool _effectiveHasCharger(TransferItemEntity item) =>
+      adjustments[item.id]?.hasCharger ?? item.hasCharger;
+
+  /// Recomputed against what the receiver is about to sign for, not what the
+  /// sender originally declared — a charger an adjustment restored no longer
+  /// counts as missing, and one an adjustment just discovered gone now does.
+  int get missingChargerCount =>
+      transfer.items.where((TransferItemEntity item) => !_effectiveHasCharger(item)).length;
+
+  /// A row counts as still mismatched only when nobody touched its battery
+  /// serial. The device has no way to re-verify a receiver's correction
+  /// against the machine's actual bonded battery — that check happened once,
+  /// server-side, against the sender's original scan — so a corrected row is
+  /// dropped from the tally rather than re-guessed at.
+  int get mismatchCount => transfer.items.where((TransferItemEntity item) {
+    final ItemAdjustmentParams? adjustment = adjustments[item.id];
+    if (adjustment?.batterySerialScanned != null) return false;
+    return item.batteryMatches == false;
+  }).length;
+
   ConfirmTransferState copyWith({
     TransferEntity? transfer,
     Map<String, ItemAdjustmentParams>? adjustments,

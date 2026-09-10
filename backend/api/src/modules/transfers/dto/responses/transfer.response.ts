@@ -57,6 +57,7 @@ export class TransferItemResponse {
 }
 
 export class TransferSignatureResponse {
+  @ApiProperty() id: string;
   @ApiProperty({ enum: ['SENDER', 'RECEIVER'] }) partyRole: SignaturePartyRole;
   @ApiProperty() userId: string;
   @ApiPropertyOptional({ nullable: true }) userFullName: string | null;
@@ -121,4 +122,10 @@ export class TransferRecipientResponse {
 export class TransferValidationResponse {
   @ApiProperty() valid: boolean;
   @ApiProperty({ type: [Object] }) problems: unknown[];
+}
+
+export class TransferSignatureMediaResponse {
+  @ApiProperty() url: string;
+  @ApiProperty() expiresAt: string;
+  @ApiProperty() mimeType: string;
 }

@@ -4,6 +4,7 @@ import {
   Brackets,
   DataSource,
   EntityManager,
+  In,
   IsNull,
   Repository,
   SelectQueryBuilder,
@@ -300,6 +301,25 @@ export class MerchantsService {
     });
 
     return this.findById(created.id, { branchId: null, unrestricted: true }, actor);
+  }
+
+  /**
+   * The same door `MediaService.resolveClientUuids` opens for photos, for merchants: a
+   * `CREATE_TRANSFER`/`CREATE_SUBSCRIPTION` queued while offline may name its merchant by the
+   * device-generated id a `CREATE_MERCHANT` queued moments earlier will resolve to — a real id
+   * that does not exist yet when the device builds the payload. Scoped to the same actor for the
+   * same reason `create()`'s own replay check is: a leaked id must not let one registrar's device
+   * resolve another's merchant.
+   */
+  async resolveClientUuids(clientUuids: string[], actorId: string): Promise<Map<string, string>> {
+    if (clientUuids.length === 0) return new Map();
+
+    const rows = await this.merchants.find({
+      where: { clientUuid: In(clientUuids), createdByUserId: actorId },
+      select: { id: true, clientUuid: true },
+    });
+
+    return new Map(rows.map((row) => [row.clientUuid!, row.id]));
   }
 
   async update(

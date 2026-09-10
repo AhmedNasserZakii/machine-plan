@@ -45,8 +45,10 @@ export class SyncOperationDto {
 
   @ApiProperty({
     description:
-      'The body the equivalent REST endpoint takes. `CONFIRM_TRANSFER` also carries the ' +
-      '`transferId` it is signing for. Media is referenced by its `clientUuid`.',
+      'The body the equivalent REST endpoint takes. `CONFIRM_TRANSFER` and `REJECT_TRANSFER` ' +
+      'also carry the `transferId` they act on; `CREATE_SUBSCRIPTION` carries `merchantId`. ' +
+      'Media and merchant references may name a `clientUuid` that has not resolved to a real ' +
+      'id yet — the server resolves what it can and reports the rest as a retryable failure.',
     type: 'object',
     additionalProperties: true,
   })

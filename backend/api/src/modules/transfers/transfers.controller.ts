@@ -35,6 +35,7 @@ import {
   TransferListItemResponse,
   TransferRecipientResponse,
   TransferResponse,
+  TransferSignatureMediaResponse,
   TransferValidationResponse,
 } from './dto/responses/transfer.response';
 import { toTransferListItemResponse, toTransferResponse } from './mappers/transfer.mapper';
@@ -165,6 +166,29 @@ export class TransfersController {
     @ReqLocale() locale: Locale,
   ): Promise<TransferResponse> {
     return toTransferResponse(await this.transfers.findById(id, scope, user), locale);
+  }
+
+  @Get(':id/signatures/:signatureId/media')
+  @Permissions(Perm.TRANSFERS_READ)
+  @BranchScoped(Perm.TRANSFERS_READ_ALL)
+  @ApiOperation({
+    summary: 'A signed URL for one signature\'s drawn image, for whoever can read this transfer',
+  })
+  @ApiResponse({ status: 200, type: TransferSignatureMediaResponse })
+  @ApiResponse({ status: 404, description: 'MEDIA_NOT_FOUND — no drawn image on this signature' })
+  async signatureMedia(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('signatureId', ParseUUIDPipe) signatureId: string,
+    @Scope() scope: BranchScope,
+    @CurrentUser() user: AuthUser,
+  ): Promise<TransferSignatureMediaResponse> {
+    const { url, expiresAt, mimeType } = await this.transfers.signatureMedia(
+      id,
+      signatureId,
+      scope,
+      user,
+    );
+    return { url, expiresAt: expiresAt.toISOString(), mimeType };
   }
 
   @Post(':id/confirm')

@@ -9330,6 +9330,67 @@
         ]
       }
     },
+    "/api/v1/transfers/{id}/signatures/{signatureId}/media": {
+      "get": {
+        "operationId": "signatureMedia",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "signatureId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ar",
+                "en"
+              ],
+              "default": "ar"
+            },
+            "description": "Response locale. Defaults to ar."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransferSignatureMediaResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "MEDIA_NOT_FOUND — no drawn image on this signature"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "A signed URL for one signature's drawn image, for whoever can read this transfer",
+        "tags": [
+          "transfers"
+        ]
+      }
+    },
     "/api/v1/transfers/{id}/confirm": {
       "post": {
         "operationId": "confirm",
@@ -19668,6 +19729,9 @@
       "TransferSignatureResponse": {
         "type": "object",
         "properties": {
+          "id": {
+            "type": "string"
+          },
           "partyRole": {
             "type": "string",
             "enum": [
@@ -19705,6 +19769,7 @@
           }
         },
         "required": [
+          "id",
           "partyRole",
           "userId",
           "method",
@@ -19827,6 +19892,25 @@
           "signatures",
           "violationsCount",
           "payloadHash"
+        ]
+      },
+      "TransferSignatureMediaResponse": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string"
+          },
+          "mimeType": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "expiresAt",
+          "mimeType"
         ]
       },
       "ItemAdjustmentDto": {
@@ -21136,7 +21220,9 @@
             "enum": [
               "CREATE_TRANSFER",
               "CONFIRM_TRANSFER",
+              "REJECT_TRANSFER",
               "CREATE_MERCHANT",
+              "CREATE_SUBSCRIPTION",
               "CREATE_FINANCE_TRANSACTION"
             ],
             "type": "string"
@@ -21148,7 +21234,7 @@
           "payload": {
             "type": "object",
             "additionalProperties": true,
-            "description": "The body the equivalent REST endpoint takes. `CONFIRM_TRANSFER` also carries the `transferId` it is signing for. Media is referenced by its `clientUuid`."
+            "description": "The body the equivalent REST endpoint takes. `CONFIRM_TRANSFER` and `REJECT_TRANSFER` also carry the `transferId` they act on; `CREATE_SUBSCRIPTION` carries `merchantId`. Media and merchant references may name a `clientUuid` that has not resolved to a real id yet — the server resolves what it can and reports the rest as a retryable failure."
           }
         },
         "required": [
@@ -21207,7 +21293,9 @@
             "enum": [
               "CREATE_TRANSFER",
               "CONFIRM_TRANSFER",
+              "REJECT_TRANSFER",
               "CREATE_MERCHANT",
+              "CREATE_SUBSCRIPTION",
               "CREATE_FINANCE_TRANSACTION"
             ]
           },

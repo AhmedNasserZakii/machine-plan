@@ -21,11 +21,13 @@ class TransferMachinesStep extends StatelessWidget {
   const TransferMachinesStep({
     required this.state,
     required this.onScan,
+    required this.onPickFromList,
     super.key,
   });
 
   final CreateTransferState state;
   final Future<void> Function() onScan;
+  final Future<void> Function() onPickFromList;
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +36,12 @@ class TransferMachinesStep extends StatelessWidget {
     return Column(
       children: <Widget>[
         Padding(
-          padding: const EdgeInsetsDirectional.all(AppSpacing.md),
+          padding: const EdgeInsetsDirectional.fromSTEB(
+            AppSpacing.md,
+            AppSpacing.md,
+            AppSpacing.md,
+            0,
+          ),
           child: CustomButton(
             title: LocaleKeys.transferScanToAdd.tr(),
             isLoading: false,
@@ -49,6 +56,17 @@ class TransferMachinesStep extends StatelessWidget {
                 const SizedBox(width: AppSpacing.sm),
                 Text(LocaleKeys.transferScanToAdd.tr()),
               ],
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsetsDirectional.all(AppSpacing.md),
+          child: TextButton.icon(
+            onPressed: onPickFromList,
+            icon: const Icon(Icons.checklist_rounded, size: 18),
+            label: Semantics(
+              identifier: 'transfer_pick_from_list',
+              child: Text(LocaleKeys.transferPickFromList.tr()),
             ),
           ),
         ),

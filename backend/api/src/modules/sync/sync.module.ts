@@ -9,6 +9,7 @@ import { Machine } from 'src/modules/machines/entities/machine.entity';
 import { MachinesModule } from 'src/modules/machines/machines.module';
 import { MediaModule } from 'src/modules/media/media.module';
 import { Merchant } from 'src/modules/merchants/entities/merchant.entity';
+import { MerchantSubscription } from 'src/modules/merchants/entities/merchant-subscription.entity';
 import { MerchantsModule } from 'src/modules/merchants/merchants.module';
 import { OrganizationModule } from 'src/modules/organization/organization.module';
 import { Transfer } from 'src/modules/transfers/entities/transfer.entity';
@@ -36,6 +37,7 @@ import { SyncService } from './sync.service';
       FinanceTransaction,
       Machine,
       Merchant,
+      MerchantSubscription,
       Transfer,
     ]),
     LookupsModule,

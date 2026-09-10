@@ -196,6 +196,35 @@ export class TransfersService {
     return transfer;
   }
 
+  /**
+   * A signed URL for one signature's drawn image, for whoever can already read this transfer —
+   * not whoever uploaded the media.
+   *
+   * `Media.signedUrl` deliberately refuses that (a media id travels in the transfer payload
+   * itself, so ownership is the only thing stopping a counterparty from reading it there) — this
+   * is the other door `signedUrlForAuthorizedMedia` exists for: `findById` above is the actual
+   * authorization check, done against the transfer the signature belongs to, and by the time this
+   * reaches media storage that question is already answered.
+   */
+  async signatureMedia(
+    transferId: string,
+    signatureId: string,
+    scope: BranchScope,
+    actor: AuthUser,
+  ): Promise<{ url: string; expiresAt: Date; mimeType: string }> {
+    const transfer = await this.findById(transferId, scope, actor);
+
+    const signature = transfer.signatures.find((row) => row.id === signatureId);
+    if (!signature || !signature.signatureMediaId) {
+      throw AppException.notFound(ErrorCode.MEDIA_NOT_FOUND);
+    }
+
+    const resolved = await this.media.signedUrlForAuthorizedMedia(signature.signatureMediaId);
+    if (!resolved) throw AppException.notFound(ErrorCode.MEDIA_NOT_FOUND);
+
+    return { url: resolved.url, expiresAt: resolved.expiresAt, mimeType: resolved.media.mimeType };
+  }
+
   /** My inbox: transfers waiting for me to sign. */
   async incoming(actor: AuthUser, query: QueryTransfersDto): Promise<PaginatedResult<Transfer>> {
     const qb = this.baseQuery()

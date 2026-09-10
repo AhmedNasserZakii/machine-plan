@@ -10,13 +10,14 @@ import 'package:machinery/core/shared_widgets/error_toast.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/core/theme/styles/app_text_styles.dart';
+import 'package:machinery/core/utils/enums.dart';
 import 'package:machinery/feature/transfers/data/logic/confirm_transfer/confirm_transfer_cubit.dart';
 import 'package:machinery/feature/transfers/data/logic/confirm_transfer/confirm_transfer_state.dart';
 import 'package:machinery/feature/transfers/domain/entities/transfer_entity.dart';
 import 'package:machinery/feature/transfers/domain/params/transfer_write_params.dart';
+import 'package:machinery/feature/transfers/presentation/widgets/handover_signature_card.dart';
 import 'package:machinery/feature/transfers/presentation/widgets/item_adjustment_sheet.dart';
 import 'package:machinery/feature/transfers/presentation/widgets/payload_changed_dialog.dart';
-import 'package:machinery/feature/transfers/presentation/widgets/signature_pad.dart';
 import 'package:machinery/feature/transfers/presentation/widgets/transfer_item_tile.dart';
 
 /// The receiving end of a hand-off: check each machine, correct what is wrong,
@@ -33,7 +34,7 @@ class ConfirmTransferScreen extends StatefulWidget {
 }
 
 class _ConfirmTransferScreenState extends State<ConfirmTransferScreen> {
-  final SignaturePadController _signature = SignaturePadController();
+  final HandoverSignatureController _signature = HandoverSignatureController();
 
   @override
   void dispose() {
@@ -68,7 +69,23 @@ class _ConfirmTransferScreenState extends State<ConfirmTransferScreen> {
   }
 
   Future<void> _submit() async {
-    final Uint8List? png = await _signature.toPngBytes();
+    if (_signature.method == SignatureMethod.biometric) {
+      if (!_signature.isBiometricVerified) {
+        showErrorToast(LocaleKeys.signatureBiometricRequired.tr(), context);
+        return;
+      }
+
+      await context.read<ConfirmTransferCubit>().submit(
+        biometricSignature: SignatureParams(
+          method: SignatureMethod.biometric,
+          deviceId: _signature.verifiedDeviceId,
+          deviceModel: _signature.verifiedDeviceModel,
+        ),
+      );
+      return;
+    }
+
+    final Uint8List? png = await _signature.drawn.toPngBytes();
 
     if (!mounted) return;
 
@@ -96,7 +113,7 @@ class _ConfirmTransferScreenState extends State<ConfirmTransferScreen> {
 
       if (!context.mounted) return;
 
-      _signature.clear();
+      _signature.reset();
       await context.read<ConfirmTransferCubit>().reload();
       return;
     }
@@ -146,11 +163,16 @@ class _ConfirmTransferScreenState extends State<ConfirmTransferScreen> {
             ),
           ),
         ),
+        if (state.adjustedCount > 0 ||
+            state.missingChargerCount > 0 ||
+            state.mismatchCount > 0) ...<Widget>[
+          const SizedBox(height: AppSpacing.md),
+          _AdjustmentSummaryCard(state: state),
+        ],
         const SizedBox(height: AppSpacing.md),
-        DetailCard(
-          title: LocaleKeys.transferSignatureTitle.tr(),
-          icon: Icons.draw_outlined,
-          children: <Widget>[SignaturePad(controller: _signature)],
+        HandoverSignatureCard(
+          controller: _signature,
+          reason: LocaleKeys.signatureBiometricReasonReceive.tr(),
         ),
       ],
     );
@@ -167,17 +189,6 @@ class _ConfirmTransferScreenState extends State<ConfirmTransferScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            if (state.adjustedCount > 0) ...<Widget>[
-              Text(
-                LocaleKeys.transferConfirmAdjustedCount.tr(
-                  args: <String>[state.adjustedCount.toString()],
-                ),
-                style: Styles.s12(
-                  context,
-                ).copyWith(color: AppColors.warningColor),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-            ],
             CustomButton(
               title: LocaleKeys.transferSubmitSignature.tr(),
               isLoading: state.isSubmitting,
@@ -189,6 +200,48 @@ class _ConfirmTransferScreenState extends State<ConfirmTransferScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// What the receiver is actually about to sign for, recomputed against his
+/// own corrections rather than the sender's original declaration — the same
+/// exceptions-lead idea as the sender's review step (`9.3`), placed above the
+/// signature pad rather than after it, since the whole point is to read this
+/// before, not after.
+class _AdjustmentSummaryCard extends StatelessWidget {
+  const _AdjustmentSummaryCard({required this.state});
+
+  final ConfirmTransferState state;
+
+  @override
+  Widget build(BuildContext context) {
+    return DetailCard(
+      title: LocaleKeys.transferConfirmSummaryTitle.tr(),
+      icon: Icons.fact_check_outlined,
+      children: <Widget>[
+        if (state.adjustedCount > 0)
+          DetailRow(
+            label: LocaleKeys.transferItemAdjusted.tr(),
+            value: state.adjustedCount.toString(),
+          ),
+        if (state.missingChargerCount > 0)
+          DetailRow(
+            label: LocaleKeys.transferItemCharger.tr(),
+            value: LocaleKeys.transferReviewMissingChargers.tr(
+              args: <String>[state.missingChargerCount.toString()],
+            ),
+            valueColor: AppColors.warningColor,
+          ),
+        if (state.mismatchCount > 0)
+          DetailRow(
+            label: LocaleKeys.transferItemBatteryMismatch.tr(),
+            value: LocaleKeys.transferReviewMismatches.tr(
+              args: <String>[state.mismatchCount.toString()],
+            ),
+            valueColor: AppColors.dangerColor,
+          ),
+      ],
     );
   }
 }

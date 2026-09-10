@@ -1,8 +1,9 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
+import request from 'supertest';
 import type { App } from 'supertest/types';
 import { INestApplication } from '@nestjs/common';
 import { MachineStatus } from 'src/common/enums/machine-status.enum';
-import { WarehouseType } from 'src/common/enums/operations.enum';
+import { MediaPurpose, WarehouseType } from 'src/common/enums/operations.enum';
 import {
   ItemCondition,
   SignatureMethod,
@@ -53,7 +54,7 @@ interface TransferResponse {
   branch: { id: string; name: string } | null;
   itemsCount: number;
   items: TransferItemResponse[];
-  signatures: { partyRole: string; method: string; payloadHash: string }[];
+  signatures: { id: string; partyRole: string; method: string; payloadHash: string }[];
   violationsCount: number;
   rejectionReason: string | null;
   payloadHash: string;
@@ -210,6 +211,32 @@ describe('Transfers (e2e)', () => {
 
   function readMachine(machineId: string): Promise<MachineResponse> {
     return ok<MachineResponse>(director.get(`/machines/${machineId}`));
+  }
+
+  /** A one-pixel transparent PNG — small, real, and what a signature canvas actually produces. */
+  const SIGNATURE_PNG = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+    'base64',
+  );
+
+  /** Presigns, uploads and confirms a real signature image as `uploader`, returning its media id. */
+  async function uploadSignatureMedia(uploader: Api): Promise<string> {
+    const reserved = await ok<{ mediaId: string; uploadUrl: string }>(
+      uploader.post('/media/presign', {
+        purpose: MediaPurpose.SIGNATURE,
+        mimeType: 'image/png',
+        sizeBytes: SIGNATURE_PNG.byteLength,
+        checksum: createHash('sha256').update(SIGNATURE_PNG).digest('hex'),
+      }),
+      201,
+    );
+
+    const path = reserved.uploadUrl.slice(reserved.uploadUrl.indexOf('/api/'));
+    await request(server).put(path).set('Content-Type', 'image/png').send(SIGNATURE_PNG).expect(200);
+
+    await ok(uploader.post('/media/confirm', { mediaId: reserved.mediaId }));
+
+    return reserved.mediaId;
   }
 
   // ── the happy path ─────────────────────────────────────────────────────────
@@ -1016,6 +1043,101 @@ describe('Transfers (e2e)', () => {
       });
 
       await accountant.api.get('/transfers/creatable-types').expect(403);
+    });
+  });
+
+  // ── signature media access (9.6) ────────────────────────────────────────────
+
+  describe('signature media access', () => {
+    it('lets the transfer\'s other party view a signature he did not upload', async () => {
+      const machine = await createMachine();
+
+      const created = await ok<TransferResponse>(
+        director.post('/transfers', {
+          clientUuid: randomUUID(),
+          type: TransferType.COMPANY_TO_BRANCH,
+          toPartyId: supervisor.id,
+          occurredAt: new Date().toISOString(),
+          items: [itemFor(machine)],
+        }),
+        201,
+      );
+
+      // The receiver draws and uploads his own signature — the sender never touches this media.
+      const mediaId = await uploadSignatureMedia(supervisor.api);
+
+      const confirmed = await ok<TransferResponse>(
+        supervisor.api.post(`/transfers/${created.id}/confirm`, {
+          signature: { method: SignatureMethod.DRAWN_SIGNATURE, signatureMediaId: mediaId },
+          payloadHash: created.payloadHash,
+        }),
+      );
+
+      const signatureId = confirmed.signatures[0].id;
+
+      // director initiated the transfer and never uploaded this media — this is the whole point
+      // of the endpoint: authorized by being able to read the transfer, not by ownership.
+      const media = await ok<{ url: string; mimeType: string; expiresAt: string }>(
+        director.get(`/transfers/${created.id}/signatures/${signatureId}/media`),
+      );
+
+      expect(media.mimeType).toBe('image/png');
+      expect(new Date(media.expiresAt).getTime()).toBeGreaterThan(Date.now());
+    });
+
+    it('refuses a user who cannot read the transfer at all, even for a real signature', async () => {
+      const machine = await createMachine();
+
+      const created = await ok<TransferResponse>(
+        director.post('/transfers', {
+          clientUuid: randomUUID(),
+          type: TransferType.COMPANY_TO_BRANCH,
+          toPartyId: supervisor.id,
+          occurredAt: new Date().toISOString(),
+          items: [itemFor(machine)],
+        }),
+        201,
+      );
+
+      const mediaId = await uploadSignatureMedia(supervisor.api);
+
+      const confirmed = await ok<TransferResponse>(
+        supervisor.api.post(`/transfers/${created.id}/confirm`, {
+          signature: { method: SignatureMethod.DRAWN_SIGNATURE, signatureMediaId: mediaId },
+          payloadHash: created.payloadHash,
+        }),
+      );
+
+      const signatureId = confirmed.signatures[0].id;
+
+      // A supervisor on an unrelated branch: not the branch on the transfer, not a party to it,
+      // and without the unrestricted read-all permission — `findById` must reject him with a
+      // plain not-found, same as it would for the transfer itself.
+      const otherBranch = await createBranch(director, 'فرع بعيد عن التوقيع');
+      const outsider = await provisionUser(server, director, {
+        roleId: await roleIdByCode(director, SystemRole.BRANCH_SUPERVISOR),
+        branchId: otherBranch.id,
+        fullName: 'مشرف بعيد',
+      });
+
+      await fails(
+        outsider.api.get(`/transfers/${created.id}/signatures/${signatureId}/media`),
+        404,
+        'TRANSFER_NOT_FOUND',
+      );
+    });
+
+    it('reports no media for a signature that was never uploaded', async () => {
+      const machine = await createMachine();
+      const confirmed = await deliverToSupervisor(machine);
+
+      const signatureId = confirmed.signatures[0].id;
+
+      await fails(
+        director.get(`/transfers/${confirmed.id}/signatures/${signatureId}/media`),
+        404,
+        'MEDIA_NOT_FOUND',
+      );
     });
   });
 });

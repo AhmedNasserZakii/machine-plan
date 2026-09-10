@@ -228,6 +228,7 @@ class ApiKeys {
   static const String hasViolations = 'hasViolations';
 
   // ── Merchants ────────────────────────────────────────────────────────────
+  static const String merchantId = 'merchantId';
   static const String shopName = 'shopName';
   static const String address = 'address';
   static const String nationalId = 'nationalId';
@@ -348,4 +349,52 @@ class ApiKeys {
   static const String entity = 'entity';
   static const String payload = 'payload';
   static const String results = 'results';
+
+  // ── Maintenance, replacement, decommission (`11`) ───────────────────────
+  static const String locationId = 'locationId';
+  static const String reportedFault = 'reportedFault';
+  static const String suggestedFreeUnderWarranty = 'suggestedFreeUnderWarranty';
+  static const String warehouseId = 'warehouseId';
+  static const String responsibleUserId = 'responsibleUserId';
+  static const String responsibleMerchantId = 'responsibleMerchantId';
+  static const String supplierId = 'supplierId';
+  static const String performedByName = 'performedByName';
+  static const String outTransferId = 'outTransferId';
+  static const String inTransferId = 'inTransferId';
+  static const String financeTransactionId = 'financeTransactionId';
+  static const String violationId = 'violationId';
+  static const String subscriptionId = 'subscriptionId';
+  static const String replacementMachineId = 'replacementMachineId';
+  static const String closedByUserId = 'closedByUserId';
+  static const String cancelledAt = 'cancelledAt';
+  static const String cancelReason = 'cancelReason';
+  static const String newSerial = 'newSerial';
+  static const String newBattery = 'newBattery';
+  static const String newSimSerial = 'newSimSerial';
+  static const String newBoxSerial = 'newBoxSerial';
+  static const String newWarrantyStart = 'newWarrantyStart';
+  static const String newWarrantyEnd = 'newWarrantyEnd';
+  static const String replacedAt = 'replacedAt';
+  static const String replacement = 'replacement';
+  static const String oldMachine = 'oldMachine';
+  static const String newMachine = 'newMachine';
+  static const String oldMachineId = 'oldMachineId';
+  static const String newMachineId = 'newMachineId';
+  static const String maintenanceOrderId = 'maintenanceOrderId';
+  static const String reasonId = 'reasonId';
+  static const String reasonCode = 'reasonCode';
+  static const String reasonName = 'reasonName';
+  static const String decommissionedByUserId = 'decommissionedByUserId';
+  static const String snapshot = 'snapshot';
+  static const String cumulativeRepairCost = 'cumulativeRepairCost';
+  static const String costToValueRatio = 'costToValueRatio';
+  static const String chainLength = 'chainLength';
+  static const String revertedAt = 'revertedAt';
+  static const String revertReason = 'revertReason';
+  static const String minCostRatio = 'minCostRatio';
+  static const String minRepairCount = 'minRepairCount';
+  static const String ageMonths = 'ageMonths';
+  static const String isInChain = 'isInChain';
+  static const String recommendation = 'recommendation';
+  static const String lastMaintenanceAt = 'lastMaintenanceAt';
 }

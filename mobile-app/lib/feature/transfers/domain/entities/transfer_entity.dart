@@ -90,6 +90,7 @@ class TransferItemEntity extends Equatable {
 
 class TransferSignatureEntity extends Equatable {
   const TransferSignatureEntity({
+    required this.id,
     required this.partyRole,
     required this.userId,
     required this.method,
@@ -100,6 +101,7 @@ class TransferSignatureEntity extends Equatable {
     this.deviceModel,
   });
 
+  final String id;
   final SignaturePartyRole partyRole;
   final String userId;
   final SignatureMethod method;
@@ -111,6 +113,7 @@ class TransferSignatureEntity extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[
+    id,
     partyRole,
     userId,
     method,
