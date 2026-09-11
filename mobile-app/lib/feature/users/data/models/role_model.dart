@@ -10,6 +10,7 @@ class RoleModel {
     required this.permissions,
     this.description,
     this.isSystem = false,
+    this.translations = const <String, RoleTranslation>{},
   });
 
   final String id;
@@ -18,10 +19,24 @@ class RoleModel {
   final String? description;
   final bool isSystem;
   final List<String> permissions;
+  final Map<String, RoleTranslation> translations;
 
   factory RoleModel.fromJson(Map<String, dynamic> json) {
     final dynamic rawPermissions = json[ApiKeys.permissions];
 
+    final rawTranslations = json['translations'];
+    final translations = <String, RoleTranslation>{};
+    if (rawTranslations is Map<String, dynamic>) {
+      for (final entry in rawTranslations.entries) {
+        if (entry.value is Map<String, dynamic>) {
+          final value = entry.value as Map<String, dynamic>;
+          translations[entry.key] = RoleTranslation(
+            displayName: value['displayName']?.toString() ?? '',
+            description: value['description']?.toString(),
+          );
+        }
+      }
+    }
     return RoleModel(
       id: json[ApiKeys.id]?.toString() ?? '',
       code: json[ApiKeys.code] as String? ?? '',
@@ -34,6 +49,7 @@ class RoleModel {
       permissions: rawPermissions is List
           ? rawPermissions.whereType<String>().toList(growable: false)
           : const <String>[],
+      translations: Map<String, RoleTranslation>.unmodifiable(translations),
     );
   }
 
@@ -45,6 +61,7 @@ class RoleModel {
       description: description,
       isSystem: isSystem,
       permissions: permissions,
+      translations: translations,
     );
   }
 }

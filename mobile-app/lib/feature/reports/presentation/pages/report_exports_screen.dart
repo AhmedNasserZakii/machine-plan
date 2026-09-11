@@ -49,7 +49,10 @@ class ReportExportsScreen extends StatelessWidget {
                         ? '${LocaleKeys.reportExportFailed.tr()}${job.errorCode == null ? '' : ': ${job.errorCode}'}'
                         : ready
                         ? '${job.format.name.toUpperCase()} • ${job.rowCount ?? 0} rows'
-                        : job.status.name,
+                        : (job.status == ReportJobStatus.running
+                                  ? LocaleKeys.reportExportRunning
+                                  : LocaleKeys.reportExportQueued)
+                              .tr(),
                   ),
                   onTap: ready ? () => repo.openExport(job) : null,
                   trailing: ready

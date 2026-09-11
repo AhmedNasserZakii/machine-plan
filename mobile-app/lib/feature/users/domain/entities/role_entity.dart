@@ -12,6 +12,7 @@ class RoleEntity extends Equatable {
     required this.permissions,
     this.description,
     this.isSystem = false,
+    this.translations = const <String, RoleTranslation>{},
   });
 
   final String id;
@@ -20,6 +21,7 @@ class RoleEntity extends Equatable {
   final String? description;
   final bool isSystem;
   final List<String> permissions;
+  final Map<String, RoleTranslation> translations;
 
   /// Company-level roles have no branch, so the form must not ask for one.
   /// The branch-scoped roles are the ones whose work is bounded by a branch.
@@ -38,5 +40,15 @@ class RoleEntity extends Equatable {
     description,
     isSystem,
     permissions,
+    translations,
   ];
+}
+
+class RoleTranslation extends Equatable {
+  const RoleTranslation({required this.displayName, this.description});
+  final String displayName;
+  final String? description;
+
+  @override
+  List<Object?> get props => <Object?>[displayName, description];
 }

@@ -87,7 +87,7 @@ class _ReportViewerScreenState extends State<ReportViewerScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            const ListTile(title: Text('Export format')),
+            ListTile(title: Text(LocaleKeys.reportExportFormat.tr())),
             ...ReportFormat.values.map(
               (format) => ListTile(
                 leading: Icon(
@@ -111,7 +111,7 @@ class _ReportViewerScreenState extends State<ReportViewerScreen> {
     );
     if (!mounted) return;
     result.fold((f) => showErrorToast(f.errorMessage, context), (_) {
-      showSuccessToast('Export started. You can leave this screen.', context);
+      showSuccessToast(LocaleKeys.reportExportStarted.tr(), context);
       Navigator.push<void>(
         context,
         MaterialPageRoute(builder: (_) => const ReportExportsScreen()),
@@ -134,7 +134,7 @@ class _ReportViewerScreenState extends State<ReportViewerScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                const ListTile(title: Text('Visible columns')),
+                ListTile(title: Text(LocaleKeys.reportVisibleColumns.tr())),
                 ...state.result.columns
                     .skip(1)
                     .map(
@@ -152,7 +152,7 @@ class _ReportViewerScreenState extends State<ReportViewerScreen> {
                     ),
                 FilledButton(
                   onPressed: () => Navigator.pop(context, draft),
-                  child: const Text('Apply'),
+                  child: Text(LocaleKeys.reportApply.tr()),
                 ),
               ],
             ),
@@ -219,22 +219,26 @@ class _ReportViewerScreenState extends State<ReportViewerScreen> {
                   Expanded(
                     child: SegmentedButton<ReportViewMode>(
                       showSelectedIcon: false,
-                      segments: const <ButtonSegment<ReportViewMode>>[
+                      segments: <ButtonSegment<ReportViewMode>>[
                         ButtonSegment(
                           value: ReportViewMode.table,
-                          icon: Icon(Icons.table_rows),
+                          icon: const Icon(Icons.table_rows),
+                          tooltip: LocaleKeys.reportTableView.tr(),
                         ),
                         ButtonSegment(
                           value: ReportViewMode.cards,
-                          icon: Icon(Icons.view_agenda_outlined),
+                          icon: const Icon(Icons.view_agenda_outlined),
+                          tooltip: LocaleKeys.reportCardView.tr(),
                         ),
                         ButtonSegment(
                           value: ReportViewMode.grouped,
-                          icon: Icon(Icons.account_tree_outlined),
+                          icon: const Icon(Icons.account_tree_outlined),
+                          tooltip: LocaleKeys.reportGroupedView.tr(),
                         ),
                         ButtonSegment(
                           value: ReportViewMode.chart,
-                          icon: Icon(Icons.bar_chart),
+                          icon: const Icon(Icons.bar_chart),
+                          tooltip: LocaleKeys.reportChartView.tr(),
                         ),
                       ],
                       selected: <ReportViewMode>{state.mode},
@@ -245,7 +249,7 @@ class _ReportViewerScreenState extends State<ReportViewerScreen> {
                   ),
                   if (state.mode == ReportViewMode.table)
                     IconButton(
-                      tooltip: 'Choose columns',
+                      tooltip: LocaleKeys.reportChooseColumns.tr(),
                       onPressed: () => _columns(state),
                       icon: const Icon(Icons.view_column_outlined),
                     ),
@@ -259,17 +263,23 @@ class _ReportViewerScreenState extends State<ReportViewerScreen> {
               ),
             ),
             Expanded(
-              child: switch (state.mode) {
-                ReportViewMode.table => ReportTableView(
-                  result: state.result,
-                  visibleKeys: _visibleColumns,
-                ),
-                ReportViewMode.cards => ReportCardView(result: state.result),
-                ReportViewMode.grouped => ReportGroupedView(
-                  result: state.result,
-                ),
-                ReportViewMode.chart => ReportChartView(result: state.result),
-              },
+              child: state.result.rows.isEmpty
+                  ? Center(child: Text(LocaleKeys.reportNoRows.tr()))
+                  : switch (state.mode) {
+                      ReportViewMode.table => ReportTableView(
+                        result: state.result,
+                        visibleKeys: _visibleColumns,
+                      ),
+                      ReportViewMode.cards => ReportCardView(
+                        result: state.result,
+                      ),
+                      ReportViewMode.grouped => ReportGroupedView(
+                        result: state.result,
+                      ),
+                      ReportViewMode.chart => ReportChartView(
+                        result: state.result,
+                      ),
+                    },
             ),
             if (state.hasNext)
               SafeArea(
@@ -284,7 +294,7 @@ class _ReportViewerScreenState extends State<ReportViewerScreen> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.expand_more),
-                  label: const Text('Load more'),
+                  label: Text(LocaleKeys.reportLoadMore.tr()),
                 ),
               ),
           ],
@@ -325,7 +335,7 @@ class _ReportHeader extends StatelessWidget {
         ),
         if (state.result.truncated)
           Text(
-            'Result truncated by the server row limit',
+            LocaleKeys.reportTruncated.tr(),
             style: Styles.s12(context).copyWith(color: AppColors.warningColor),
           ),
         Wrap(

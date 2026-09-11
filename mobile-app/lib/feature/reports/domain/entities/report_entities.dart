@@ -52,7 +52,9 @@ class ReportDefinition extends Equatable {
 }
 
 List<ReportDefinition> allowedReports(Iterable<ReportDefinition> reports) =>
-    reports.where((ReportDefinition report) => report.allowed).toList(growable: false);
+    reports
+        .where((ReportDefinition report) => report.allowed)
+        .toList(growable: false);
 
 class ReportColumn extends Equatable {
   const ReportColumn({
@@ -86,7 +88,10 @@ class ReportResult extends Equatable {
   final List<Map<String, dynamic>> rows;
   final int rowCount;
   final bool truncated;
-  bool get hasSeries => extra['series'] is List;
+  // Profit/loss is the backend's canonical time series. Older API versions
+  // return the points in `rows` and only put granularity/by-branch data in
+  // `extra`, so the renderer cannot rely on an `extra.series` marker alone.
+  bool get hasSeries => extra['series'] is List || key == 'profit-loss';
   bool get hasGroups => extra['groups'] is List;
   @override
   List<Object?> get props => <Object?>[

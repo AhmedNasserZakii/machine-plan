@@ -82,6 +82,16 @@ class _UsersListScreenState extends State<UsersListScreen> {
       appBar: AppBar(
         leading: const ArrowBackWidget(),
         title: Text(LocaleKeys.usersTitle.tr()),
+        actions: <Widget>[
+          PermissionGate(
+            permission: P.rolesManage,
+            child: IconButton(
+              tooltip: LocaleKeys.rolesTitle.tr(),
+              icon: const Icon(Icons.shield_outlined),
+              onPressed: () => AppRoute.goToRolesList(context: context),
+            ),
+          ),
+        ],
       ),
       floatingActionButton: PermissionGate(
         permission: P.usersCreate,
@@ -163,7 +173,16 @@ class _UsersListScreenState extends State<UsersListScreen> {
             itemBuilder: (BuildContext context, UserEntity user, int index) {
               return UserCard(
                 user: user,
-                onTap: () => _openForm(existing: user),
+                onTap: () async {
+                  await AppRoute.goToUserDetail(
+                    context: context,
+                    userId: user.id,
+                    initial: user,
+                  );
+                  if (mounted) {
+                    await cubit.load(showLoader: false);
+                  }
+                },
               );
             },
           ),

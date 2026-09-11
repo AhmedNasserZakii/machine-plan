@@ -16,6 +16,8 @@ class TransfersQueryParams extends Equatable {
     this.statuses = const <TransferStatus>[],
     this.branchId,
     this.machineId,
+    this.fromPartyId,
+    this.toPartyId,
     this.dateFrom,
     this.dateTo,
     this.hasViolations,
@@ -28,6 +30,8 @@ class TransfersQueryParams extends Equatable {
   final List<TransferStatus> statuses;
   final String? branchId;
   final String? machineId;
+  final String? fromPartyId;
+  final String? toPartyId;
 
   /// Both bounds read `occurredAt`, not `createdAt`.
   final String? dateFrom;
@@ -58,6 +62,8 @@ class TransfersQueryParams extends Equatable {
     List<TransferStatus>? statuses,
     String? branchId,
     String? machineId,
+    String? fromPartyId,
+    String? toPartyId,
     String? dateFrom,
     String? dateTo,
     bool? hasViolations,
@@ -74,6 +80,8 @@ class TransfersQueryParams extends Equatable {
       statuses: statuses ?? this.statuses,
       branchId: resetBranch ? null : (branchId ?? this.branchId),
       machineId: resetMachine ? null : (machineId ?? this.machineId),
+      fromPartyId: fromPartyId ?? this.fromPartyId,
+      toPartyId: toPartyId ?? this.toPartyId,
       dateFrom: resetDates ? null : (dateFrom ?? this.dateFrom),
       dateTo: resetDates ? null : (dateTo ?? this.dateTo),
       hasViolations: resetViolations
@@ -99,6 +107,8 @@ class TransfersQueryParams extends Equatable {
             .toList(growable: false),
       if (branchId != null) ApiKeys.branchId: branchId,
       if (machineId != null) ApiKeys.machineId: machineId,
+      if (fromPartyId != null) 'fromPartyId': fromPartyId,
+      if (toPartyId != null) 'toPartyId': toPartyId,
       if (dateFrom != null) ApiKeys.dateFrom: dateFrom,
       if (dateTo != null) ApiKeys.dateTo: dateTo,
       if (hasViolations != null)
@@ -115,6 +125,8 @@ class TransfersQueryParams extends Equatable {
     statuses,
     branchId,
     machineId,
+    fromPartyId,
+    toPartyId,
     dateFrom,
     dateTo,
     hasViolations,

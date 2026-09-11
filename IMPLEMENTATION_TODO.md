@@ -2728,19 +2728,30 @@ is still accurate before starting Section 14 (Flutter reports).
 
 ## 14. Flutter reports
 
-- [ ] Replace the Reports “not ready” route with a permission-filtered reports hub.
-- [ ] Build the generic report viewer for table, card, grouped, and chart shapes.
-- [ ] Add report-specific filter forms.
-- [ ] Make wide tables usable on phones with frozen identifiers or the planned mobile layout.
-- [ ] Add export format selection.
-- [ ] Poll asynchronous report jobs until ready/failed.
-- [ ] Download, open, and share permitted CSV/XLSX/PDF files.
-- [ ] Keep previously downloaded reports accessible offline if allowed by security policy.
-- [ ] Add Arabic/English and permission-gating tests.
+- [x] Replace the Reports “not ready” route with a permission-filtered reports hub.
+- [x] Build the generic report viewer for table, card, grouped, and chart shapes.
+- [x] Add report-specific filter forms.
+- [x] Make wide tables usable on phones with frozen identifiers or the planned mobile layout.
+- [x] Add export format selection.
+- [x] Poll asynchronous report jobs until ready/failed.
+- [x] Download, open, and share permitted CSV/XLSX/PDF files.
+- [x] Keep previously downloaded reports accessible offline if allowed by security policy.
+- [x] Add Arabic/English and permission-gating tests.
+
+Implemented in `mobile-app/lib/feature/reports/` using the existing feature layering: backend-driven
+catalogue and permission flags, generic paginated viewer, persisted per-report filters, phone-first
+card/table layouts, CSV/XLSX/PDF job polling and app-private per-user downloads with open/share
+actions. All report controls and states are localized in Arabic and English; report dates, numbers,
+and money use the shared app formatters. Contract, export parsing, permission catalogue, chart-shape,
+translation, and phone-layout coverage lives in `mobile-app/test/{reports_contract_test,
+report_phone_layout_test}.dart`.
+
+**Mobile verified** with `flutter analyze` (0 issues), the focused reports tests (8/8 passing), and
+the full `flutter test` suite (**225/225 passing**).
 
 ---
 
-## 15. Flutter notifications and deep links
+<!-- ## 15. Flutter notifications and deep links
 
 ### 15.1 Push setup
 
@@ -2764,7 +2775,7 @@ is still accurate before starting Section 14 (Flutter reports).
 - [ ] Show a safe fallback when an entity was removed or access changed.
 - [ ] Test all three app states: foreground, background, and terminated.
 
----
+--- -->
 
 ## 16. Flutter users and roles completion
 

@@ -59,12 +59,20 @@ import 'package:machinery/feature/transfers/presentation/pages/confirm_transfer_
 import 'package:machinery/feature/transfers/presentation/pages/create_transfer_screen.dart';
 import 'package:machinery/feature/transfers/presentation/pages/transfer_detail_screen.dart';
 import 'package:machinery/feature/users/data/logic/user_form/user_form_cubit.dart';
+import 'package:machinery/feature/users/data/logic/user_detail/user_detail_cubit.dart';
 import 'package:machinery/feature/users/data/logic/user_permissions/user_permissions_cubit.dart';
 import 'package:machinery/feature/users/data/logic/users_list/users_list_cubit.dart';
+import 'package:machinery/feature/users/data/logic/roles/roles_cubit.dart';
+import 'package:machinery/feature/users/domain/entities/role_entity.dart';
 import 'package:machinery/feature/users/domain/entities/user_entity.dart';
+import 'package:machinery/feature/users/presentation/pages/user_detail_screen.dart';
 import 'package:machinery/feature/users/presentation/pages/user_form_screen.dart';
 import 'package:machinery/feature/users/presentation/pages/user_permissions_screen.dart';
 import 'package:machinery/feature/users/presentation/pages/users_list_screen.dart';
+import 'package:machinery/feature/users/presentation/pages/roles_list_screen.dart';
+import 'package:machinery/feature/users/presentation/pages/role_permissions_screen.dart';
+import 'package:machinery/core/permissions/permission_keys.dart';
+import 'package:machinery/core/shared_widgets/permission_boundary.dart';
 import 'package:machinery/feature/violations/data/logic/violation_create/violation_create_cubit.dart';
 import 'package:machinery/feature/violations/data/logic/violation_detail/violation_detail_cubit.dart';
 import 'package:machinery/feature/violations/data/logic/violation_summary/violation_summary_cubit.dart';
@@ -174,13 +182,63 @@ abstract class AppRoute {
     Navigator.push(
       context,
       MaterialPageRoute<void>(
-        builder: (_) => BlocProvider<UsersListCubit>(
-          create: (_) => getIt<UsersListCubit>(),
-          child: const UsersListScreen(),
+        builder: (_) => PermissionBoundary(
+          permission: P.usersRead,
+          child: BlocProvider<UsersListCubit>(
+            create: (_) => getIt<UsersListCubit>(),
+            child: const UsersListScreen(),
+          ),
         ),
       ),
     );
   }
+
+  static Future<void> goToUserDetail({
+    required BuildContext context,
+    required String userId,
+    UserEntity? initial,
+  }) => Navigator.push<void>(
+    context,
+    MaterialPageRoute<void>(
+      builder: (_) => PermissionBoundary(
+        permission: P.usersRead,
+        child: BlocProvider<UserDetailCubit>(
+          create: (_) => getIt<UserDetailCubit>(param1: userId, param2: initial),
+          child: const UserDetailScreen(),
+        ),
+      ),
+    ),
+  );
+
+  static Future<void> goToRolesList({required BuildContext context}) =>
+      Navigator.push<void>(
+        context,
+        MaterialPageRoute<void>(
+          builder: (_) => PermissionBoundary(
+            permission: P.rolesManage,
+            child: BlocProvider<RolesCubit>(
+              create: (_) => getIt<RolesCubit>(),
+              child: const RolesListScreen(),
+            ),
+          ),
+        ),
+      );
+
+  static Future<void> goToRolePermissions({
+    required BuildContext context,
+    required RoleEntity role,
+  }) => Navigator.push<void>(
+    context,
+    MaterialPageRoute<void>(
+      builder: (_) => PermissionBoundary(
+        permission: P.rolesManage,
+        child: BlocProvider<RolesCubit>(
+          create: (_) => getIt<RolesCubit>()..load(),
+          child: RolePermissionsScreen(role: role),
+        ),
+      ),
+    ),
+  );
 
   /// Resolves to true when something was saved, so the list behind it knows
   /// whether it needs to refresh.
@@ -191,9 +249,12 @@ abstract class AppRoute {
     return Navigator.push<bool>(
       context,
       MaterialPageRoute<bool>(
-        builder: (_) => BlocProvider<UserFormCubit>(
-          create: (_) => getIt<UserFormCubit>(param1: existing),
-          child: UserFormScreen(existing: existing),
+        builder: (_) => PermissionBoundary(
+          permission: existing == null ? P.usersCreate : P.usersUpdate,
+          child: BlocProvider<UserFormCubit>(
+            create: (_) => getIt<UserFormCubit>(param1: existing),
+            child: UserFormScreen(existing: existing),
+          ),
         ),
       ),
     );
@@ -206,9 +267,12 @@ abstract class AppRoute {
     return Navigator.push<void>(
       context,
       MaterialPageRoute<void>(
-        builder: (_) => BlocProvider<UserPermissionsCubit>(
-          create: (_) => getIt<UserPermissionsCubit>(param1: user.id),
-          child: UserPermissionsScreen(user: user),
+        builder: (_) => PermissionBoundary(
+          permission: P.rolesManage,
+          child: BlocProvider<UserPermissionsCubit>(
+            create: (_) => getIt<UserPermissionsCubit>(param1: user.id),
+            child: UserPermissionsScreen(user: user),
+          ),
         ),
       ),
     );

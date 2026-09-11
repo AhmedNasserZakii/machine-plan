@@ -13,13 +13,16 @@ import 'package:machinery/feature/users/data/models/branch_model.dart';
 import 'package:machinery/feature/users/data/models/permission_group_model.dart';
 import 'package:machinery/feature/users/data/models/role_model.dart';
 import 'package:machinery/feature/users/data/models/user_model.dart';
+import 'package:machinery/feature/users/data/models/user_custody_model.dart';
 import 'package:machinery/feature/users/data/models/user_permissions_model.dart';
 import 'package:machinery/feature/users/domain/entities/branch_entity.dart';
 import 'package:machinery/feature/users/domain/entities/permission_catalogue_entity.dart';
 import 'package:machinery/feature/users/domain/entities/role_entity.dart';
 import 'package:machinery/feature/users/domain/entities/user_entity.dart';
+import 'package:machinery/feature/users/domain/entities/user_custody_entity.dart';
 import 'package:machinery/feature/users/domain/entities/user_permissions_entity.dart';
 import 'package:machinery/feature/users/domain/params/user_form_params.dart';
+import 'package:machinery/feature/users/domain/params/role_write_params.dart';
 import 'package:machinery/feature/users/domain/params/users_query_params.dart';
 import 'package:machinery/feature/users/domain/repos/users_repo.dart';
 
@@ -63,6 +66,16 @@ class UsersRepoImpl implements UsersRepo {
       return UserModel.fromJson(_data(response.data)).toEntity();
     });
   }
+
+  @override
+  Future<Either<ServerFailure, UserCustodyEntity>> fetchUserCustody({
+    required String id,
+  }) => _guard('fetchUserCustody', () async {
+    final response = await apiService.client().get<dynamic>(
+      WebConstant.userCustody(id),
+    );
+    return userCustodyFromJson(_data(response.data));
+  });
 
   @override
   Future<Either<ServerFailure, UserEntity>> createUser({
@@ -152,10 +165,15 @@ class UsersRepoImpl implements UsersRepo {
   }
 
   @override
-  Future<Either<ServerFailure, List<RoleEntity>>> fetchRoles() {
+  Future<Either<ServerFailure, List<RoleEntity>>> fetchRoles({
+    bool rawTranslations = false,
+  }) {
     return _guard('fetchRoles', () async {
       final Response<dynamic> response = await apiService.client().get<dynamic>(
         WebConstant.roles,
+        queryParameters: rawTranslations
+            ? const <String, dynamic>{'raw_translations': 'true'}
+            : null,
       );
 
       return _list(_body(response.data)[ApiKeys.data])
@@ -165,6 +183,41 @@ class UsersRepoImpl implements UsersRepo {
           .toList(growable: false);
     });
   }
+
+  @override
+  Future<Either<ServerFailure, RoleEntity>> createRole({
+    required CreateRoleParams params,
+  }) => _guard('createRole', () async {
+    final response = await apiService.client().post<dynamic>(
+      WebConstant.roles,
+      data: params.toJson(),
+    );
+    return RoleModel.fromJson(_data(response.data)).toEntity();
+  });
+
+  @override
+  Future<Either<ServerFailure, RoleEntity>> updateRole({
+    required String id,
+    required RoleTranslations translations,
+  }) => _guard('updateRole', () async {
+    final response = await apiService.client().patch<dynamic>(
+      WebConstant.role(id),
+      data: <String, dynamic>{'translations': translations.toJson()},
+    );
+    return RoleModel.fromJson(_data(response.data)).toEntity();
+  });
+
+  @override
+  Future<Either<ServerFailure, RoleEntity>> setRolePermissions({
+    required String id,
+    required List<String> permissions,
+  }) => _guard('setRolePermissions', () async {
+    final response = await apiService.client().put<dynamic>(
+      WebConstant.rolePermissions(id),
+      data: <String, dynamic>{'permissions': permissions},
+    );
+    return RoleModel.fromJson(_data(response.data)).toEntity();
+  });
 
   @override
   Future<Either<ServerFailure, List<PermissionGroupEntity>>>

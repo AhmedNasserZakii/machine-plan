@@ -5,7 +5,9 @@ import 'package:machinery/feature/users/domain/entities/branch_entity.dart';
 import 'package:machinery/feature/users/domain/entities/permission_catalogue_entity.dart';
 import 'package:machinery/feature/users/domain/entities/role_entity.dart';
 import 'package:machinery/feature/users/domain/entities/user_entity.dart';
+import 'package:machinery/feature/users/domain/entities/user_custody_entity.dart';
 import 'package:machinery/feature/users/domain/entities/user_permissions_entity.dart';
+import 'package:machinery/feature/users/domain/params/role_write_params.dart';
 import 'package:machinery/feature/users/domain/params/user_form_params.dart';
 import 'package:machinery/feature/users/domain/params/users_query_params.dart';
 
@@ -27,6 +29,10 @@ abstract class UsersRepo {
   });
 
   Future<Either<ServerFailure, UserEntity>> fetchUser({required String id});
+
+  Future<Either<ServerFailure, UserCustodyEntity>> fetchUserCustody({
+    required String id,
+  });
 
   Future<Either<ServerFailure, UserEntity>> createUser({
     required CreateUserParams params,
@@ -62,7 +68,23 @@ abstract class UsersRepo {
     required List<String> deny,
   });
 
-  Future<Either<ServerFailure, List<RoleEntity>>> fetchRoles();
+  Future<Either<ServerFailure, List<RoleEntity>>> fetchRoles({
+    bool rawTranslations = false,
+  });
+
+  Future<Either<ServerFailure, RoleEntity>> createRole({
+    required CreateRoleParams params,
+  });
+
+  Future<Either<ServerFailure, RoleEntity>> updateRole({
+    required String id,
+    required RoleTranslations translations,
+  });
+
+  Future<Either<ServerFailure, RoleEntity>> setRolePermissions({
+    required String id,
+    required List<String> permissions,
+  });
 
   Future<Either<ServerFailure, List<PermissionGroupEntity>>>
   fetchPermissionCatalogue();

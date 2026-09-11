@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/di/service_locator.dart';
 import 'package:machinery/core/permissions/permission_service.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
@@ -101,23 +103,21 @@ class _ReportFiltersSheetState extends State<ReportFiltersSheet> {
                 borderRadius: BorderRadius.circular(12),
               ),
               leading: const Icon(Icons.date_range),
-              title: const Text('Date range'),
-              subtitle: Text(
-                _from == null
-                    ? 'Backend default period'
-                    : '${_date(_from!)} – ${_date(_to!)}',
-              ),
+              title: Text(LocaleKeys.reportDateRange.tr()),
+              subtitle: Text(_periodLabel()),
               onTap: _dates,
             ),
             if (_branches.isNotEmpty) ...<Widget>[
               const SizedBox(height: AppSpacing.md),
               DropdownButtonFormField<String?>(
                 initialValue: _branch,
-                decoration: const InputDecoration(labelText: 'Branch'),
+                decoration: InputDecoration(
+                  labelText: LocaleKeys.reportBranch.tr(),
+                ),
                 items: <DropdownMenuItem<String?>>[
-                  const DropdownMenuItem(
+                  DropdownMenuItem(
                     value: null,
-                    child: Text('All branches'),
+                    child: Text(LocaleKeys.reportAllBranches.tr()),
                   ),
                   ..._branches.map(
                     (b) => DropdownMenuItem(value: b.id, child: Text(b.name)),
@@ -130,8 +130,8 @@ class _ReportFiltersSheetState extends State<ReportFiltersSheet> {
               const SizedBox(height: AppSpacing.md),
               DropdownButtonFormField<String>(
                 initialValue: _group,
-                decoration: const InputDecoration(
-                  labelText: 'Group custody by',
+                decoration: InputDecoration(
+                  labelText: LocaleKeys.reportGroupBy.tr(),
                 ),
                 items:
                     const <String>[
@@ -142,7 +142,12 @@ class _ReportFiltersSheetState extends State<ReportFiltersSheet> {
                           'status',
                           'model',
                         ]
-                        .map((v) => DropdownMenuItem(value: v, child: Text(v)))
+                        .map(
+                          (v) => DropdownMenuItem(
+                            value: v,
+                            child: Text(_groupLabel(v).tr()),
+                          ),
+                        )
                         .toList(),
                 onChanged: (v) => setState(() => _group = v),
               ),
@@ -155,8 +160,8 @@ class _ReportFiltersSheetState extends State<ReportFiltersSheet> {
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   labelText: widget.report.key == 'machine-idle'
-                      ? 'Days without movement'
-                      : 'Expires within days',
+                      ? LocaleKeys.reportDaysWithoutMovement.tr()
+                      : LocaleKeys.reportExpiresWithinDays.tr(),
                 ),
               ),
             ],
@@ -164,11 +169,16 @@ class _ReportFiltersSheetState extends State<ReportFiltersSheet> {
               const SizedBox(height: AppSpacing.md),
               DropdownButtonFormField<String>(
                 initialValue: _granularity,
-                decoration: const InputDecoration(
-                  labelText: 'Period granularity',
+                decoration: InputDecoration(
+                  labelText: LocaleKeys.reportGranularity.tr(),
                 ),
                 items: const <String>['DAY', 'WEEK', 'MONTH', 'YEAR']
-                    .map((v) => DropdownMenuItem(value: v, child: Text(v)))
+                    .map(
+                      (v) => DropdownMenuItem(
+                        value: v,
+                        child: Text(_granularityLabel(v).tr()),
+                      ),
+                    )
                     .toList(),
                 onChanged: (v) => setState(() => _granularity = v),
               ),
@@ -178,9 +188,9 @@ class _ReportFiltersSheetState extends State<ReportFiltersSheet> {
               TextField(
                 controller: _machine,
                 onChanged: (_) => setState(() {}),
-                decoration: const InputDecoration(
-                  labelText: 'Machine ID',
-                  helperText: 'Required for lifecycle report',
+                decoration: InputDecoration(
+                  labelText: LocaleKeys.reportMachineId.tr(),
+                  helperText: LocaleKeys.reportMachineIdRequired.tr(),
                 ),
               ),
             ],
@@ -191,7 +201,7 @@ class _ReportFiltersSheetState extends State<ReportFiltersSheet> {
                   child: OutlinedButton(
                     onPressed: () =>
                         Navigator.pop(context, const ReportFilters()),
-                    child: const Text('Clear'),
+                    child: Text(LocaleKeys.reportClearFilters.tr()),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
@@ -221,7 +231,7 @@ class _ReportFiltersSheetState extends State<ReportFiltersSheet> {
                               sortDir: widget.current.sortDir,
                             ),
                           ),
-                    child: const Text('Run report'),
+                    child: Text(LocaleKeys.reportRun.tr()),
                   ),
                 ),
               ],
@@ -233,5 +243,30 @@ class _ReportFiltersSheetState extends State<ReportFiltersSheet> {
   );
 }
 
+extension on _ReportFiltersSheetState {
+  String _periodLabel() {
+    if (_from == null && _to == null) {
+      return LocaleKeys.reportBackendDefaultPeriod.tr();
+    }
+    return '${_from == null ? '…' : _date(_from!)} – ${_to == null ? '…' : _date(_to!)}';
+  }
+}
+
 String _date(DateTime value) =>
     '${value.year}-${value.month.toString().padLeft(2, '0')}-${value.day.toString().padLeft(2, '0')}';
+
+String _groupLabel(String value) => switch (value) {
+  'representative' => LocaleKeys.reportGroupRepresentative,
+  'supervisor' => LocaleKeys.reportGroupSupervisor,
+  'branch' => LocaleKeys.reportGroupBranch,
+  'merchant' => LocaleKeys.reportGroupMerchant,
+  'status' => LocaleKeys.reportGroupStatus,
+  _ => LocaleKeys.reportGroupModel,
+};
+
+String _granularityLabel(String value) => switch (value) {
+  'DAY' => LocaleKeys.reportPeriodDay,
+  'WEEK' => LocaleKeys.reportPeriodWeek,
+  'MONTH' => LocaleKeys.reportPeriodMonth,
+  _ => LocaleKeys.reportPeriodYear,
+};

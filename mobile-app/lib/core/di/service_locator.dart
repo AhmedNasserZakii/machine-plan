@@ -74,9 +74,11 @@ import 'package:machinery/feature/transfers/domain/repos/transfers_repo_impl.dar
 import 'package:machinery/feature/more/data/logic/logout/logout_cubit.dart';
 import 'package:machinery/feature/scanning/data/logic/scanner/scanner_cubit.dart';
 import 'package:machinery/feature/users/data/logic/user_actions/user_actions_cubit.dart';
+import 'package:machinery/feature/users/data/logic/user_detail/user_detail_cubit.dart';
 import 'package:machinery/feature/users/data/logic/user_form/user_form_cubit.dart';
 import 'package:machinery/feature/users/data/logic/user_permissions/user_permissions_cubit.dart';
 import 'package:machinery/feature/users/data/logic/users_list/users_list_cubit.dart';
+import 'package:machinery/feature/users/data/logic/roles/roles_cubit.dart';
 import 'package:machinery/feature/users/domain/entities/user_entity.dart';
 import 'package:machinery/feature/users/domain/repos/users_repo.dart';
 import 'package:machinery/feature/users/domain/repos/users_repo_impl.dart';
@@ -257,6 +259,19 @@ void setupServiceLocator(AppDatabase appDatabase) {
   getIt.registerFactory<UsersListCubit>(
     () => UsersListCubit(usersRepo: getIt()),
   );
+
+  getIt.registerFactoryParam<UserDetailCubit, String, UserEntity?>(
+    (String userId, UserEntity? initial) => UserDetailCubit(
+      userId: userId,
+      initial: initial,
+      usersRepo: getIt(),
+      violationsRepo: getIt(),
+      transfersRepo: getIt(),
+      permissions: getIt(),
+    ),
+  );
+
+  getIt.registerFactory<RolesCubit>(() => RolesCubit(repo: getIt()));
 
   // The form, the permission editor and the row actions are all scoped to one
   // account, which arrives as a route parameter rather than through the

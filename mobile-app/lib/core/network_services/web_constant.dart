@@ -198,6 +198,7 @@ abstract class WebConstant {
   static String userDeactivate(String id) => '$users/$id/deactivate';
   static String userResetPassword(String id) => '$users/$id/reset-password';
   static String rolePermissions(String id) => '$roles/$id/permissions';
+  static String role(String id) => '$roles/$id';
   static String userCustody(String id) => '$users/$id/custody';
   static String userViolationsSummary(String id) =>
       '$users/$id/violations/summary';

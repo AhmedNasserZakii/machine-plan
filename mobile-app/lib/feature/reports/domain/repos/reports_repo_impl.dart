@@ -38,9 +38,9 @@ class ReportsRepoImpl implements ReportsRepo {
         final response = await apiService.client().get<dynamic>(
           WebConstant.reports,
         );
-    return allowedReports(
-      _list(_rawData(response.data)).map(reportDefinitionFromJson),
-    );
+        return allowedReports(
+          _list(_rawData(response.data)).map(reportDefinitionFromJson),
+        );
       });
 
   @override
@@ -232,7 +232,7 @@ class ReportsRepoImpl implements ReportsRepo {
   ) async {
     try {
       if (!await networkInfo.isConnected) {
-        return Left(OfflineFailure('Reports require an internet connection'));
+        return Left(OfflineFailure(LocaleKeys.reportsOffline.tr()));
       }
       return Right(await run());
     } on DioException catch (error, stackTrace) {

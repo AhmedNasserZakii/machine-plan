@@ -1,7 +1,9 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart' hide TextDirection;
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
+import 'package:machinery/core/constants/locale_keys.dart';
+import 'package:machinery/core/helper/formatters.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/core/theme/styles/app_text_styles.dart';
@@ -10,20 +12,19 @@ import 'package:machinery/feature/reports/domain/entities/report_entities.dart';
 String reportCellText(
   BuildContext context,
   Object? value,
-  ReportCellType type,
-) {
+  ReportCellType type, {
+  String? columnKey,
+}) {
   if (value == null) return '—';
   if (type == ReportCellType.number && value is num) {
-    return NumberFormat.decimalPattern(
-      Localizations.localeOf(context).languageCode,
-    ).format(value);
+    return _isMoneyColumn(columnKey)
+        ? Formatters.currency(value)
+        : Formatters.number(value);
   }
   if (type == ReportCellType.date) {
     final parsed = DateTime.tryParse(value.toString());
     if (parsed != null) {
-      return DateFormat.yMMMd(
-        Localizations.localeOf(context).languageCode,
-      ).format(parsed);
+      return Formatters.date(parsed);
     }
   }
   if (value is Map) {
@@ -71,6 +72,7 @@ class ReportKpiRow extends StatelessWidget {
                   entry.value is num
                       ? ReportCellType.number
                       : ReportCellType.text,
+                  columnKey: entry.key,
                 ),
                 maxLines: 1,
                 style: Styles.s17(context),
@@ -127,6 +129,7 @@ class ReportCardView extends StatelessWidget {
                                 context,
                                 row[column.key],
                                 column.type,
+                                columnKey: column.key,
                               ),
                               textAlign: TextAlign.end,
                               style: Styles.s14(context),
@@ -158,10 +161,12 @@ class ReportTableView extends StatelessWidget {
   Widget build(BuildContext context) {
     if (result.columns.isEmpty) return const SizedBox.shrink();
     final first = result.columns.first;
-    final rest = result.columns
-        .skip(1)
-        .where((c) => visibleKeys.isEmpty || visibleKeys.contains(c.key))
-        .toList();
+    final candidates = result.columns.skip(1);
+    final rest =
+        (visibleKeys.isEmpty
+                ? candidates.take(4)
+                : candidates.where((c) => visibleKeys.contains(c.key)))
+            .toList();
     return Column(
       children: <Widget>[
         Container(
@@ -191,7 +196,12 @@ class ReportTableView extends StatelessWidget {
               return Row(
                 children: <Widget>[
                   _cell(
-                    reportCellText(context, row[first.key], first.type),
+                    reportCellText(
+                      context,
+                      row[first.key],
+                      first.type,
+                      columnKey: first.key,
+                    ),
                     145,
                     true,
                   ),
@@ -202,7 +212,12 @@ class ReportTableView extends StatelessWidget {
                         children: rest
                             .map(
                               (c) => _cell(
-                                reportCellText(context, row[c.key], c.type),
+                                reportCellText(
+                                  context,
+                                  row[c.key],
+                                  c.type,
+                                  columnKey: c.key,
+                                ),
                                 130,
                                 false,
                               ),
@@ -263,7 +278,11 @@ class ReportGroupedView extends StatelessWidget {
             (entry) => Card(
               child: ExpansionTile(
                 title: Text(entry.key),
-                subtitle: Text('${entry.value.length} rows'),
+                subtitle: Text(
+                  LocaleKeys.reportRowsInGroup.tr(
+                    args: <String>[entry.value.length.toString()],
+                  ),
+                ),
                 children: entry.value
                     .map(
                       (row) => ListTile(
@@ -272,6 +291,7 @@ class ReportGroupedView extends StatelessWidget {
                             context,
                             row[detailColumn.key],
                             detailColumn.type,
+                            columnKey: detailColumn.key,
                           ),
                         ),
                         subtitle: Text(
@@ -280,7 +300,7 @@ class ReportGroupedView extends StatelessWidget {
                               .take(3)
                               .map(
                                 (c) =>
-                                    '${c.header}: ${reportCellText(context, row[c.key], c.type)}',
+                                    '${c.header}: ${reportCellText(context, row[c.key], c.type, columnKey: c.key)}',
                               )
                               .join(' · '),
                         ),
@@ -305,9 +325,7 @@ class ReportChartView extends StatelessWidget {
         .take(3)
         .toList();
     if (numeric.isEmpty || result.rows.isEmpty) {
-      return const Center(
-        child: Text('This report has no numeric series to chart.'),
-      );
+      return Center(child: Text(LocaleKeys.reportNoChartData.tr()));
     }
     final values = result.rows
         .take(20)
@@ -395,3 +413,28 @@ class _Bars extends CustomPainter {
 String _human(String value) => value
     .replaceAllMapped(RegExp(r'([a-z])([A-Z])'), (m) => '${m[1]} ${m[2]}')
     .replaceAll('_', ' ');
+
+bool _isMoneyColumn(String? key) {
+  if (key == null) return false;
+  final normalized = key.toLowerCase();
+  const exact = <String>{
+    'income',
+    'expense',
+    'net',
+    'amount',
+    'spent',
+    'remaining',
+    'projectedtotal',
+    'directtotal',
+    'rolledtotal',
+    'amountdue',
+    'totalcollected',
+    'chargedamount',
+    'violationcharges',
+    'maintenancecost',
+    'purchaseprice',
+    'repaircost',
+    'cost',
+  };
+  return exact.contains(normalized);
+}
