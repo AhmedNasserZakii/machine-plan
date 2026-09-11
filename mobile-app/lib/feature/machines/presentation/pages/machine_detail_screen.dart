@@ -92,8 +92,21 @@ class _MachineDetailScreenState extends State<MachineDetailScreen> {
     }
   }
 
-  /// Both land on the same placeholder until `11` builds the real screens
-  /// (`8.1`) — see `MachineActionsSection`'s doc comment.
+  Future<void> _replace(MachineEntity machine) async {
+    final bool? replaced = await AppRoute.goToMachineReplacement(
+      context: context,
+      machine: machine,
+    );
+
+    if (!(replaced ?? false) || !mounted) return;
+
+    _didChange = true;
+    // Reload also fetches the now-existing chain, so both links appear without
+    // making the user leave and reopen the old detail screen.
+    await context.read<MachineDetailCubit>().load();
+  }
+
+  /// Decommission remains a placeholder until `11.4` builds its workflow.
   void _openNotReady({required String titleKey, required IconData icon}) {
     AppRoute.goToFeatureNotReadyScreen(
       context: context,
@@ -193,10 +206,7 @@ class _MachineDetailScreenState extends State<MachineDetailScreen> {
             onViewMaintenanceHistory: () => _viewMaintenanceHistory(machine),
             onCreateTransfer: _createTransfer,
             onSendForMaintenance: () => _sendForMaintenance(machine),
-            onReplace: () => _openNotReady(
-              titleKey: LocaleKeys.machineReplaceAction,
-              icon: Icons.change_circle_outlined,
-            ),
+            onReplace: () => _replace(machine),
             onDecommission: () => _openNotReady(
               titleKey: LocaleKeys.machineDecommissionAction,
               icon: Icons.delete_forever_rounded,

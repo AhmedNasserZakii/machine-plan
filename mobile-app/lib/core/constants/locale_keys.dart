@@ -576,9 +576,11 @@ class LocaleKeys {
   static const String signatureMethodBiometric = 'signature_method_biometric';
   static const String signatureMethodDrawn = 'signature_method_drawn';
   static const String signatureBiometricConfirm = 'signature_biometric_confirm';
-  static const String signatureBiometricVerified = 'signature_biometric_verified';
+  static const String signatureBiometricVerified =
+      'signature_biometric_verified';
   static const String signatureBiometricFailed = 'signature_biometric_failed';
-  static const String signatureBiometricRequired = 'signature_biometric_required';
+  static const String signatureBiometricRequired =
+      'signature_biometric_required';
   static const String signatureBiometricReasonReceive =
       'signature_biometric_reason_receive';
   static const String signatureBiometricReasonSend =
@@ -604,8 +606,7 @@ class LocaleKeys {
   static const String transferScanToAdd = 'transfer_scan_to_add';
   static const String transferPickFromList = 'transfer_pick_from_list';
   static const String transferPickerTitle = 'transfer_picker_title';
-  static const String transferPickerSearchHint =
-      'transfer_picker_search_hint';
+  static const String transferPickerSearchHint = 'transfer_picker_search_hint';
   static const String transferPickerEmpty = 'transfer_picker_empty';
   static const String transferPickerAddSelected =
       'transfer_picker_add_selected';
@@ -620,12 +621,16 @@ class LocaleKeys {
   static const String transferItemNotes = 'transfer_item_notes';
   static const String transferItemPhotos = 'transfer_item_photos';
   static const String transferAddPhoto = 'transfer_add_photo';
-  static const String transferPhotoSourceCamera = 'transfer_photo_source_camera';
-  static const String transferPhotoSourceGallery = 'transfer_photo_source_gallery';
-  static const String transferPhotoUploadFailed = 'transfer_photo_upload_failed';
+  static const String transferPhotoSourceCamera =
+      'transfer_photo_source_camera';
+  static const String transferPhotoSourceGallery =
+      'transfer_photo_source_gallery';
+  static const String transferPhotoUploadFailed =
+      'transfer_photo_upload_failed';
   static const String transferApplyToAll = 'transfer_apply_to_all';
   static const String transferApplyToAllApply = 'transfer_apply_to_all_apply';
-  static const String transferApplyToAllApplied = 'transfer_apply_to_all_applied';
+  static const String transferApplyToAllApplied =
+      'transfer_apply_to_all_applied';
   static const String transferReviewTitle = 'transfer_review_title';
   static const String transferSigner = 'transfer_signer';
   static const String transferPayloadFingerprint =
@@ -841,17 +846,14 @@ class LocaleKeys {
   static const String maintenanceStatusOpen = 'maintenance_status_open';
   static const String maintenanceStatusInProgress =
       'maintenance_status_in_progress';
-  static const String maintenanceStatusReturned =
-      'maintenance_status_returned';
+  static const String maintenanceStatusReturned = 'maintenance_status_returned';
   static const String maintenanceStatusClosed = 'maintenance_status_closed';
   static const String maintenanceStatusCancelled =
       'maintenance_status_cancelled';
   static const String maintenanceStatusUnknown = 'maintenance_status_unknown';
 
-  static const String maintenanceResultRepaired =
-      'maintenance_result_repaired';
-  static const String maintenanceResultReplaced =
-      'maintenance_result_replaced';
+  static const String maintenanceResultRepaired = 'maintenance_result_repaired';
+  static const String maintenanceResultReplaced = 'maintenance_result_replaced';
   static const String maintenanceResultUnrepairable =
       'maintenance_result_unrepairable';
   static const String maintenanceResultUnknown = 'maintenance_result_unknown';
@@ -869,15 +871,13 @@ class LocaleKeys {
 
   static const String maintenanceListTitle = 'maintenance_list_title';
   static const String maintenanceEmptyTitle = 'maintenance_empty_title';
-  static const String maintenanceEmptySubtitle =
-      'maintenance_empty_subtitle';
+  static const String maintenanceEmptySubtitle = 'maintenance_empty_subtitle';
   static const String maintenanceNoSearchResults =
       'maintenance_no_search_results';
   static const String maintenanceFilterTitle = 'maintenance_filter_title';
 
   static const String maintenanceDetailTitle = 'maintenance_detail_title';
-  static const String maintenanceReportedFault =
-      'maintenance_reported_fault';
+  static const String maintenanceReportedFault = 'maintenance_reported_fault';
   static const String maintenanceLocation = 'maintenance_location';
   static const String maintenanceSentAt = 'maintenance_sent_at';
   static const String maintenanceReturnedAt = 'maintenance_returned_at';
@@ -894,21 +894,16 @@ class LocaleKeys {
   static const String maintenanceClosedAt = 'maintenance_closed_at';
 
   static const String maintenanceCreateTitle = 'maintenance_create_title';
-  static const String maintenanceSelectMachine =
-      'maintenance_select_machine';
-  static const String maintenanceSelectLocation =
-      'maintenance_select_location';
+  static const String maintenanceSelectMachine = 'maintenance_select_machine';
+  static const String maintenanceSelectLocation = 'maintenance_select_location';
   static const String maintenanceReportedFaultHint =
       'maintenance_reported_fault_hint';
   static const String maintenanceCreateSubmit = 'maintenance_create_submit';
-  static const String maintenanceCreatedSuccess =
-      'maintenance_created_success';
+  static const String maintenanceCreatedSuccess = 'maintenance_created_success';
 
   static const String maintenanceActionSend = 'maintenance_action_send';
-  static const String maintenanceActionReceive =
-      'maintenance_action_receive';
-  static const String maintenanceActionCancel =
-      'maintenance_action_cancel';
+  static const String maintenanceActionReceive = 'maintenance_action_receive';
+  static const String maintenanceActionCancel = 'maintenance_action_cancel';
   static const String maintenanceActionClose = 'maintenance_action_close';
   static const String maintenanceActionEdit = 'maintenance_action_edit';
 
@@ -924,10 +919,8 @@ class LocaleKeys {
       'maintenance_received_success';
   static const String maintenanceCancelledSuccess =
       'maintenance_cancelled_success';
-  static const String maintenanceClosedSuccess =
-      'maintenance_closed_success';
-  static const String maintenanceUpdatedSuccess =
-      'maintenance_updated_success';
+  static const String maintenanceClosedSuccess = 'maintenance_closed_success';
+  static const String maintenanceUpdatedSuccess = 'maintenance_updated_success';
 
   static const String maintenanceCloseTitle = 'maintenance_close_title';
   static const String maintenanceCloseResult = 'maintenance_close_result';
@@ -946,8 +939,7 @@ class LocaleKeys {
       'maintenance_close_responsible_merchant';
   static const String maintenanceClosePaymentMethod =
       'maintenance_close_payment_method';
-  static const String maintenanceCloseSupplier =
-      'maintenance_close_supplier';
+  static const String maintenanceCloseSupplier = 'maintenance_close_supplier';
   static const String maintenanceCloseInvoice = 'maintenance_close_invoice';
   static const String maintenanceCloseReturnedAt =
       'maintenance_close_returned_at';
@@ -977,6 +969,21 @@ class LocaleKeys {
   static const String replacementReplacedAt = 'replacement_replaced_at';
   static const String replacementSubmit = 'replacement_submit';
   static const String replacementSuccess = 'replacement_success';
+  static const String replacementChainPreviewTitle =
+      'replacement_chain_preview_title';
+  static const String replacementOldMachine = 'replacement_old_machine';
+  static const String replacementNewMachine = 'replacement_new_machine';
+  static const String replacementOldMachineDetail =
+      'replacement_old_machine_detail';
+  static const String replacementNewMachineDetail =
+      'replacement_new_machine_detail';
+  static const String replacementCustodyNote = 'replacement_custody_note';
+  static const String replacementWarrantyTitle = 'replacement_warranty_title';
+  static const String replacementScan = 'replacement_scan';
+  static const String replacementMinimumLength = 'replacement_minimum_length';
+  static const String replacementSerialMustDiffer =
+      'replacement_serial_must_differ';
+  static const String replacementWarrantyOrder = 'replacement_warranty_order';
 
   // ── Decommission (`11.4`/`11.5`) ─────────────────────────────────────────
   static const String machineDecommissionTitle = 'machine_decommission_title';
@@ -985,22 +992,17 @@ class LocaleKeys {
   static const String decommissionAt = 'decommission_at';
   static const String decommissionSubmit = 'decommission_submit';
   static const String decommissionSuccess = 'decommission_success';
-  static const String decommissionSnapshotTitle =
-      'decommission_snapshot_title';
+  static const String decommissionSnapshotTitle = 'decommission_snapshot_title';
   static const String decommissionRepairCount = 'decommission_repair_count';
   static const String decommissionCumulativeCost =
       'decommission_cumulative_cost';
   static const String decommissionCostRatio = 'decommission_cost_ratio';
 
   static const String decommissionRevertTitle = 'decommission_revert_title';
-  static const String decommissionRevertReason =
-      'decommission_revert_reason';
-  static const String decommissionRevertSubmit =
-      'decommission_revert_submit';
-  static const String decommissionRevertSuccess =
-      'decommission_revert_success';
-  static const String decommissionRevertedBadge =
-      'decommission_reverted_badge';
+  static const String decommissionRevertReason = 'decommission_revert_reason';
+  static const String decommissionRevertSubmit = 'decommission_revert_submit';
+  static const String decommissionRevertSuccess = 'decommission_revert_success';
+  static const String decommissionRevertedBadge = 'decommission_reverted_badge';
 
   static const String decommissionsListTitle = 'decommissions_list_title';
   static const String decommissionsEmpty = 'decommissions_empty';

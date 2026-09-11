@@ -51,6 +51,7 @@ import 'package:machinery/feature/machines/domain/repos/machines_repo_impl.dart'
 import 'package:machinery/feature/maintenance/data/logic/maintenance_create/maintenance_create_cubit.dart';
 import 'package:machinery/feature/maintenance/data/logic/maintenance_detail/maintenance_detail_cubit.dart';
 import 'package:machinery/feature/maintenance/data/logic/maintenance_list/maintenance_list_cubit.dart';
+import 'package:machinery/feature/maintenance/data/logic/machine_replacement/machine_replacement_cubit.dart';
 import 'package:machinery/feature/maintenance/domain/entities/maintenance_entity.dart';
 import 'package:machinery/feature/maintenance/domain/repos/maintenance_repo.dart';
 import 'package:machinery/feature/maintenance/domain/repos/maintenance_repo_impl.dart';
@@ -414,22 +415,28 @@ void setupServiceLocator(AppDatabase appDatabase) {
     () => MaintenanceListCubit(maintenanceRepo: getIt()),
   );
 
-  getIt
-      .registerFactoryParam<
-        MaintenanceDetailCubit,
-        String,
-        MaintenanceOrderEntity?
-      >(
-        (String orderId, MaintenanceOrderEntity? initial) =>
-            MaintenanceDetailCubit(
-              maintenanceRepo: getIt(),
-              orderId: orderId,
-              initial: initial,
-            ),
-      );
+  getIt.registerFactoryParam<
+    MaintenanceDetailCubit,
+    String,
+    MaintenanceOrderEntity?
+  >(
+    (String orderId, MaintenanceOrderEntity? initial) => MaintenanceDetailCubit(
+      maintenanceRepo: getIt(),
+      orderId: orderId,
+      initial: initial,
+    ),
+  );
 
   getIt.registerFactory<MaintenanceCreateCubit>(
     () => MaintenanceCreateCubit(maintenanceRepo: getIt()),
+  );
+
+  getIt.registerFactoryParam<MachineReplacementCubit, MachineEntity, void>(
+    (MachineEntity machine, _) => MachineReplacementCubit(
+      maintenanceRepo: getIt(),
+      machinesRepo: getIt(),
+      machine: machine,
+    ),
   );
 
   // ── Home dashboard ───────────────────────────────────────────────────────

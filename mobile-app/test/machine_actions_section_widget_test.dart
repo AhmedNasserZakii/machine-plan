@@ -73,6 +73,7 @@ void main() {
         P.maintenanceRead,
         P.maintenanceCreate,
         P.transfersCreate,
+        P.machinesCreate,
         P.maintenanceClose,
         P.machinesDecommission,
       ]);
@@ -103,7 +104,10 @@ void main() {
         find.widgetWithIcon(ListTile, Icons.swap_horiz_rounded),
         findsOneWidget,
       );
-      expect(find.widgetWithIcon(ListTile, Icons.build_outlined), findsOneWidget);
+      expect(
+        find.widgetWithIcon(ListTile, Icons.build_outlined),
+        findsOneWidget,
+      );
       expect(
         find.widgetWithIcon(ListTile, Icons.change_circle_outlined),
         findsOneWidget,
@@ -231,38 +235,40 @@ void main() {
     expect(taps, 1);
   });
 
-  testWidgets(
-    'tapping the send-for-maintenance action calls its callback',
-    (tester) async {
-      await _withPermissions(<String>[P.maintenanceCreate]);
-      int taps = 0;
+  testWidgets('tapping the send-for-maintenance action calls its callback', (
+    tester,
+  ) async {
+    await _withPermissions(<String>[P.maintenanceCreate]);
+    int taps = 0;
 
-      await tester.pumpWidget(
-        _wrap(
-          MachineActionsSection(
-            machine: _warehouseMachine,
-            onViewTimeline: () {},
-            onViewMaintenanceHistory: () {},
-            onCreateTransfer: () {},
-            onSendForMaintenance: () => taps++,
-            onReplace: () {},
-            onDecommission: () {},
-          ),
+    await tester.pumpWidget(
+      _wrap(
+        MachineActionsSection(
+          machine: _warehouseMachine,
+          onViewTimeline: () {},
+          onViewMaintenanceHistory: () {},
+          onCreateTransfer: () {},
+          onSendForMaintenance: () => taps++,
+          onReplace: () {},
+          onDecommission: () {},
         ),
-      );
+      ),
+    );
 
-      await tester.tap(find.widgetWithIcon(ListTile, Icons.build_outlined));
-      await tester.pump();
+    await tester.tap(find.widgetWithIcon(ListTile, Icons.build_outlined));
+    await tester.pump();
 
-      expect(taps, 1);
-    },
-  );
+    expect(taps, 1);
+  });
 
   testWidgets(
-    'a machine outside the company warehouse hides send-for-maintenance '
-    'even with the permission',
+    'a machine outside the warehouse or factory hides maintenance and replacement',
     (tester) async {
-      await _withPermissions(<String>[P.maintenanceCreate]);
+      await _withPermissions(<String>[
+        P.maintenanceCreate,
+        P.machinesCreate,
+        P.maintenanceClose,
+      ]);
 
       await tester.pumpWidget(
         _wrap(
@@ -279,6 +285,10 @@ void main() {
       );
 
       expect(find.widgetWithIcon(ListTile, Icons.build_outlined), findsNothing);
+      expect(
+        find.widgetWithIcon(ListTile, Icons.change_circle_outlined),
+        findsNothing,
+      );
     },
   );
 }

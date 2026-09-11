@@ -11,10 +11,8 @@ import 'package:machinery/feature/machines/domain/entities/machine_entity.dart';
 
 /// Where the detail screen's actions live (`8.1`): the timeline and
 /// maintenance history are real, permission-gated reads; transfer opens the
-/// real create flow; replace and decommission are full write workflows that
-/// belong to `11` and land here as "not ready yet" until that section is
-/// built, so a director sees the entry point today without the app claiming a
-/// feature that does not exist.
+/// real create flow; replacement is the `11.3` workflow, while decommission
+/// remains hidden behind its own permission until `11.4` supplies the page.
 class MachineActionsSection extends StatelessWidget {
   const MachineActionsSection({
     required this.machine,
@@ -81,15 +79,24 @@ class MachineActionsSection extends StatelessWidget {
                 onTap: onSendForMaintenance,
               ),
             ),
-          PermissionGate(
-            permission: P.maintenanceClose,
-            child: _ActionTile(
-              identifier: 'machine_action_replace',
-              icon: Icons.change_circle_outlined,
-              label: LocaleKeys.machineReplaceAction.tr(),
-              onTap: onReplace,
+          // A factory swap can only be recorded while the old unit is at the
+          // factory (normal path) or back in the company warehouse. The
+          // endpoint also requires both permissions: it creates the new record
+          // and closes the lifecycle of the old one.
+          if (machine.status == MachineStatus.atFactory ||
+              machine.status == MachineStatus.inCompanyWarehouse)
+            PermissionGate(
+              permission: P.machinesCreate,
+              child: PermissionGate(
+                permission: P.maintenanceClose,
+                child: _ActionTile(
+                  identifier: 'machine_action_replace',
+                  icon: Icons.change_circle_outlined,
+                  label: LocaleKeys.machineReplaceAction.tr(),
+                  onTap: onReplace,
+                ),
+              ),
             ),
-          ),
           PermissionGate(
             permission: P.machinesDecommission,
             child: _ActionTile(
@@ -138,10 +145,7 @@ class _ActionTile extends StatelessWidget {
         child: ListTile(
           contentPadding: EdgeInsets.zero,
           leading: Icon(icon, size: 20, color: color),
-          title: Text(
-            label,
-            style: Styles.s14(context).copyWith(color: color),
-          ),
+          title: Text(label, style: Styles.s14(context).copyWith(color: color)),
           trailing: const Icon(Icons.chevron_right_rounded, size: 20),
           onTap: onTap,
         ),

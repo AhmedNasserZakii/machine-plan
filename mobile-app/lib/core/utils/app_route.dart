@@ -22,6 +22,7 @@ import 'package:machinery/feature/machines/presentation/pages/machine_timeline_s
 import 'package:machinery/feature/maintenance/data/logic/maintenance_create/maintenance_create_cubit.dart';
 import 'package:machinery/feature/maintenance/data/logic/maintenance_detail/maintenance_detail_cubit.dart';
 import 'package:machinery/feature/maintenance/data/logic/maintenance_list/maintenance_list_cubit.dart';
+import 'package:machinery/feature/maintenance/data/logic/machine_replacement/machine_replacement_cubit.dart';
 import 'package:machinery/feature/maintenance/domain/entities/maintenance_entity.dart';
 import 'package:machinery/feature/maintenance/domain/params/maintenance_params.dart';
 import 'package:machinery/feature/maintenance/presentation/pages/maintenance_close_screen.dart';
@@ -29,6 +30,7 @@ import 'package:machinery/feature/maintenance/presentation/pages/maintenance_cre
 import 'package:machinery/feature/maintenance/presentation/pages/maintenance_detail_screen.dart';
 import 'package:machinery/feature/maintenance/presentation/pages/maintenance_handover_screen.dart';
 import 'package:machinery/feature/maintenance/presentation/pages/maintenance_list_screen.dart';
+import 'package:machinery/feature/maintenance/presentation/pages/machine_replacement_screen.dart';
 import 'package:machinery/feature/merchants/data/logic/merchant_detail/merchant_detail_cubit.dart';
 import 'package:machinery/feature/merchants/data/logic/merchant_form/merchant_form_cubit.dart';
 import 'package:machinery/feature/merchants/domain/entities/merchant_entity.dart';
@@ -563,6 +565,22 @@ abstract class AppRoute {
         builder: (_) => BlocProvider<MaintenanceDetailCubit>.value(
           value: cubit,
           child: MaintenanceCloseScreen(order: order),
+        ),
+      ),
+    );
+  }
+
+  /// Records a factory swap and returns both freshly-read sides of the chain.
+  static Future<bool?> goToMachineReplacement({
+    required BuildContext context,
+    required MachineEntity machine,
+  }) {
+    return Navigator.push<bool>(
+      context,
+      MaterialPageRoute<bool>(
+        builder: (_) => BlocProvider<MachineReplacementCubit>(
+          create: (_) => getIt<MachineReplacementCubit>(param1: machine),
+          child: MachineReplacementScreen(machine: machine),
         ),
       ),
     );

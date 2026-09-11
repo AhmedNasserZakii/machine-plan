@@ -2529,10 +2529,29 @@ broken stray files and stood down from `11.1`'s directory for the rest of this p
 
 ### 11.3 Replacement flow
 
-- [ ] Build the replacement form with scanned/manual new serials and warranty information.
-- [ ] Show a chain preview and explain new-machine custody.
-- [ ] Validate immutable/duplicate serials and required replacement fields.
-- [ ] Refresh both old and new machine records after completion.
+- [x] Build the replacement form with scanned/manual new serials and warranty information.
+- [x] Show a chain preview and explain new-machine custody.
+- [x] Validate immutable/duplicate serials and required replacement fields.
+- [x] Refresh both old and new machine records after completion.
+
+Implemented as a route-scoped `MachineReplacementCubit` opened by the real Replace action on machine
+detail. The form uses the existing raw-barcode scanner for each identity field, hides SIM for machine
+types that do not require one, validates required/minimum/different-from-old serials and warranty
+ordering locally, then maps the backend's four duplicate-serial conflict codes back under the exact
+field without clearing the form. `ReplacementChainPreview` updates while the new machine serial is
+typed and states explicitly that the old unit closes at the factory while the new unit starts in the
+company warehouse and needs a normal transfer back to a branch.
+
+The action is offered only for the backend's replaceable statuses (`AT_FACTORY` and
+`IN_COMPANY_WAREHOUSE`). The endpoint requires both `machines.create` and `maintenance.close`, so the
+detail action now uses nested permission gates matching the backend rather than its previous
+close-only gate. After a successful write, the cubit fetches both returned machine ids before
+completing; the old detail then reloads so its retired state and newly-created chain render
+immediately. A failed post-write refresh closes the form as committed (never enabling a dangerous
+second submission) and makes the caller retry the detail read.
+
+**Mobile verified** with `flutter analyze` (0 issues), focused replacement/action tests (11/11), and
+the full `flutter test` suite (**197/197 passing**, including 5 new replacement-rule cases).
 
 ### 11.4 Decommission flow
 
