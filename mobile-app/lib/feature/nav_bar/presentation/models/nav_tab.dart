@@ -7,6 +7,7 @@ class NavTab {
     required this.icon,
     required this.activeIcon,
     required this.pageBuilder,
+    required this.identifier,
     this.permission,
   });
 
@@ -15,4 +16,10 @@ class NavTab {
   final IconData activeIcon;
   final Widget Function() pageBuilder;
   final String? permission;
+
+  /// Stable automation id. The label text alone is not reliably unique on
+  /// screen — e.g. "المالية" also appears as a Home dashboard card title for
+  /// anyone with finance.read, independent of whether the tab itself made
+  /// the bottom bar's five-slot cap.
+  final String identifier;
 }

@@ -30,7 +30,11 @@ tags:
     id: "more_sync_queue_tile"
 
 # Account actions sit at the foot of the list. A Director unlocks every section
-# above them, which on a phone puts them past the fold.
+# above them, which on a phone puts them past the fold, so scroll to reach it.
+- scrollUntilVisible:
+    element:
+      id: "more_change_password_tile"
+    direction: DOWN
 - assertVisible:
     id: "more_change_password_tile"
 - scrollUntilVisible:
@@ -45,7 +49,7 @@ tags:
     direction: UP
 - tapOn:
     id: "more_reports_tile"
-- assertVisible: "الشاشة دي لسه بتتبني"
+- assertVisible: "التقارير"
 - back
 - scrollUntilVisible:
     element:

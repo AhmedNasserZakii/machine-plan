@@ -53,7 +53,13 @@ Future<void> main() async {
       startLocale: getIt<LocaleService>().resolveStartLocale(),
       saveLocale: true,
       child: DevicePreview(
-        enabled: kDebugMode,
+        // DevicePreview renders the app through its own preview frame, which
+        // drops most of the Flutter semantics tree from the native
+        // accessibility bridge (confirmed empty except a lone AppBar title
+        // node) — harmless for manual dev use, but it makes any UI
+        // automation tool (Maestro) relying on that tree unable to find
+        // most elements once a screen deeper than the first tab renders.
+        enabled: kDebugMode && !const bool.fromEnvironment('DISABLE_DEVICE_PREVIEW'),
         builder: (context) => const MyApp(),
       ),
     ),

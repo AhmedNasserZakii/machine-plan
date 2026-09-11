@@ -1,5 +1,5 @@
 appId: com.machinery.machinery.dev
-name: 13 — A Representative gets no reports or user administration in More
+name: 13 — A Representative gets no user administration in More
 tags:
   - permissions
   - more
@@ -22,18 +22,31 @@ tags:
 - assertVisible: "(?s).*محمود توباي.*"
 - assertVisible: "(?s).*فرع المنصورة.*"
 
-# A Representative holds no reports.* code and no users.read, so those rows are
-# never rendered — the user never sees a link to a screen the server would
-# reject anyway.
-- assertNotVisible:
+# A Representative holds no users.read, so that row is never rendered — the
+# user never sees a link to a screen the server would reject anyway. Reports
+# IS visible: the merchants and maintenance reports are gated on the same
+# merchants.read/maintenance.read the domain screens use (backend
+# reports.controller.ts), not a dedicated reports.* code, and this
+# Representative holds merchants.read.
+- assertVisible:
     id: "more_reports_tile"
 - assertNotVisible:
     id: "more_users_tile"
 
-# Everything that does not need a permission is still there.
+# Everything that does not need a permission is still there. A Representative
+# still has enough tiles (reports, violations x2, decommission candidates,
+# notifications) to push the account section past the fold on a phone.
 - assertVisible:
     id: "more_notifications_tile"
+- scrollUntilVisible:
+    element:
+      id: "more_language_tile"
+    direction: DOWN
 - assertVisible:
     id: "more_language_tile"
+- scrollUntilVisible:
+    element:
+      id: "more_logout_tile"
+    direction: DOWN
 - assertVisible:
     id: "more_logout_tile"

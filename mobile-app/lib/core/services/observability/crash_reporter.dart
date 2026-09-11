@@ -27,8 +27,11 @@ abstract class CrashReporter {
   }
 
   static final List<RegExp> _patterns = <RegExp>[
-    RegExp(r'(authorization["\s:=]+)[^,\s}"]+', caseSensitive: false),
+    // Must run before the generic `authorization` pattern below: that one's value capture
+    // stops at the first space, so on "Authorization: Bearer <token>" it swallows the word
+    // "Bearer" as if it were the whole value and leaves the actual token untouched.
     RegExp(r'(bearer\s+)[a-z0-9\-._~+/]+=*', caseSensitive: false),
+    RegExp(r'(authorization["\s:=]+)[^,\s}"]+', caseSensitive: false),
     RegExp(r'(password["\s:=]+)[^,\s}"]+', caseSensitive: false),
     RegExp(r'(accessToken["\s:=]+)[^,\s}"]+', caseSensitive: false),
     RegExp(r'(refreshToken["\s:=]+)[^,\s}"]+', caseSensitive: false),

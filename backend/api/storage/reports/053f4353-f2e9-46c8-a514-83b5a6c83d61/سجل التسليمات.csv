@@ -1,0 +1,14 @@
+﻿التقرير,سجل التسليمات
+تاريخ الإصدار,2026-09-11T18:24:01.685Z
+عوامل التصفية,"from=2026-06-13, to=2026-09-11"
+
+رقم الإذن,التاريخ,النوع,الاتجاه,الحالة,الفرع,من,إلى,عدد الماكينات,أنشأه,تاريخ التأكيد
+TRF-2026-000069,2026-09-11,COMPANY_TO_BRANCH,OUT,CONFIRMED,فرع التقارير الآخر,— (WAREHOUSE),مشرف الفرع الآخر (SUPERVISOR),1,مدير النظام,2026-09-11
+TRF-2026-000068,2026-09-11,COMPANY_TO_BRANCH,OUT,PENDING,فرع التقارير,— (WAREHOUSE),مشرف التقارير (SUPERVISOR),1,مدير النظام,
+TRF-2026-000067,2026-09-11,BRANCH_TO_REPRESENTATIVE,OUT,CONFIRMED,فرع التقارير,مشرف التقارير (SUPERVISOR),مندوب التقارير (REPRESENTATIVE),1,مشرف التقارير,2026-09-11
+TRF-2026-000066,2026-09-11,COMPANY_TO_BRANCH,OUT,CONFIRMED,فرع التقارير,— (WAREHOUSE),مشرف التقارير (SUPERVISOR),1,مدير النظام,2026-09-11
+TRF-2026-000065,2026-09-11,BRANCH_TO_COMPANY,RETURN,CONFIRMED,فرع الصيانة,مشرف الصيانة (SUPERVISOR),مخزن الشركة الرئيسي (WAREHOUSE),1,مشرف الصيانة,2026-09-11
+TRF-2026-000064,2026-09-11,COMPANY_TO_BRANCH,OUT,CONFIRMED,فرع الصيانة,— (WAREHOUSE),مشرف الصيانة (SUPERVISOR),1,مدير النظام,2026-09-11
+TRF-2026-000012,2026-09-11,COMPANY_TO_BRANCH,OUT,PENDING,فرع الصيانة,— (WAREHOUSE),مشرف الصيانة (SUPERVISOR),1,مدير النظام,
+TRF-2026-000002,2026-09-11,BRANCH_TO_REPRESENTATIVE,OUT,CONFIRMED,فرع الحمل,مستخدم اختبار (SUPERVISOR),مستخدم اختبار (REPRESENTATIVE),1,مستخدم اختبار,2026-09-11
+TRF-2026-000001,2026-09-11,COMPANY_TO_BRANCH,OUT,CONFIRMED,فرع الحمل,— (WAREHOUSE),مستخدم اختبار (SUPERVISOR),1,مدير النظام,2026-09-11

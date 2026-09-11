@@ -26,10 +26,19 @@ tags:
 - assertVisible: "(?s).*المزيد.*"
 
 # Finance is permitted yet deliberately pushed out of the bar by the cap.
-- assertNotVisible: "(?s).*المالية.*"
+# By id, not text: the Home dashboard also shows a "المالية" summary card for
+# anyone with finance.read, so a plain text search can't tell "not in the
+# bottom bar" from "not on screen at all".
+- assertNotVisible:
+    id: "nav_tab_finance"
 
 # Tabs actually switch: the placeholder page title follows the selection.
-- tapOn: "(?s).*الماكينات.*"
+# By id, not text: the Home dashboard also has its own "الماكينات" summary
+# card that pushes a standalone Machines screen on tap — a real navigation,
+# not a tab switch — so a plain text tap can land on the wrong element.
+- tapOn:
+    id: "nav_tab_machines"
 - assertVisible: "الماكينات"
-- tapOn: "(?s).*التسليمات.*"
+- tapOn:
+    id: "nav_tab_transfers"
 - assertVisible: "التسليمات"

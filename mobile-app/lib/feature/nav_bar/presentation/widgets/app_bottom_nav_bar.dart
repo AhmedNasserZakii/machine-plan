@@ -36,10 +36,13 @@ class AppBottomNavBar extends StatelessWidget {
           destinations: tabs
               .map(
                 (tab) => NavigationDestination(
-                  icon: Icon(tab.icon, color: AppColors.textSecondaryColor),
-                  selectedIcon: Icon(
-                    tab.activeIcon,
-                    color: AppColors.primaryColor,
+                  icon: Semantics(
+                    identifier: tab.identifier,
+                    child: Icon(tab.icon, color: AppColors.textSecondaryColor),
+                  ),
+                  selectedIcon: Semantics(
+                    identifier: tab.identifier,
+                    child: Icon(tab.activeIcon, color: AppColors.primaryColor),
                   ),
                   label: tab.labelKey.tr(),
                 ),

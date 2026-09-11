@@ -1,6 +1,8 @@
 import 'package:dartz/dartz.dart';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/local_storage/local_storage.dart';
 import 'package:machinery/core/network_services/api_service_failure.dart';
 import 'package:machinery/feature/finance/domain/entities/finance_entities.dart';
@@ -33,13 +35,22 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('Level one'), findsOneWidget);
-    await tester.tap(find.byTooltip('Open subcategories'));
+    // Resolve the same way the widget does: .tr() isn't bootstrapped with real translations in
+    // widget tests and falls back to the raw key, but calling it here too keeps this in sync
+    // either way and disambiguates from the (also unnamed-tooltip) breadcrumb chevrons.
+    await tester.tap(find.byTooltip(LocaleKeys.financeOpenSubcategories.tr()));
     await tester.pumpAndSettle();
     expect(find.text('Level two'), findsOneWidget);
-    await tester.tap(find.byTooltip('Open subcategories'));
+    // Resolve the same way the widget does: .tr() isn't bootstrapped with real translations in
+    // widget tests and falls back to the raw key, but calling it here too keeps this in sync
+    // either way and disambiguates from the (also unnamed-tooltip) breadcrumb chevrons.
+    await tester.tap(find.byTooltip(LocaleKeys.financeOpenSubcategories.tr()));
     await tester.pumpAndSettle();
     expect(find.text('Level three'), findsOneWidget);
-    await tester.tap(find.byTooltip('Open subcategories'));
+    // Resolve the same way the widget does: .tr() isn't bootstrapped with real translations in
+    // widget tests and falls back to the raw key, but calling it here too keeps this in sync
+    // either way and disambiguates from the (also unnamed-tooltip) breadcrumb chevrons.
+    await tester.tap(find.byTooltip(LocaleKeys.financeOpenSubcategories.tr()));
     await tester.pumpAndSettle();
     expect(find.text('Level four'), findsOneWidget);
     expect(tester.takeException(), isNull);

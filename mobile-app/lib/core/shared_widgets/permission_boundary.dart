@@ -8,7 +8,7 @@ import 'package:machinery/core/theme/styles/app_spacing.dart';
 /// A route-level access check. Buttons are still hidden for good UX, but a
 /// stale deep link or an already-open route cannot bypass the screen boundary.
 class PermissionBoundary extends StatelessWidget {
-  const PermissionBoundary({
+  PermissionBoundary({
     required this.child,
     super.key,
     this.permission,

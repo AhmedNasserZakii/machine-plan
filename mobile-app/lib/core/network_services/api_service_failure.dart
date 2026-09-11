@@ -62,6 +62,18 @@ class ServerFailure extends Failures {
     final String code = _extractCode(response);
     final String message = _extractMessage(response, code);
 
+    // Checked ahead of the status-code switch: the backend always sends this code with 426,
+    // but a proxy/gateway could rewrite the status in transit, and the code itself is the
+    // authoritative signal a client must force-upgrade on.
+    if (code == 'CLIENT_UPGRADE_REQUIRED') {
+      return UpgradeRequiredFailure(
+        message,
+        code: code,
+        statusCode: statusCode,
+        minVersion: _extractMinVersion(response),
+      );
+    }
+
     return switch (statusCode) {
       401 || 403 => ServerFailure(
           message,
@@ -77,20 +89,7 @@ class ServerFailure extends Failures {
         ),
       409 => ConflictFailure(message, code: code, statusCode: statusCode),
       422 => BusinessFailure(message, code: code, statusCode: statusCode),
-      426 => UpgradeRequiredFailure(
-          message,
-          code: code,
-          statusCode: statusCode,
-          minVersion: _extractMinVersion(response),
-        ),
-      _ => code == 'CLIENT_UPGRADE_REQUIRED'
-          ? UpgradeRequiredFailure(
-              message,
-              code: code,
-              statusCode: statusCode,
-              minVersion: _extractMinVersion(response),
-            )
-          : ServerFailure(message, code: code, statusCode: statusCode),
+      _ => ServerFailure(message, code: code, statusCode: statusCode),
     };
   }
 

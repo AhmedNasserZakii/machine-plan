@@ -30,6 +30,7 @@ abstract class NavTabsBuilder {
     labelKey: LocaleKeys.navHome,
     icon: Icons.home_outlined,
     activeIcon: Icons.home_rounded,
+    identifier: 'nav_tab_home',
     pageBuilder: _buildHome,
   );
 
@@ -37,6 +38,7 @@ abstract class NavTabsBuilder {
     labelKey: LocaleKeys.navMore,
     icon: Icons.more_horiz_outlined,
     activeIcon: Icons.more_horiz_rounded,
+    identifier: 'nav_tab_more',
     pageBuilder: _buildMore,
   );
 
@@ -46,6 +48,7 @@ abstract class NavTabsBuilder {
       icon: Icons.precision_manufacturing_outlined,
       activeIcon: Icons.precision_manufacturing_rounded,
       permission: P.machinesRead,
+      identifier: 'nav_tab_machines',
       pageBuilder: _buildMachines,
     ),
     NavTab(
@@ -53,6 +56,7 @@ abstract class NavTabsBuilder {
       icon: Icons.swap_horiz_outlined,
       activeIcon: Icons.swap_horiz_rounded,
       permission: P.transfersRead,
+      identifier: 'nav_tab_transfers',
       pageBuilder: _buildTransfers,
     ),
     NavTab(
@@ -60,6 +64,7 @@ abstract class NavTabsBuilder {
       icon: Icons.storefront_outlined,
       activeIcon: Icons.storefront_rounded,
       permission: P.merchantsRead,
+      identifier: 'nav_tab_merchants',
       pageBuilder: _buildMerchants,
     ),
     NavTab(
@@ -67,6 +72,7 @@ abstract class NavTabsBuilder {
       icon: Icons.account_balance_wallet_outlined,
       activeIcon: Icons.account_balance_wallet_rounded,
       permission: P.financeRead,
+      identifier: 'nav_tab_finance',
       pageBuilder: _buildFinance,
     ),
   ];

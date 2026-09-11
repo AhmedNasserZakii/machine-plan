@@ -95,7 +95,8 @@ if [ "${SKIP_BUILD:-0}" != "1" ]; then
     --flavor "$FLAVOR" \
     --dart-define=APP_ENV=development \
     --dart-define=APP_VERSION=1.0.0 \
-    --dart-define=API_BASE_URL="$API_BASE_URL"
+    --dart-define=API_BASE_URL="$API_BASE_URL" \
+    --dart-define=DISABLE_DEVICE_PREVIEW=true
   apk="build/app/outputs/flutter-apk/app-${FLAVOR}-debug.apk"
   if [ ! -f "$apk" ]; then
     apk="build/app/outputs/flutter-apk/app-debug.apk"
