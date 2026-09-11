@@ -997,6 +997,26 @@ class LocaleKeys {
   static const String decommissionCumulativeCost =
       'decommission_cumulative_cost';
   static const String decommissionCostRatio = 'decommission_cost_ratio';
+  static const String decommissionAge = 'decommission_age';
+  static const String decommissionAgeMonths = 'decommission_age_months';
+  static const String decommissionChainLength = 'decommission_chain_length';
+  static const String decommissionUnknownPrice = 'decommission_unknown_price';
+  static const String decommissionChainAwareNote =
+      'decommission_chain_aware_note';
+  static const String decommissionRatioNote = 'decommission_ratio_note';
+  static const String decommissionNotesHint = 'decommission_notes_hint';
+  static const String decommissionReasonRequired =
+      'decommission_reason_required';
+  static const String decommissionNotesRequired = 'decommission_notes_required';
+  static const String decommissionConfirmTitle = 'decommission_confirm_title';
+  static const String decommissionConfirmDescription =
+      'decommission_confirm_description';
+  static const String decommissionSignatureReason =
+      'decommission_signature_reason';
+  static const String decommissionPreconditionTitle =
+      'decommission_precondition_title';
+  static const String decommissionPreconditionDescription =
+      'decommission_precondition_description';
 
   static const String decommissionRevertTitle = 'decommission_revert_title';
   static const String decommissionRevertReason = 'decommission_revert_reason';
@@ -1019,4 +1039,20 @@ class LocaleKeys {
       'decommission_recommendation_consider';
   static const String decommissionCandidateAction =
       'decommission_candidate_action';
+  static const String decommissionCandidatesSuggestion =
+      'decommission_candidates_suggestion';
+  static const String decommissionThresholdsTitle =
+      'decommission_thresholds_title';
+  static const String decommissionMinRatio = 'decommission_min_ratio';
+  static const String decommissionMinRepairs = 'decommission_min_repairs';
+  static const String decommissionMinAge = 'decommission_min_age';
+  static const String decommissionApplyThresholds =
+      'decommission_apply_thresholds';
+  static const String decommissionSortRatio = 'decommission_sort_ratio';
+  static const String decommissionSortRepairs = 'decommission_sort_repairs';
+  static const String decommissionSortAge = 'decommission_sort_age';
+  static const String decommissionRatioShort = 'decommission_ratio_short';
+  static const String decommissionRepairsShort = 'decommission_repairs_short';
+  static const String decommissionAgeShort = 'decommission_age_short';
+  static const String decommissionChainCount = 'decommission_chain_count';
 }

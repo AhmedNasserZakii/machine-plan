@@ -52,6 +52,8 @@ import 'package:machinery/feature/maintenance/data/logic/maintenance_create/main
 import 'package:machinery/feature/maintenance/data/logic/maintenance_detail/maintenance_detail_cubit.dart';
 import 'package:machinery/feature/maintenance/data/logic/maintenance_list/maintenance_list_cubit.dart';
 import 'package:machinery/feature/maintenance/data/logic/machine_replacement/machine_replacement_cubit.dart';
+import 'package:machinery/feature/maintenance/data/logic/machine_decommission/machine_decommission_cubit.dart';
+import 'package:machinery/feature/maintenance/data/logic/decommission_candidates/decommission_candidates_cubit.dart';
 import 'package:machinery/feature/maintenance/domain/entities/maintenance_entity.dart';
 import 'package:machinery/feature/maintenance/domain/repos/maintenance_repo.dart';
 import 'package:machinery/feature/maintenance/domain/repos/maintenance_repo_impl.dart';
@@ -437,6 +439,18 @@ void setupServiceLocator(AppDatabase appDatabase) {
       machinesRepo: getIt(),
       machine: machine,
     ),
+  );
+
+  getIt.registerFactoryParam<MachineDecommissionCubit, String, void>(
+    (String machineId, _) => MachineDecommissionCubit(
+      machineId: machineId,
+      maintenanceRepo: getIt(),
+      lookupsRepo: getIt(),
+    ),
+  );
+
+  getIt.registerFactory<DecommissionCandidatesCubit>(
+    () => DecommissionCandidatesCubit(repo: getIt()),
   );
 
   // ── Home dashboard ───────────────────────────────────────────────────────

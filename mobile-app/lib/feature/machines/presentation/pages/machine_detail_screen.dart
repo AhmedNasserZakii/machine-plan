@@ -9,6 +9,7 @@ import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
 import 'package:machinery/core/shared_widgets/permission_gate.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/core/utils/app_route.dart';
+import 'package:machinery/core/utils/enums.dart';
 import 'package:machinery/feature/machines/data/logic/machine_detail/machine_detail_cubit.dart';
 import 'package:machinery/feature/machines/data/logic/machine_detail/machine_detail_state.dart';
 import 'package:machinery/feature/machines/domain/entities/machine_entity.dart';
@@ -106,13 +107,33 @@ class _MachineDetailScreenState extends State<MachineDetailScreen> {
     await context.read<MachineDetailCubit>().load();
   }
 
-  /// Decommission remains a placeholder until `11.4` builds its workflow.
-  void _openNotReady({required String titleKey, required IconData icon}) {
-    AppRoute.goToFeatureNotReadyScreen(
+  Future<void> _decommission(MachineEntity machine) async {
+    if (machine.status != MachineStatus.inCompanyWarehouse) {
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(LocaleKeys.decommissionPreconditionTitle.tr()),
+          content: Text(LocaleKeys.decommissionPreconditionDescription.tr()),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(LocaleKeys.confirm.tr()),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    if (!mounted) return;
+    final replaced = await AppRoute.goToMachineDecommission(
       context: context,
-      titleKey: titleKey,
-      icon: icon,
+      machine: machine,
     );
+    if ((replaced ?? false) && mounted) {
+      _didChange = true;
+      await context.read<MachineDetailCubit>().load();
+    }
   }
 
   @override
@@ -207,10 +228,7 @@ class _MachineDetailScreenState extends State<MachineDetailScreen> {
             onCreateTransfer: _createTransfer,
             onSendForMaintenance: () => _sendForMaintenance(machine),
             onReplace: () => _replace(machine),
-            onDecommission: () => _openNotReady(
-              titleKey: LocaleKeys.machineDecommissionAction,
-              icon: Icons.delete_forever_rounded,
-            ),
+            onDecommission: () => _decommission(machine),
           ),
           // A retired unit has nothing left to edit, so the button goes rather
           // than being shown and then refused by the server.

@@ -206,3 +206,36 @@ class MachineMaintenance extends Equatable {
     costVsPricePercent,
   ];
 }
+
+/// `GET /machines/:id/cost-summary` — chain-aware economics used before an
+/// irreversible decommission decision.
+class MachineCostSummary extends Equatable {
+  const MachineCostSummary({
+    required this.totalRepairCost,
+    required this.repairCount,
+    required this.ageMonths,
+    required this.isInChain,
+    required this.chainLength,
+    this.purchasePrice,
+    this.costToValueRatio,
+  });
+
+  final double? purchasePrice;
+  final double totalRepairCost;
+  final int repairCount;
+  final double? costToValueRatio;
+  final int ageMonths;
+  final bool isInChain;
+  final int chainLength;
+
+  @override
+  List<Object?> get props => <Object?>[
+    purchasePrice,
+    totalRepairCost,
+    repairCount,
+    costToValueRatio,
+    ageMonths,
+    isInChain,
+    chainLength,
+  ];
+}

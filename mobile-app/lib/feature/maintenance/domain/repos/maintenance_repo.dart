@@ -4,6 +4,7 @@ import 'package:dartz/dartz.dart';
 import 'package:machinery/core/network_services/api_service_failure.dart';
 import 'package:machinery/core/network_services/models/pagination_meta_model.dart';
 import 'package:machinery/feature/maintenance/domain/entities/maintenance_entity.dart';
+import 'package:machinery/feature/machines/domain/entities/machine_entity.dart';
 import 'package:machinery/feature/maintenance/domain/params/maintenance_params.dart';
 
 class MaintenanceOrdersPage {
@@ -107,6 +108,10 @@ abstract class MaintenanceRepo {
   });
 
   Future<Either<ServerFailure, DecommissionEntity>> fetchDecommission({
+    required String machineId,
+  });
+
+  Future<Either<ServerFailure, MachineCostSummary>> fetchCostSummary({
     required String machineId,
   });
 

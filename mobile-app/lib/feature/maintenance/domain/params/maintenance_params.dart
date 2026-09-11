@@ -144,8 +144,7 @@ class CreateMaintenanceOrderParams {
     ApiKeys.locationId: locationId,
     ApiKeys.reportedFault: reportedFault.trim(),
     ApiKeys.sentAt: sentAt,
-    if (notes != null && notes!.trim().isNotEmpty)
-      ApiKeys.notes: notes!.trim(),
+    if (notes != null && notes!.trim().isNotEmpty) ApiKeys.notes: notes!.trim(),
   };
 }
 
@@ -293,8 +292,7 @@ class CloseMaintenanceOrderParams {
     ApiKeys.isFreeUnderWarranty: isFreeUnderWarranty,
     if (cost != null) ApiKeys.cost: cost,
     ApiKeys.responsibleParty: responsibleParty.value,
-    if (responsibleUserId != null)
-      ApiKeys.responsibleUserId: responsibleUserId,
+    if (responsibleUserId != null) ApiKeys.responsibleUserId: responsibleUserId,
     if (responsibleMerchantId != null)
       ApiKeys.responsibleMerchantId: responsibleMerchantId,
     if (paymentMethodId != null) ApiKeys.paymentMethodId: paymentMethodId,
@@ -304,8 +302,7 @@ class CloseMaintenanceOrderParams {
     if (performedByName != null)
       ApiKeys.performedByName: performedByName!.trim(),
     ApiKeys.returnedAt: returnedAt,
-    if (notes != null && notes!.trim().isNotEmpty)
-      ApiKeys.notes: notes!.trim(),
+    if (notes != null && notes!.trim().isNotEmpty) ApiKeys.notes: notes!.trim(),
   };
 }
 
@@ -398,19 +395,39 @@ class DecommissionCandidatesQueryParams extends Equatable {
     this.limit = 20,
     this.minCostRatio,
     this.minRepairCount,
+    this.minAgeMonths,
   });
 
   final int page;
   final int limit;
   final double? minCostRatio;
   final int? minRepairCount;
+  final int? minAgeMonths;
 
-  DecommissionCandidatesQueryParams copyWith({int? page}) {
+  bool get hasFilters =>
+      minCostRatio != null || minRepairCount != null || minAgeMonths != null;
+
+  DecommissionCandidatesQueryParams copyWith({
+    int? page,
+    double? minCostRatio,
+    int? minRepairCount,
+    int? minAgeMonths,
+    bool clearMinCostRatio = false,
+    bool clearMinRepairCount = false,
+    bool clearMinAgeMonths = false,
+  }) {
     return DecommissionCandidatesQueryParams(
       page: page ?? this.page,
       limit: limit,
-      minCostRatio: minCostRatio,
-      minRepairCount: minRepairCount,
+      minCostRatio: clearMinCostRatio
+          ? null
+          : (minCostRatio ?? this.minCostRatio),
+      minRepairCount: clearMinRepairCount
+          ? null
+          : (minRepairCount ?? this.minRepairCount),
+      minAgeMonths: clearMinAgeMonths
+          ? null
+          : (minAgeMonths ?? this.minAgeMonths),
     );
   }
 
@@ -419,8 +436,15 @@ class DecommissionCandidatesQueryParams extends Equatable {
     ApiKeys.limit: limit,
     if (minCostRatio != null) ApiKeys.minCostRatio: minCostRatio,
     if (minRepairCount != null) ApiKeys.minRepairCount: minRepairCount,
+    if (minAgeMonths != null) ApiKeys.minAgeMonths: minAgeMonths,
   };
 
   @override
-  List<Object?> get props => <Object?>[page, limit, minCostRatio, minRepairCount];
+  List<Object?> get props => <Object?>[
+    page,
+    limit,
+    minCostRatio,
+    minRepairCount,
+    minAgeMonths,
+  ];
 }

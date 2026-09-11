@@ -13,6 +13,7 @@ import 'package:machinery/core/network_services/models/pagination_meta_model.dar
 import 'package:machinery/core/network_services/web_constant.dart';
 import 'package:machinery/core/resources/debug_print.dart';
 import 'package:machinery/feature/maintenance/data/models/maintenance_response_model.dart';
+import 'package:machinery/feature/machines/domain/entities/machine_entity.dart';
 import 'package:machinery/feature/maintenance/domain/entities/maintenance_entity.dart';
 import 'package:machinery/feature/maintenance/domain/params/maintenance_params.dart';
 import 'package:machinery/feature/maintenance/domain/repos/maintenance_repo.dart';
@@ -49,7 +50,11 @@ class MaintenanceRepoImpl implements MaintenanceRepo {
   /// Reserve a key, PUT the bytes straight at storage, then confirm — the same
   /// presign/PUT/confirm handshake transfers use, copied once rather than
   /// reached into `TransfersRepo` (see the doc comment on `MaintenanceRepo`).
-  Future<String> _upload(Uint8List bytes, String purpose, String mimeType) async {
+  Future<String> _upload(
+    Uint8List bytes,
+    String purpose,
+    String mimeType,
+  ) async {
     final Response<dynamic> reserved = await apiService.client().post<dynamic>(
       WebConstant.mediaPresign,
       data: <String, dynamic>{
@@ -260,15 +265,13 @@ class MaintenanceRepoImpl implements MaintenanceRepo {
     String? maintenanceOrderId,
   }) {
     return _guard('fetchReplacements', () async {
-      final Response<dynamic> response = await apiService
-          .client()
-          .get<dynamic>(
-            WebConstant.replacements,
-            queryParameters: <String, dynamic>{
-              ApiKeys.machineId: ?machineId,
-              ApiKeys.maintenanceOrderId: ?maintenanceOrderId,
-            },
-          );
+      final Response<dynamic> response = await apiService.client().get<dynamic>(
+        WebConstant.replacements,
+        queryParameters: <String, dynamic>{
+          ApiKeys.machineId: ?machineId,
+          ApiKeys.maintenanceOrderId: ?maintenanceOrderId,
+        },
+      );
 
       final Map<String, dynamic> body = _body(response.data);
 
@@ -289,13 +292,35 @@ class MaintenanceRepoImpl implements MaintenanceRepo {
     required String machineId,
   }) {
     return _guard('fetchDecommission', () async {
-      final Response<dynamic> response = await apiService
-          .client()
-          .get<dynamic>(WebConstant.machineDecommission(machineId));
+      final Response<dynamic> response = await apiService.client().get<dynamic>(
+        WebConstant.machineDecommission(machineId),
+      );
 
       return DecommissionResponseModel.fromJson(
         _data(response.data),
       ).toEntity();
+    });
+  }
+
+  @override
+  Future<Either<ServerFailure, MachineCostSummary>> fetchCostSummary({
+    required String machineId,
+  }) {
+    return _guard('fetchCostSummary', () async {
+      final Response<dynamic> response = await apiService.client().get<dynamic>(
+        WebConstant.machineCostSummary(machineId),
+      );
+      final Map<String, dynamic> json = _data(response.data);
+
+      return MachineCostSummary(
+        purchasePrice: _double(json[ApiKeys.purchasePrice]),
+        totalRepairCost: _double(json[ApiKeys.totalRepairCost]) ?? 0,
+        repairCount: _int(json[ApiKeys.repairCount]),
+        costToValueRatio: _double(json[ApiKeys.costToValueRatio]),
+        ageMonths: _int(json[ApiKeys.ageMonths]),
+        isInChain: json[ApiKeys.isInChain] as bool? ?? false,
+        chainLength: _int(json[ApiKeys.chainLength], fallback: 1),
+      );
     });
   }
 
@@ -324,12 +349,10 @@ class MaintenanceRepoImpl implements MaintenanceRepo {
     required RevertDecommissionParams params,
   }) {
     return _guard('revertDecommission', () async {
-      await apiService
-          .client()
-          .post<dynamic>(
-            WebConstant.machineDecommissionRevert(machineId),
-            data: params.toJson(),
-          );
+      await apiService.client().post<dynamic>(
+        WebConstant.machineDecommissionRevert(machineId),
+        data: params.toJson(),
+      );
 
       return unit;
     });
@@ -340,12 +363,10 @@ class MaintenanceRepoImpl implements MaintenanceRepo {
     required DecommissionsQueryParams params,
   }) {
     return _guard('fetchDecommissions', () async {
-      final Response<dynamic> response = await apiService
-          .client()
-          .get<dynamic>(
-            WebConstant.decommissions,
-            queryParameters: params.toQuery(),
-          );
+      final Response<dynamic> response = await apiService.client().get<dynamic>(
+        WebConstant.decommissions,
+        queryParameters: params.toQuery(),
+      );
 
       final Map<String, dynamic> body = _body(response.data);
 
@@ -367,12 +388,10 @@ class MaintenanceRepoImpl implements MaintenanceRepo {
     required DecommissionCandidatesQueryParams params,
   }) {
     return _guard('fetchDecommissionCandidates', () async {
-      final Response<dynamic> response = await apiService
-          .client()
-          .get<dynamic>(
-            WebConstant.machinesDecommissionCandidates,
-            queryParameters: params.toQuery(),
-          );
+      final Response<dynamic> response = await apiService.client().get<dynamic>(
+        WebConstant.machinesDecommissionCandidates,
+        queryParameters: params.toQuery(),
+      );
 
       final Map<String, dynamic> body = _body(response.data);
 
@@ -437,6 +456,16 @@ class MaintenanceRepoImpl implements MaintenanceRepo {
     }
 
     return const <Map<String, dynamic>>[];
+  }
+
+  static double? _double(dynamic value) {
+    if (value is num) return value.toDouble();
+    return value is String ? double.tryParse(value) : null;
+  }
+
+  static int _int(dynamic value, {int fallback = 0}) {
+    if (value is num) return value.toInt();
+    return value is String ? int.tryParse(value) ?? fallback : fallback;
   }
 
   static PaginationMetaModel _metaOf(Map<String, dynamic> body) {

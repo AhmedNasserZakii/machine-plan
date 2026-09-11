@@ -2555,18 +2555,42 @@ the full `flutter test` suite (**197/197 passing**, including 5 new replacement-
 
 ### 11.4 Decommission flow
 
-- [ ] Build the cost snapshot and chain-aware economics display.
-- [ ] Add reason, mandatory notes, and optional signature.
-- [ ] Add the explicit final confirmation dialog.
-- [ ] Explain failed preconditions before opening the form.
-- [ ] Do not expose revert in the mobile app.
+- [x] Build the cost snapshot and chain-aware economics display.
+- [x] Add reason, mandatory notes, and signature capture.
+- [x] Add the explicit final confirmation dialog.
+- [x] Explain failed preconditions before opening the form.
+- [x] Do not expose revert in the mobile app.
+
+Implemented as a route-scoped `MachineDecommissionCubit` which loads the seeded reason lookup and
+the backend's chain-aware `/machines/:id/cost-summary` before rendering the form. The snapshot shows
+purchase price, cumulative repair spend/count, age, chain length and a warning/danger ratio bar.
+Reason, 5–1000 character notes, decision date, and the existing drawn/biometric signature control
+feed the already-scaffolded `DecommissionMachineParams`; a final destructive dialog explains that
+the machine moves to the scrap warehouse and cannot move again.
+
+The machine-detail action checks `IN_COMPANY_WAREHOUSE` before opening and explains that any other
+holder needs a return transfer first. After success it reloads the machine so the retired state is
+immediate. There is deliberately no route, button, or menu item for revert. The plan described the
+signature as optional, but the backend's normal path creates an auto-confirmed `COMPANY_TO_SCRAP`
+transfer and rejects it with `SIGNATURE_REQUIRED` when absent, so the app requires the signature it
+knows the server needs.
 
 ### 11.5 Decommission candidates
 
-- [ ] Build the candidates list.
-- [ ] Add cost ratio, repair count, and age sorting.
-- [ ] Add adjustable thresholds and suggestion-focused wording.
-- [ ] Link every candidate to machine detail and the permitted decommission flow.
+- [x] Build the candidates list.
+- [x] Add cost ratio, repair count, and age sorting.
+- [x] Add adjustable thresholds and suggestion-focused wording.
+- [x] Link every candidate to machine detail and the permitted decommission flow.
+
+Added a permission-scoped “Machines to review / ماكينات محتاجة مراجعة” entry under More. The
+paginated Cubit preserves server paging, re-sorts accumulated rows by ratio, repair count, or age,
+and reloads against adjustable minimum ratio/repair/age filters. Cards show recommendation wording,
+chain membership, economics and age, and always open the full machine detail rather than acting on
+the suggestion directly; returning after a decommission refreshes the candidates.
+
+**Mobile verified** with `flutter analyze` (0 issues), focused decommission/action tests (10/10),
+and the full `flutter test` suite (**201/201 passing**, including 4 new decommission contract/sort
+cases).
 
 ---
 

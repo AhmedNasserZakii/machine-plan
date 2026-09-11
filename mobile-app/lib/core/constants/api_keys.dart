@@ -393,6 +393,7 @@ class ApiKeys {
   static const String revertReason = 'revertReason';
   static const String minCostRatio = 'minCostRatio';
   static const String minRepairCount = 'minRepairCount';
+  static const String minAgeMonths = 'minAgeMonths';
   static const String ageMonths = 'ageMonths';
   static const String isInChain = 'isInChain';
   static const String recommendation = 'recommendation';
