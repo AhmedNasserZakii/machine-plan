@@ -933,6 +933,8 @@ class LocaleKeys {
   static const String maintenanceCloseResult = 'maintenance_close_result';
   static const String maintenanceCloseFreeUnderWarranty =
       'maintenance_close_free_under_warranty';
+  static const String maintenanceCloseWarrantySuggested =
+      'maintenance_close_warranty_suggested';
   static const String maintenanceCloseCost = 'maintenance_close_cost';
   static const String maintenanceCloseCostRequired =
       'maintenance_close_cost_required';

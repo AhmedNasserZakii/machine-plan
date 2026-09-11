@@ -24,49 +24,66 @@ class MaintenanceRepoImpl implements MaintenanceRepo {
   final NetworkInfo networkInfo;
 
   static const String _signaturePurpose = 'SIGNATURE';
+  static const String _invoicePurpose = 'INVOICE';
 
   @override
   Future<Either<ServerFailure, String>> uploadSignature({
     required Uint8List png,
   }) {
-    return _guard('uploadSignature', () async {
-      final Response<dynamic> reserved = await apiService
-          .client()
-          .post<dynamic>(
-            WebConstant.mediaPresign,
-            data: <String, dynamic>{
-              ApiKeys.purpose: _signaturePurpose,
-              ApiKeys.mimeType: 'image/png',
-              ApiKeys.sizeBytes: png.lengthInBytes,
-              ApiKeys.checksum: sha256.convert(png).toString(),
-            },
-          );
+    return _guard(
+      'uploadSignature',
+      () => _upload(png, _signaturePurpose, 'image/png'),
+    );
+  }
 
-      final Map<String, dynamic> presign = _data(reserved.data);
-      final String mediaId = presign[ApiKeys.id] is String
-          ? presign[ApiKeys.id] as String
-          : presign[ApiKeys.mediaId] as String;
+  @override
+  Future<Either<ServerFailure, String>> uploadInvoice({
+    required Uint8List jpeg,
+  }) {
+    return _guard(
+      'uploadInvoice',
+      () => _upload(jpeg, _invoicePurpose, 'image/jpeg'),
+    );
+  }
 
-      // The upload URL is absolute and pre-signed, so it deliberately bypasses
-      // the client's base URL and auth header.
-      await Dio().putUri<dynamic>(
-        Uri.parse(presign[ApiKeys.uploadUrl] as String),
-        data: Stream<List<int>>.fromIterable(<List<int>>[png]),
-        options: Options(
-          headers: <String, dynamic>{
-            Headers.contentTypeHeader: 'image/png',
-            Headers.contentLengthHeader: png.lengthInBytes,
-          },
-        ),
-      );
+  /// Reserve a key, PUT the bytes straight at storage, then confirm — the same
+  /// presign/PUT/confirm handshake transfers use, copied once rather than
+  /// reached into `TransfersRepo` (see the doc comment on `MaintenanceRepo`).
+  Future<String> _upload(Uint8List bytes, String purpose, String mimeType) async {
+    final Response<dynamic> reserved = await apiService.client().post<dynamic>(
+      WebConstant.mediaPresign,
+      data: <String, dynamic>{
+        ApiKeys.purpose: purpose,
+        ApiKeys.mimeType: mimeType,
+        ApiKeys.sizeBytes: bytes.lengthInBytes,
+        ApiKeys.checksum: sha256.convert(bytes).toString(),
+      },
+    );
 
-      await apiService.client().post<dynamic>(
-        WebConstant.mediaConfirm,
-        data: <String, dynamic>{ApiKeys.mediaId: mediaId},
-      );
+    final Map<String, dynamic> presign = _data(reserved.data);
+    final String mediaId = presign[ApiKeys.id] is String
+        ? presign[ApiKeys.id] as String
+        : presign[ApiKeys.mediaId] as String;
 
-      return mediaId;
-    });
+    // The upload URL is absolute and pre-signed, so it deliberately bypasses
+    // the client's base URL and auth header.
+    await Dio().putUri<dynamic>(
+      Uri.parse(presign[ApiKeys.uploadUrl] as String),
+      data: Stream<List<int>>.fromIterable(<List<int>>[bytes]),
+      options: Options(
+        headers: <String, dynamic>{
+          Headers.contentTypeHeader: mimeType,
+          Headers.contentLengthHeader: bytes.lengthInBytes,
+        },
+      ),
+    );
+
+    await apiService.client().post<dynamic>(
+      WebConstant.mediaConfirm,
+      data: <String, dynamic>{ApiKeys.mediaId: mediaId},
+    );
+
+    return mediaId;
   }
 
   @override

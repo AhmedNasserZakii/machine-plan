@@ -24,6 +24,7 @@ import 'package:machinery/feature/maintenance/data/logic/maintenance_detail/main
 import 'package:machinery/feature/maintenance/data/logic/maintenance_list/maintenance_list_cubit.dart';
 import 'package:machinery/feature/maintenance/domain/entities/maintenance_entity.dart';
 import 'package:machinery/feature/maintenance/domain/params/maintenance_params.dart';
+import 'package:machinery/feature/maintenance/presentation/pages/maintenance_close_screen.dart';
 import 'package:machinery/feature/maintenance/presentation/pages/maintenance_create_screen.dart';
 import 'package:machinery/feature/maintenance/presentation/pages/maintenance_detail_screen.dart';
 import 'package:machinery/feature/maintenance/presentation/pages/maintenance_handover_screen.dart';
@@ -543,6 +544,25 @@ abstract class AppRoute {
         builder: (_) => BlocProvider<MaintenanceDetailCubit>.value(
           value: cubit,
           child: MaintenanceHandoverScreen(isSend: isSend),
+        ),
+      ),
+    );
+  }
+
+  /// Same shared-cubit shape as `goToMaintenanceHandover` — the close screen
+  /// (`11.2`) is still just one more action on the order the detail screen
+  /// already has open. Resolves to true once the close went through.
+  static Future<bool?> goToMaintenanceClose({
+    required BuildContext context,
+    required MaintenanceDetailCubit cubit,
+    required MaintenanceOrderEntity order,
+  }) {
+    return Navigator.push<bool>(
+      context,
+      MaterialPageRoute<bool>(
+        builder: (_) => BlocProvider<MaintenanceDetailCubit>.value(
+          value: cubit,
+          child: MaintenanceCloseScreen(order: order),
         ),
       ),
     );

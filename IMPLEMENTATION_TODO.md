@@ -2438,13 +2438,94 @@ session), `.../core/constants/{api_keys,locale_keys}.dart`, `assets/translations
 `mobile-app/lib/feature/more/presentation/pages/more_screen.dart` (maintenance list tile);
 `mobile-app/test/machine_actions_section_widget_test.dart`.
 
-### 11.2 Maintenance close flow
+### 11.2 Maintenance close flow — done 2026-09-11
 
-- [ ] Add result selection, warranty suggestion, and overridable free-warranty switch.
-- [ ] Add cost, supplier, responsible party/person, technician name, invoice, and notes.
-- [ ] Add the finance-posting/violation preview before submission.
-- [ ] Route replacement results through the replacement form before closing.
-- [ ] Show the final backend effects after a successful close.
+- [x] Add result selection, warranty suggestion, and overridable free-warranty switch.
+- [x] Add cost, supplier, responsible party/person, technician name, invoice, and notes.
+- [x] Add the finance-posting/violation preview before submission.
+- [x] Route replacement results through the replacement form before closing.
+- [x] Show the final backend effects after a successful close.
+
+**Found the whole data/domain layer already built ahead of this pass.** `CloseMaintenanceOrderParams`,
+`ReplacementMachineParams`, `MaintenanceRepo.closeOrder`/`replaceMachine` (real network calls, not
+stubs), `MaintenanceDetailCubit.closeOrder`, and every `maintenance_close_*`/`replacement_*` locale
+key were already sitting in the tree from whatever pass built `11.1`'s scaffolding, unused. This
+section was therefore purely the presentation layer: one new screen, one picker-sheets file, one pure
+rules file, and wiring — no domain/data files needed touching beyond two additions (below).
+
+**`MaintenanceCloseScreen` shares the detail screen's own `MaintenanceDetailCubit`, the same way
+`MaintenanceHandoverScreen` does** (`AppRoute.goToMaintenanceClose`, pushed with
+`BlocProvider.value`) — a close is still just one more action on the order the detail screen already
+has open, and this keeps the "act on the cubit's returned `Either`, not `lastOutcome`" fix from `11.1`
+intact rather than reintroducing the dual-listener race a second cubit would risk. The close button is
+now gated on `hasAll([maintenance.close, maintenance.set_cost])` (`11.1` left it ungated with nothing
+behind it to protect — now there is).
+
+**A pure-logic file, `maintenance_close_rules.dart`, mirrors the backend's `postClose()` and
+`CloseMaintenanceOrderDto`'s `@ValidateIf` rules branch for branch** — `maintenanceCloseEffectFor()`
+decides which of {nothing, company expense, representative violation, merchant fee} a given
+(isFreeUnderWarranty, cost, responsibleParty) produces, and `maintenanceCloseBlockedReason()` decides
+whether the form is submittable. Same shape as the backend's own `maintenance-rules.ts` +
+`maintenance-rules.spec.ts` pair, so a `maintenance_close_rules_test.dart` unit-tests the branching
+without pumping a single widget (15 cases). The live preview card and the post-close "what happened"
+summary both call the same `_EffectPreviewCard` off the same fields, so what the technician is shown
+before submitting and what he is shown after are guaranteed to be the same numbers — because they are
+the same widget, not two copies of the wording that could drift.
+
+**Responsible party is more than an enum pick when it's `REPRESENTATIVE`/`MERCHANT`** — added
+`maintenance_responsible_picker_sheets.dart`, two single-select search sheets over the same
+`UsersListCubit`/`MerchantsListCubit` the admin user/merchant lists already use (`getIt<...>()`, fresh
+factory instance each open, same shape as `9.1`'s `MachinePickerSheet`). The user picker narrows to the
+`REPRESENTATIVE` role once the first page's `roles` lookup answers, rather than asking the caller to
+resolve a role id up front. No new picker infrastructure otherwise — reused what `11.1`/`9.x` already
+built rather than adding a third one.
+
+**Two small additions to the data layer, both reused rather than duplicated:** `LookupsRepo.suppliers()`
+hits the same `/suppliers` table the finance transaction form already reads (`WebConstant.financeSuppliers`),
+so a maintenance invoice's supplier is the same reference data an expense's is. `MaintenanceRepo`
+gained `uploadInvoice()` alongside the existing `uploadSignature()` — both now call one shared private
+`_upload(bytes, purpose, mimeType)`, the same presign/PUT/confirm handshake `TransfersRepo._upload()`
+has its own copy of, kept as a second copy here for the same reason the repo's own doc comment already
+gives for not reaching into `TransfersRepo`: this repo carries no cache DAO of its own to protect. The
+invoice photo goes through the same camera/gallery pick → `flutter_image_compress` → upload dance
+`9.x`'s item photos already established, not a new pattern.
+
+**Replacement is routed through inline fields on this screen, not a standalone form** — `11.3`
+("Replacement flow") is where the dedicated form with scanning, chain preview and duplicate-serial
+validation belongs; this pass only needed enough of `ReplacementMachineDto` to ride along inside one
+`close` request when `result == REPLACED` (new serial, new battery serial, box, reason, replaced-at
+date — the fields the DTO actually requires), so it stayed inline rather than standing up a second
+screen `11.3` would then have to either reuse awkwardly or duplicate.
+
+**Not done this pass, and worth flagging:** no live device/emulator verification — this session had no
+running backend or attached emulator, so the close/replace-embedded flow is verified by
+`flutter analyze` and `flutter test` only, not by an actual `POST /maintenance-orders/:id/close` round
+trip the way `11.1`'s write-up was. The known backend gap `11.1` flagged (`chk_machines_holder_pair`
+not allowing a null `current_holder_id` for `SERVICE_CENTER`) is unrelated to this section and still
+unfixed. The invoice photo is uploaded as a compressed JPEG through the generic media store exactly
+like a transfer photo; nothing here re-litigates the `9.2`/`9.3` Android-emulator presigned-URL
+limitation since it was never hit (no live upload attempted).
+
+**A second Claude session was independently working the same section concurrently mid-pass** — it had
+started its own `search_picker_sheet.dart` and `replacement_details_fields.dart` before discovering the
+collision, and blind-`Write`-overwrote those two paths with its own content. No actual data loss
+resulted: this session's picker sheet is named `maintenance_responsible_picker_sheets.dart` and its
+replacement fields are inline in `maintenance_close_screen.dart`, so the filenames never collided
+with anything of this session's. Coordinated over `SendMessage`; the other session deleted its two
+broken stray files and stood down from `11.1`'s directory for the rest of this pass.
+
+**Files:** `mobile-app/lib/feature/maintenance/presentation/pages/maintenance_close_screen.dart` (new),
+`.../presentation/widgets/maintenance_responsible_picker_sheets.dart` (new),
+`.../presentation/helpers/maintenance_close_rules.dart` (new);
+`.../presentation/pages/maintenance_detail_screen.dart` (`_close`, dual-permission gate),
+`.../domain/repos/maintenance_repo.dart`/`_impl.dart` (`uploadInvoice`, shared `_upload`);
+`mobile-app/lib/core/lookups/lookups_repo.dart` (`suppliers`), `.../core/utils/app_route.dart`
+(`goToMaintenanceClose`), `.../core/constants/locale_keys.dart` (one new key,
+`maintenanceCloseWarrantySuggested` — everything else was already scaffolded), `assets/translations/
+{en,ar}.json`; `mobile-app/test/maintenance_close_rules_test.dart` (new).
+
+**Mobile verified** with `flutter analyze` (0 issues) and `flutter test` — **192/192 passing**, up from
+177 (15 new cases in `maintenance_close_rules_test.dart`, no existing test touched or broken).
 
 ### 11.3 Replacement flow
 

@@ -39,6 +39,12 @@ class LookupsRepo {
     return _fetch(WebConstant.decommissionReasons, LookupEntity.fromJson);
   }
 
+  /// The same `/suppliers` table finance's transaction form reads — a
+  /// maintenance invoice names a supplier exactly the way an expense does.
+  Future<Either<ServerFailure, List<LookupEntity>>> suppliers() {
+    return _fetch(WebConstant.financeSuppliers, LookupEntity.fromJson);
+  }
+
   /// Called when the locale changes: every cached `name` is in the old
   /// language.
   void clear() => _cache.clear();

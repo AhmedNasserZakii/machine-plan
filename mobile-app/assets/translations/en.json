@@ -701,6 +701,7 @@
   "maintenance_close_title": "Close the maintenance order",
   "maintenance_close_result": "Result",
   "maintenance_close_free_under_warranty": "Free under warranty",
+  "maintenance_close_warranty_suggested": "The warranty window suggests this repair is free",
   "maintenance_close_cost": "Cost",
   "maintenance_close_cost_required": "Cost is required — this is not under warranty",
   "maintenance_close_responsible_party": "Who pays",

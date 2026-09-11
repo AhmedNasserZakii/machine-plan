@@ -27,8 +27,11 @@ import 'package:machinery/feature/maintenance/presentation/widgets/maintenance_u
 import 'package:machinery/feature/transfers/presentation/widgets/transfer_reason_sheet.dart';
 
 /// One repair order, with the actions available on its current status
-/// (`11.1`). Close (`11.2`) is not built yet, so a `RETURNED` order shows the
-/// button as "not ready" rather than pretending the feature exists.
+/// (`11.1`). Close (`11.2`) shares this screen's own `MaintenanceDetailCubit`
+/// the same way send/receive do — see `MaintenanceCloseScreen`'s doc comment
+/// — and is gated on both `maintenance.close` and `maintenance.set_cost`
+/// (`11.1`'s own note on why: recording an outcome and deciding who pays for
+/// it are meant to be held by different people).
 ///
 /// Pops the updated order when something changed, so the list behind it
 /// swaps the one row in place rather than reloading the whole page.
@@ -85,12 +88,14 @@ class _MaintenanceDetailScreenState extends State<MaintenanceDetailScreen> {
     await context.read<MaintenanceDetailCubit>().update(params);
   }
 
-  void _closeNotReady() {
-    AppRoute.goToFeatureNotReadyScreen(
+  Future<void> _close(MaintenanceOrderEntity order) async {
+    final bool? done = await AppRoute.goToMaintenanceClose(
       context: context,
-      titleKey: LocaleKeys.maintenanceActionClose,
-      icon: Icons.check_circle_outline_rounded,
+      cubit: context.read<MaintenanceDetailCubit>(),
+      order: order,
     );
+
+    if (done ?? false) _changed = true;
   }
 
   void _onStateChanged(BuildContext context, MaintenanceDetailState state) {
@@ -275,6 +280,10 @@ class _MaintenanceDetailScreenState extends State<MaintenanceDetailScreen> {
             builder: (BuildContext context, List<String> _, _) {
               final PermissionService service = getIt<PermissionService>();
               final bool canUpdate = service.has(P.maintenanceUpdate);
+              final bool canClose = service.hasAll(<String>[
+                P.maintenanceClose,
+                P.maintenanceSetCost,
+              ]);
 
               return _ActionsBar(
                 isBusy: state.actionInProgress,
@@ -286,7 +295,9 @@ class _MaintenanceDetailScreenState extends State<MaintenanceDetailScreen> {
                     : null,
                 onCancel: (canUpdate && order.canCancel) ? _cancel : null,
                 onUpdate: canUpdate ? () => _update(order) : null,
-                onClose: order.isReturned ? _closeNotReady : null,
+                onClose: (canClose && order.isReturned)
+                    ? () => _close(order)
+                    : null,
               );
             },
           ),

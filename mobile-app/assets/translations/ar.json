@@ -710,6 +710,7 @@
   "maintenance_close_title": "إغلاق أمر الصيانة",
   "maintenance_close_result": "نتيجة الصيانة",
   "maintenance_close_free_under_warranty": "مجاني تحت الضمان",
+  "maintenance_close_warranty_suggested": "الضمان بيقول إن الصيانة دي المفروض تكون مجانية",
   "maintenance_close_cost": "التكلفة",
   "maintenance_close_cost_required": "التكلفة مطلوبة لأنها مش تحت الضمان",
   "maintenance_close_responsible_party": "مين يتحمل التكلفة",

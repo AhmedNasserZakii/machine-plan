@@ -51,6 +51,12 @@ abstract class MaintenanceRepo {
     required Uint8List png,
   });
 
+  /// Same dance, `INVOICE` purpose — the receipt a close attaches to a
+  /// chargeable repair (`11.2`).
+  Future<Either<ServerFailure, String>> uploadInvoice({
+    required Uint8List jpeg,
+  });
+
   Future<Either<ServerFailure, MaintenanceOrdersPage>> fetchOrders({
     required MaintenanceOrdersQueryParams params,
   });
