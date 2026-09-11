@@ -18,6 +18,7 @@ import 'package:machinery/feature/users/data/logic/user_actions/user_actions_cub
 import 'package:machinery/feature/users/data/logic/user_actions/user_actions_state.dart';
 import 'package:machinery/feature/users/domain/entities/user_entity.dart';
 import 'package:machinery/feature/users/presentation/widgets/reset_password_dialog.dart';
+import 'package:machinery/feature/violations/domain/params/violations_query_params.dart';
 
 /// The actions that only make sense on an existing account: permissions,
 /// password reset, and suspending or restoring access.
@@ -133,6 +134,30 @@ class UserFormActions extends StatelessWidget {
                         : LocaleKeys.userActivate.tr(),
                     isDestructive: isActive,
                     onTap: () => _confirmSetActive(context, !isActive),
+                  ),
+                ),
+                PermissionGate(
+                  permission: P.violationsRead,
+                  child: MoreTile(
+                    identifier: 'user_violations_tile',
+                    icon: Icons.gavel_rounded,
+                    label: LocaleKeys.violationsTitle.tr(),
+                    onTap: () => AppRoute.goToViolationsList(
+                      context: context,
+                      scope: ViolationsQueryParams(userId: user.id),
+                    ),
+                  ),
+                ),
+                PermissionGate(
+                  permission: P.violationsRead,
+                  child: MoreTile(
+                    identifier: 'user_violation_summary_tile',
+                    icon: Icons.summarize_outlined,
+                    label: LocaleKeys.violationSummaryTitle.tr(),
+                    onTap: () => AppRoute.goToViolationSummary(
+                      context: context,
+                      userId: user.id,
+                    ),
                   ),
                 ),
               ],

@@ -4,14 +4,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/di/service_locator.dart';
 import 'package:machinery/core/helper/formatters.dart';
-import 'package:machinery/core/permissions/permission_keys.dart';
 import 'package:machinery/core/shared_widgets/app_error_view.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
 import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
 import 'package:machinery/core/shared_widgets/detail_card.dart';
 import 'package:machinery/core/shared_widgets/error_toast.dart';
 import 'package:machinery/core/shared_widgets/ltr_text.dart';
-import 'package:machinery/core/shared_widgets/permission_gate.dart';
 import 'package:machinery/core/shared_widgets/status_chip.dart';
 import 'package:machinery/core/shared_widgets/success_toast.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
@@ -27,6 +25,8 @@ import 'package:machinery/feature/violations/domain/entities/violation_entity.da
 import 'package:machinery/feature/violations/domain/params/violation_action_params.dart';
 import 'package:machinery/feature/violations/presentation/helpers/violation_labels.dart';
 import 'package:machinery/feature/violations/presentation/widgets/charge_violation_sheet.dart';
+import 'package:machinery/feature/violations/presentation/widgets/edit_violation_sheet.dart';
+import 'package:machinery/feature/violations/presentation/widgets/violation_actions_row.dart';
 import 'package:machinery/feature/violations/presentation/widgets/waive_violation_sheet.dart';
 
 /// One violation, and the three things that can be done to it: seen, charged,
@@ -73,6 +73,19 @@ class _ViolationDetailScreenState extends State<ViolationDetailScreen> {
     await context.read<ViolationDetailCubit>().waive(params);
   }
 
+  Future<void> _edit(ViolationEntity violation) async {
+    final UpdateViolationParams? params = await EditViolationSheet.show(
+      context,
+      violation: violation,
+    );
+
+    if (params == null || !mounted) {
+      return;
+    }
+
+    await context.read<ViolationDetailCubit>().edit(params);
+  }
+
   /// Actions report through the cubit's two one-shot fields rather than through
   /// the state, so a rebuild cannot re-fire a toast.
   void _announce(BuildContext context, ViolationDetailState state) {
@@ -101,6 +114,7 @@ class _ViolationDetailScreenState extends State<ViolationDetailScreen> {
         LocaleKeys.violationAcknowledged.tr(),
       ViolationActionOutcome.charged => LocaleKeys.violationChargeDone.tr(),
       ViolationActionOutcome.waived => LocaleKeys.violationWaiveDone.tr(),
+      ViolationActionOutcome.edited => LocaleKeys.violationEditDone.tr(),
     }, context);
   }
 
@@ -148,6 +162,11 @@ class _ViolationDetailScreenState extends State<ViolationDetailScreen> {
     );
   }
 
+  String? get _currentUserId {
+    final AuthState state = getIt<AuthCubit>().state;
+    return state is Authenticated ? state.profile.user.id : null;
+  }
+
   Widget _buildBody(BuildContext context, ViolationDetailLoaded state) {
     final ViolationEntity violation = state.violation;
 
@@ -157,18 +176,34 @@ class _ViolationDetailScreenState extends State<ViolationDetailScreen> {
         _Header(violation: violation),
         const SizedBox(height: AppSpacing.md),
 
-        _FactsCard(violation: violation),
+        _FactsCard(
+          violation: violation,
+          onTapMachine: violation.machine == null
+              ? null
+              : () => AppRoute.goToMachineDetail(
+                  context: context,
+                  machineId: violation.machine!.id,
+                ),
+          onTapTransfer: violation.transferId == null
+              ? null
+              : () => AppRoute.goToTransferDetail(
+                  context: context,
+                  transferId: violation.transferId!,
+                ),
+        ),
         const SizedBox(height: AppSpacing.md),
 
         if (violation.isSettled)
           _OutcomeCard(violation: violation)
         else
-          _Actions(
+          ViolationActionsRow(
             violation: violation,
             isBusy: state.actionInProgress,
+            currentUserId: _currentUserId,
             onAcknowledge: context.read<ViolationDetailCubit>().acknowledge,
             onCharge: _charge,
             onWaive: _waive,
+            onEdit: () => _edit(violation),
           ),
       ],
     );
@@ -225,9 +260,15 @@ class _Header extends StatelessWidget {
 }
 
 class _FactsCard extends StatelessWidget {
-  const _FactsCard({required this.violation});
+  const _FactsCard({
+    required this.violation,
+    this.onTapMachine,
+    this.onTapTransfer,
+  });
 
   final ViolationEntity violation;
+  final VoidCallback? onTapMachine;
+  final VoidCallback? onTapTransfer;
 
   @override
   Widget build(BuildContext context) {
@@ -243,13 +284,51 @@ class _FactsCard extends StatelessWidget {
           label: LocaleKeys.violationMachine.tr(),
           valueWidget: violation.machine == null
               ? null
-              : LtrText(
-                  violation.machine!.serial,
-                  style: Styles.s14(
-                    context,
-                  ).copyWith(fontWeight: FontWeight.w500),
+              : InkWell(
+                  onTap: onTapMachine,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      LtrText(
+                        violation.machine!.serial,
+                        style: Styles.s14(context).copyWith(
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.primaryColor,
+                        ),
+                      ),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        size: 16,
+                        color: AppColors.primaryColor,
+                      ),
+                    ],
+                  ),
                 ),
         ),
+        if (violation.transferId != null)
+          DetailRow(
+            label: LocaleKeys.violationTransfer.tr(),
+            valueWidget: InkWell(
+              onTap: onTapTransfer,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Text(
+                    LocaleKeys.violationViewTransfer.tr(),
+                    style: Styles.s14(context).copyWith(
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.primaryColor,
+                    ),
+                  ),
+                  const Icon(
+                    Icons.chevron_right_rounded,
+                    size: 16,
+                    color: AppColors.primaryColor,
+                  ),
+                ],
+              ),
+            ),
+          ),
         DetailRow(
           label: LocaleKeys.violationRaisedOn.tr(),
           value: violation.createdAt == null
@@ -306,78 +385,6 @@ class _OutcomeCard extends StatelessWidget {
         DetailRow(
           label: LocaleKeys.violationWaiverReason.tr(),
           value: violation.waiverReason,
-        ),
-      ],
-    );
-  }
-}
-
-class _Actions extends StatelessWidget {
-  const _Actions({
-    required this.violation,
-    required this.isBusy,
-    required this.onAcknowledge,
-    required this.onCharge,
-    required this.onWaive,
-  });
-
-  final ViolationEntity violation;
-  final bool isBusy;
-  final VoidCallback onAcknowledge;
-  final VoidCallback onCharge;
-  final VoidCallback onWaive;
-
-  /// Acknowledgement is the subject's own statement, so it is offered only to
-  /// him. Read the same way `UserFormActions` answers "is this me".
-  String? get _currentUserId {
-    final AuthState state = getIt<AuthCubit>().state;
-    return state is Authenticated ? state.profile.user.id : null;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        if (violation.canAcknowledgeBy(_currentUserId)) ...<Widget>[
-          OutlinedButton.icon(
-            onPressed: isBusy ? null : onAcknowledge,
-            icon: const Icon(Icons.visibility_outlined),
-            label: Semantics(
-              identifier: 'violation_acknowledge_button',
-              child: Text(LocaleKeys.violationAcknowledge.tr()),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          DetailNote(LocaleKeys.violationAcknowledgeHint.tr()),
-          const SizedBox(height: AppSpacing.md),
-        ],
-
-        // Charging writes a finance transaction as well as closing the row, so
-        // it follows `violations.resolve` — the permission that carries the
-        // authority to put a cost on someone.
-        PermissionGate(
-          permission: P.violationsResolve,
-          child: FilledButton.icon(
-            onPressed: isBusy ? null : onCharge,
-            icon: const Icon(Icons.payments_outlined),
-            label: Semantics(
-              identifier: 'violation_charge_button',
-              child: Text(LocaleKeys.violationCharge.tr()),
-            ),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        PermissionGate(
-          permission: P.violationsWaive,
-          child: OutlinedButton.icon(
-            onPressed: isBusy ? null : onWaive,
-            icon: const Icon(Icons.do_not_disturb_on_outlined),
-            label: Semantics(
-              identifier: 'violation_waive_button',
-              child: Text(LocaleKeys.violationWaive.tr()),
-            ),
-          ),
         ),
       ],
     );

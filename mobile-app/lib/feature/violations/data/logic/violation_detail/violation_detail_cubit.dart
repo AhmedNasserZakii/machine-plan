@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:machinery/core/network_services/api_service_failure.dart';
+import 'package:machinery/core/services/finance_change_notifier.dart';
 import 'package:machinery/feature/violations/data/logic/violation_detail/violation_detail_state.dart';
 import 'package:machinery/feature/violations/domain/entities/violation_entity.dart';
 import 'package:machinery/feature/violations/domain/params/violation_action_params.dart';
@@ -8,7 +9,7 @@ import 'package:machinery/feature/violations/domain/repos/violations_repo.dart';
 
 /// What a finished action wants to tell the screen, so the cubit stays free of
 /// `BuildContext` and the screen owns every toast and pop.
-enum ViolationActionOutcome { acknowledged, charged, waived }
+enum ViolationActionOutcome { acknowledged, charged, waived, edited }
 
 class ViolationDetailCubit extends Cubit<ViolationDetailState> {
   /// [initial] is the row the list already has, so the screen opens with the
@@ -16,6 +17,7 @@ class ViolationDetailCubit extends Cubit<ViolationDetailState> {
   ViolationDetailCubit({
     required this.violationsRepo,
     required this.violationId,
+    required this.financeChangeNotifier,
     ViolationEntity? initial,
   }) : super(
          initial == null
@@ -25,6 +27,7 @@ class ViolationDetailCubit extends Cubit<ViolationDetailState> {
 
   final ViolationsRepo violationsRepo;
   final String violationId;
+  final FinanceChangeNotifier financeChangeNotifier;
 
   /// Set by an action so the screen can react once and clear it. Kept off the
   /// state because a rebuild must not re-fire a toast.
@@ -81,6 +84,16 @@ class ViolationDetailCubit extends Cubit<ViolationDetailState> {
     );
   }
 
+  /// Correcting the severity or description on a still-open, hand-raised
+  /// record. Refused server-side on an auto-generated row — `violation.
+  /// isEditable` already keeps the button off the screen for one.
+  Future<void> edit(UpdateViolationParams params) {
+    return _act(
+      ViolationActionOutcome.edited,
+      () => violationsRepo.updateViolation(id: violationId, params: params),
+    );
+  }
+
   /// Every action runs the same way: guard against a double tap, run, then take
   /// the row the server answers with — it already carries the new status, the
   /// timestamps and the amount, so there is nothing to re-fetch.
@@ -113,6 +126,12 @@ class ViolationDetailCubit extends Cubit<ViolationDetailState> {
         emit(
           ViolationDetailLoaded(violation: updated, actionInProgress: false),
         );
+        // A charge posts a finance transaction, which the Finance tab and
+        // home dashboard have no other way to hear about while this screen
+        // lives in a different tab's navigation stack.
+        if (outcome == ViolationActionOutcome.charged) {
+          financeChangeNotifier.notify();
+        }
       },
     );
   }

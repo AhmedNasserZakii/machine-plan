@@ -2594,14 +2594,108 @@ cases).
 
 ---
 
-## 12. Flutter violations completion
+## 12. Flutter violations completion — done 2026-09-11
 
-- [ ] Add a dedicated “My violations” entry point and correctly scoped query.
-- [ ] Add user-violations navigation from user detail.
-- [ ] Verify manual creation/update actions required by permissions and backend contract.
-- [ ] Show related machine, transfer, evidence, acknowledgement, charge, and waiver history.
-- [ ] Refresh finance-related state after charge.
-- [ ] Add cubit and widget tests for list, detail, summary, charge, waive, and permission gating.
+- [x] Add a dedicated “My violations” entry point and correctly scoped query.
+- [x] Add user-violations navigation from user detail.
+- [x] Verify manual creation/update actions required by permissions and backend contract.
+- [x] Show related machine, transfer, evidence, acknowledgement, charge, and waiver history.
+- [x] Refresh finance-related state after charge.
+- [x] Add cubit and widget tests for list, detail, summary, charge, waive, and permission gating.
+
+**Found mostly built already.** `ViolationsRepo`/`ViolationsRepoImpl` already covered every backend
+endpoint (list/detail/create/update/acknowledge/charge/waive/summary) field-for-field, and the list/
+detail/summary cubits and screens, charge/waive sheets, and acknowledge action were all real and
+working — this section was six specific, genuine gaps on top of that foundation, not a rebuild.
+
+- **“My violations”**: the existing More-screen “Violations” tile relies entirely on the backend's
+  ambient own-OR-branch scoping (`violations.service.ts`'s `applyScope`), which is not the same
+  thing as “my own file” for a branch supervisor (who sees the whole branch, not just himself). Added
+  a second, explicitly self-scoped tile (`ViolationsQueryParams(userId: <signed-in user>)`) next to
+  it. Also deleted `WebConstant.myViolations` (`'violations/mine'`) — a dead constant pointing at an
+  endpoint that does not exist on the backend and was never referenced anywhere else.
+- **User-detail navigation**: `UserFormActions` (`user_form_screen.dart`'s edit mode) gained two
+  `PermissionGate(permission: P.violationsRead)` tiles — the scoped violations list and the
+  already-built-but-previously-unreachable `ViolationSummaryScreen`/`goToViolationSummary` route,
+  both keyed to the viewed user's id.
+- **Manual creation**: genuinely missing end-to-end — `createViolation`/`updateViolation` existed
+  in the repo and were never called from any screen, and four locale keys anticipated a screen that
+  was never built. New `ViolationCreateScreen`/`ViolationCreateCubit`, reached from a new FAB on
+  `ViolationsListScreen` gated by `violations.create`: violation type (severity defaults from the
+  type's own `defaultSeverity`, still overridable), a company-wide single-select user picker
+  (`ViolationUserPickerSheet`, no role restriction — unlike maintenance close's responsible-user
+  picker, the plan does not limit manual entry to representatives), an optional machine picker
+  (`ViolationMachinePickerSheet`), and a description field capped at the DTO's 1000 chars.
+  `transferItemId` was deliberately left out of the form — there is no reasonable picker for “one
+  specific line of one specific transfer,” and the backend already treats it as optional.
+- **Manual update + a real gating bug found while verifying against the contract**: added
+  `EditViolationSheet` (severity + description, gated by `violations.resolve` and
+  `violation.isEditable`) for correcting a hand-raised, still-open row. While checking every action
+  against its exact backend guard, found the charge button was gated on `violations.resolve` alone —
+  the backend requires `violations.resolve` **and** `finance.create` together
+  (`violations.controller.ts`). `PermissionGate` has no “all of” form, so this needed the same
+  `ValueListenableBuilder` + `PermissionService.hasAll([...])` shape `11.2`'s maintenance-close button
+  already established for its own dual-permission case, not a `PermissionGate` extension.
+- **Related records**: the violation response has no evidence field and no nested transfer object of
+  its own — only a bare `transferId` — so “evidence” is only ever reachable through the linked
+  transfer's own photos, which was not wired in at all. `ViolationDetailScreen` now makes the machine
+  serial tappable (`AppRoute.goToMachineDetail`) and adds a transfer row that opens
+  `AppRoute.goToTransferDetail` when `transferId` is present. Acknowledgement/charge/waiver stay flat
+  current-state fields, matching the backend, which keeps no history array either.
+- **Finance refresh after charge**: charging posts a real income `finance_transactions` row, but
+  `FinanceOverviewCubit` and `HomeDashboardCubit` are both built once by `BlocProvider` the first time
+  their bottom-nav tab is opened and then kept alive for the rest of the session by `MainScaffold`'s
+  `IndexedStack` — switching tabs never re-runs `initState`, so a charge made from the Violations tab
+  had no way to reach either one. New `FinanceChangeNotifier` (`core/services/`), the same
+  tiny-broadcast-singleton shape `SyncCoordinator.onChange` already uses for the sync-queue badge:
+  `ViolationDetailCubit.charge()` calls `notify()` on success (not on waive/acknowledge/edit, since
+  only a charge touches finance), and both cubits subscribe in their constructors, reloading silently
+  (`showLoader: false`, and only the finance/budgets tiles on Home, gated on the viewer still holding
+  `finance.read`) and cancelling the subscription in `close()`.
+- **Tests — a full gap before this pass**, only JSON-contract parsing was covered. Extracted the
+  private `_Actions` widget out of `violation_detail_screen.dart` into a standalone, DI-only
+  `ViolationActionsRow` (mirroring `MachineActionsSection`'s testability) specifically so permission
+  gating could be tested without needing a cubit, a repo, or a faked `AuthCubit`. New:
+  `violations_list_cubit_test.dart` (4 — including a `LookupsRepo` subclass fake, since `load()`
+  lazily hits the real singleton for the type filter and there was no existing pattern for faking
+  that concrete class), `violation_detail_cubit_test.dart` (4 — acknowledge, a failed action, charge
+  notifying `FinanceChangeNotifier` while waive does not, and edit refused on an auto-generated row),
+  `violation_summary_cubit_test.dart` (2), `violation_create_cubit_test.dart` (5), and
+  `violation_actions_row_widget_test.dart` (8 — acknowledge's self-only check, charge's dual-permission
+  requirement in both directions, waive, edit hidden on an auto-generated row, and a tap-callback
+  check). `test/home_dashboard_cubit_test.dart` updated for the cubit's new required constructor
+  parameter (5 call sites) — no other existing test needed touching.
+
+**Not done this pass, and worth flagging:** no live backend/emulator verification — this session had
+neither running, so everything above is checked by `flutter analyze`/`flutter test` only, the same
+caveat `11.2` recorded for the same reason. The known backend gap from `11.1`
+(`chk_machines_holder_pair` not allowing a null `current_holder_id` for `SERVICE_CENTER`) is unrelated
+and still unfixed.
+
+**Files:** `mobile-app/lib/core/services/finance_change_notifier.dart` (new);
+`mobile-app/lib/feature/violations/data/logic/violation_create/{violation_create_cubit,
+violation_create_state}.dart` (new); `.../presentation/pages/violation_create_screen.dart` (new);
+`.../presentation/widgets/{violation_actions_row,edit_violation_sheet,violation_user_picker_sheet,
+violation_machine_picker_sheet}.dart` (new); `.../data/logic/violation_detail/violation_detail_cubit.dart`
+(`edit`, finance notify), `.../presentation/pages/violation_detail_screen.dart` (actions row wiring,
+machine/transfer links, `_edit`), `.../presentation/pages/violations_list_screen.dart` (create FAB);
+`mobile-app/lib/feature/finance/data/logic/finance_overview/finance_overview_cubit.dart`,
+`mobile-app/lib/feature/home/data/logic/home_dashboard_cubit.dart` (both: `FinanceChangeNotifier`
+subscription); `mobile-app/lib/feature/more/presentation/pages/more_screen.dart` (“My violations”
+tile), `mobile-app/lib/feature/users/presentation/widgets/user_form_actions.dart` (violations +
+summary tiles); `mobile-app/lib/core/di/service_locator.dart`, `.../core/utils/app_route.dart`
+(`goToViolationCreate`), `.../core/network_services/web_constant.dart` (removed dead `myViolations`),
+`.../core/constants/locale_keys.dart`, `assets/translations/{en,ar}.json`; new test files
+`mobile-app/test/{violations_list_cubit_test,violation_detail_cubit_test,violation_summary_cubit_test,
+violation_create_cubit_test,violation_actions_row_widget_test}.dart`, plus `test/home_dashboard_cubit_test.dart`
+(updated call sites).
+
+**Mobile verified** with `flutter analyze` (0 issues) and the full `flutter test` suite —
+**224/224 passing**, up from 201 (23 new tests, no existing test touched beyond the required-parameter
+update above).
+
+**How to continue:** Section 13 (Flutter finance) is already marked complete below it — confirm that
+is still accurate before starting Section 14 (Flutter reports).
 
 ---
 

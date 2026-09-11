@@ -18,6 +18,7 @@ import 'package:machinery/feature/more/presentation/widgets/more_profile_header.
 import 'package:machinery/feature/more/presentation/widgets/more_section.dart';
 import 'package:machinery/feature/more/presentation/widgets/more_tile.dart';
 import 'package:machinery/feature/splash/presentation/widgets/language_bottom_sheet.dart';
+import 'package:machinery/feature/violations/domain/params/violations_query_params.dart';
 
 /// The overflow tab. Everything that does not earn a permanent slot in the
 /// bottom bar lives here: reports, user administration, notifications, device
@@ -120,7 +121,7 @@ class _MoreView extends StatelessWidget {
                           onTap: () =>
                               AppRoute.goToReportsHub(context: context),
                         ),
-                      if (permissionService.has(P.violationsRead))
+                      if (permissionService.has(P.violationsRead)) ...<Widget>[
                         MoreTile(
                           identifier: 'more_violations_tile',
                           icon: Icons.gavel_rounded,
@@ -131,6 +132,23 @@ class _MoreView extends StatelessWidget {
                           onTap: () =>
                               AppRoute.goToViolationsList(context: context),
                         ),
+                        MoreTile(
+                          identifier: 'more_my_violations_tile',
+                          icon: Icons.badge_outlined,
+                          label: LocaleKeys.violationsMineTitle.tr(),
+                          // Explicitly scoped to the signed-in user, unlike
+                          // the tile above — a branch supervisor's own record
+                          // is a narrower thing than "everyone in my branch",
+                          // which is what the server's ambient scoping alone
+                          // would otherwise show him.
+                          onTap: () => AppRoute.goToViolationsList(
+                            context: context,
+                            scope: ViolationsQueryParams(
+                              userId: authState.profile.user.id,
+                            ),
+                          ),
+                        ),
+                      ],
                       if (permissionService.has(P.maintenanceRead))
                         MoreTile(
                           identifier: 'more_maintenance_tile',

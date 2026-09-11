@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:machinery/core/services/finance_change_notifier.dart';
 import 'package:machinery/core/services/sync/finance_sync_queue.dart';
 import 'package:machinery/feature/finance/data/logic/finance_overview/finance_overview_state.dart';
 import 'package:machinery/feature/finance/domain/entities/finance_entities.dart';
@@ -6,10 +9,22 @@ import 'package:machinery/feature/finance/domain/params/finance_params.dart';
 import 'package:machinery/feature/finance/domain/repos/finance_repo.dart';
 
 class FinanceOverviewCubit extends Cubit<FinanceOverviewState> {
-  FinanceOverviewCubit({required this.repo, required this.queue})
-    : super(const FinanceOverviewInitial());
+  FinanceOverviewCubit({
+    required this.repo,
+    required this.queue,
+    required this.financeChangeNotifier,
+  }) : super(const FinanceOverviewInitial()) {
+    // Picks up a transaction posted elsewhere — a violation charge, in
+    // particular — even while this tab stays mounted in the background.
+    _changesSubscription = financeChangeNotifier.onChange.listen(
+      (_) => load(showLoader: false),
+    );
+  }
   final FinanceRepo repo;
   final FinanceSyncQueue queue;
+  final FinanceChangeNotifier financeChangeNotifier;
+
+  StreamSubscription<void>? _changesSubscription;
 
   Future<void> load({FinanceQuery? query, bool showLoader = true}) async {
     final FinanceOverviewLoaded? previous = state is FinanceOverviewLoaded
@@ -67,5 +82,11 @@ class FinanceOverviewCubit extends Cubit<FinanceOverviewState> {
         pendingCount: await queue.pendingCount(),
       ),
     );
+  }
+
+  @override
+  Future<void> close() {
+    _changesSubscription?.cancel();
+    return super.close();
   }
 }

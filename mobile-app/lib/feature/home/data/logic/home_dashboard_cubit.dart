@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:machinery/core/permissions/permission_keys.dart';
 import 'package:machinery/core/permissions/permission_service.dart';
+import 'package:machinery/core/services/finance_change_notifier.dart';
 import 'package:machinery/feature/finance/domain/entities/finance_entities.dart';
 import 'package:machinery/feature/home/data/logic/home_block_kind.dart';
 import 'package:machinery/feature/home/data/logic/home_dashboard_state.dart';
@@ -16,11 +19,27 @@ import 'package:machinery/feature/home/domain/repos/home_repo.dart';
 /// the bottom bar (`PermissionService.permissions`), and the dashboard is
 /// rebuilt along with it because the tab it lives on is rebuilt too.
 class HomeDashboardCubit extends Cubit<HomeDashboardState> {
-  HomeDashboardCubit({required this.repo, required this.permissionService})
-    : super(const HomeDashboardInitial());
+  HomeDashboardCubit({
+    required this.repo,
+    required this.permissionService,
+    required this.financeChangeNotifier,
+  }) : super(const HomeDashboardInitial()) {
+    // A violation charged from a different tab posts a finance transaction
+    // this dashboard otherwise never hears about — `IndexedStack` keeps this
+    // cubit alive for the whole session once the Home tab is first built.
+    _changesSubscription = financeChangeNotifier.onChange.listen((_) {
+      if (_permitted(P.financeRead)) {
+        retry(HomeBlockKind.finance);
+        retry(HomeBlockKind.budgets);
+      }
+    });
+  }
 
   final HomeRepo repo;
   final PermissionService permissionService;
+  final FinanceChangeNotifier financeChangeNotifier;
+
+  StreamSubscription<void>? _changesSubscription;
 
   Future<void> load() async {
     final HomeDashboardLoaded? previous = state is HomeDashboardLoaded
@@ -30,10 +49,18 @@ class HomeDashboardCubit extends Cubit<HomeDashboardState> {
     emit(
       HomeDashboardLoaded(
         machines: _permitted(P.machinesRead) ? const HomeBlock.loading() : null,
-        transfers: _permitted(P.transfersRead) ? const HomeBlock.loading() : null,
-        merchants: _permitted(P.merchantsRead) ? const HomeBlock.loading() : null,
-        violations: _permitted(P.violationsRead) ? const HomeBlock.loading() : null,
-        maintenance: _permitted(P.maintenanceRead) ? const HomeBlock.loading() : null,
+        transfers: _permitted(P.transfersRead)
+            ? const HomeBlock.loading()
+            : null,
+        merchants: _permitted(P.merchantsRead)
+            ? const HomeBlock.loading()
+            : null,
+        violations: _permitted(P.violationsRead)
+            ? const HomeBlock.loading()
+            : null,
+        maintenance: _permitted(P.maintenanceRead)
+            ? const HomeBlock.loading()
+            : null,
         finance: _permitted(P.financeRead) ? const HomeBlock.loading() : null,
         budgets: _permitted(P.financeRead) ? const HomeBlock.loading() : null,
         isRefreshing: previous != null,
@@ -50,10 +77,18 @@ class HomeDashboardCubit extends Cubit<HomeDashboardState> {
       HomeBlock<BudgetStatusList>? budgets,
     ) = await (
       _permitted(P.machinesRead) ? repo.machinesSummary() : Future.value(null),
-      _permitted(P.transfersRead) ? repo.transfersSummary() : Future.value(null),
-      _permitted(P.merchantsRead) ? repo.merchantsSummary() : Future.value(null),
-      _permitted(P.violationsRead) ? repo.violationsSummary() : Future.value(null),
-      _permitted(P.maintenanceRead) ? repo.maintenanceSummary() : Future.value(null),
+      _permitted(P.transfersRead)
+          ? repo.transfersSummary()
+          : Future.value(null),
+      _permitted(P.merchantsRead)
+          ? repo.merchantsSummary()
+          : Future.value(null),
+      _permitted(P.violationsRead)
+          ? repo.violationsSummary()
+          : Future.value(null),
+      _permitted(P.maintenanceRead)
+          ? repo.maintenanceSummary()
+          : Future.value(null),
       _permitted(P.financeRead) ? repo.financeSummary() : Future.value(null),
       _permitted(P.financeRead) ? repo.budgetsSummary() : Future.value(null),
     ).wait;
@@ -121,12 +156,20 @@ class HomeDashboardCubit extends Cubit<HomeDashboardState> {
     emit(update(current));
   }
 
-  void _applyIfLoaded(HomeDashboardLoaded Function(HomeDashboardLoaded) update) {
+  void _applyIfLoaded(
+    HomeDashboardLoaded Function(HomeDashboardLoaded) update,
+  ) {
     if (isClosed) return;
     final HomeDashboardLoaded? current = state is HomeDashboardLoaded
         ? state as HomeDashboardLoaded
         : null;
     if (current == null) return;
     emit(update(current));
+  }
+
+  @override
+  Future<void> close() {
+    _changesSubscription?.cancel();
+    return super.close();
   }
 }

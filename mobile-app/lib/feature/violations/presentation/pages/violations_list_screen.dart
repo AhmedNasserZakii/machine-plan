@@ -2,11 +2,13 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
+import 'package:machinery/core/permissions/permission_keys.dart';
 import 'package:machinery/core/shared_widgets/app_empty_state.dart';
 import 'package:machinery/core/shared_widgets/app_error_view.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
 import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
 import 'package:machinery/core/shared_widgets/paginated_list_view.dart';
+import 'package:machinery/core/shared_widgets/permission_gate.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/core/utils/app_route.dart';
 import 'package:machinery/feature/violations/data/logic/violations_list/violations_list_cubit.dart';
@@ -48,6 +50,16 @@ class _ViolationsListScreenState extends State<ViolationsListScreen> {
     }
 
     await context.read<ViolationsListCubit>().applyFilters(result);
+  }
+
+  Future<void> _openCreate() async {
+    final ViolationEntity? created = await AppRoute.goToViolationCreate(
+      context: context,
+    );
+
+    if (created != null && mounted) {
+      await context.read<ViolationsListCubit>().load(showLoader: false);
+    }
   }
 
   Future<void> _openDetail(ViolationEntity violation) async {
@@ -110,6 +122,14 @@ class _ViolationsListScreenState extends State<ViolationsListScreen> {
             _ => const AppLoadingIndicator(),
           };
         },
+      ),
+      floatingActionButton: PermissionGate(
+        permission: P.violationsCreate,
+        child: FloatingActionButton(
+          heroTag: 'violations_create_fab',
+          onPressed: _openCreate,
+          child: const Icon(Icons.add_rounded),
+        ),
       ),
     );
   }

@@ -65,11 +65,13 @@ import 'package:machinery/feature/users/domain/entities/user_entity.dart';
 import 'package:machinery/feature/users/presentation/pages/user_form_screen.dart';
 import 'package:machinery/feature/users/presentation/pages/user_permissions_screen.dart';
 import 'package:machinery/feature/users/presentation/pages/users_list_screen.dart';
+import 'package:machinery/feature/violations/data/logic/violation_create/violation_create_cubit.dart';
 import 'package:machinery/feature/violations/data/logic/violation_detail/violation_detail_cubit.dart';
 import 'package:machinery/feature/violations/data/logic/violation_summary/violation_summary_cubit.dart';
 import 'package:machinery/feature/violations/data/logic/violations_list/violations_list_cubit.dart';
 import 'package:machinery/feature/violations/domain/entities/violation_entity.dart';
 import 'package:machinery/feature/violations/domain/params/violations_query_params.dart';
+import 'package:machinery/feature/violations/presentation/pages/violation_create_screen.dart';
 import 'package:machinery/feature/violations/presentation/pages/violation_detail_screen.dart';
 import 'package:machinery/feature/violations/presentation/pages/violation_summary_screen.dart';
 import 'package:machinery/feature/violations/presentation/pages/violations_list_screen.dart';
@@ -473,6 +475,22 @@ abstract class AppRoute {
         builder: (_) => BlocProvider<ViolationSummaryCubit>(
           create: (_) => getIt<ViolationSummaryCubit>(param1: userId),
           child: const ViolationSummaryScreen(),
+        ),
+      ),
+    );
+  }
+
+  /// Resolves to the newly-raised row, so a caller showing a list can insert
+  /// it without a full reload.
+  static Future<ViolationEntity?> goToViolationCreate({
+    required BuildContext context,
+  }) {
+    return Navigator.push<ViolationEntity>(
+      context,
+      MaterialPageRoute<ViolationEntity>(
+        builder: (_) => BlocProvider<ViolationCreateCubit>(
+          create: (_) => getIt<ViolationCreateCubit>(),
+          child: const ViolationCreateScreen(),
         ),
       ),
     );

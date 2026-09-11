@@ -783,6 +783,7 @@ class LocaleKeys {
 
   // ── Violations ───────────────────────────────────────────────────────────
   static const String violationsTitle = 'violations_title';
+  static const String violationsMineTitle = 'violations_mine_title';
   static const String violationsEmptyTitle = 'violations_empty_title';
   static const String violationsEmptySubtitle = 'violations_empty_subtitle';
   static const String violationsNoSearchResults =
@@ -798,6 +799,7 @@ class LocaleKeys {
   static const String violationAgainst = 'violation_against';
   static const String violationMachine = 'violation_machine';
   static const String violationTransfer = 'violation_transfer';
+  static const String violationViewTransfer = 'violation_view_transfer';
   static const String violationRaisedOn = 'violation_raised_on';
   static const String violationChargedAmount = 'violation_charged_amount';
   static const String violationChargedOn = 'violation_charged_on';
@@ -818,6 +820,12 @@ class LocaleKeys {
   static const String violationRaiseTitle = 'violation_raise_title';
   static const String violationType = 'violation_type';
   static const String violationRaised = 'violation_raised';
+  static const String violationDescription = 'violation_description';
+  static const String violationSelectUser = 'violation_select_user';
+  static const String violationSelectMachine = 'violation_select_machine';
+  static const String violationEdit = 'violation_edit';
+  static const String violationEditTitle = 'violation_edit_title';
+  static const String violationEditDone = 'violation_edit_done';
 
   static const String violationSummaryTitle = 'violation_summary_title';
   static const String violationSummaryOpen = 'violation_summary_open';

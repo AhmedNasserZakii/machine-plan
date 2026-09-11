@@ -140,7 +140,6 @@ abstract class WebConstant {
 
   // ── Violations ───────────────────────────────────────────────────────────
   static const String violations = 'violations';
-  static const String myViolations = 'violations/mine';
 
   static String violation(String id) => '$violations/$id';
 

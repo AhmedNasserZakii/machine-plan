@@ -14,6 +14,7 @@ import 'package:machinery/core/network_services/api_service.dart';
 import 'package:machinery/core/permissions/permission_service.dart';
 import 'package:machinery/core/services/biometric/biometric_service.dart';
 import 'package:machinery/core/services/biometric/handover_biometric_service.dart';
+import 'package:machinery/core/services/finance_change_notifier.dart';
 import 'package:machinery/core/services/locale_service.dart';
 import 'package:machinery/core/services/sync/pending_sync_counter.dart';
 import 'package:machinery/core/services/sync/finance_sync_queue.dart';
@@ -79,6 +80,7 @@ import 'package:machinery/feature/users/data/logic/users_list/users_list_cubit.d
 import 'package:machinery/feature/users/domain/entities/user_entity.dart';
 import 'package:machinery/feature/users/domain/repos/users_repo.dart';
 import 'package:machinery/feature/users/domain/repos/users_repo_impl.dart';
+import 'package:machinery/feature/violations/data/logic/violation_create/violation_create_cubit.dart';
 import 'package:machinery/feature/violations/data/logic/violation_detail/violation_detail_cubit.dart';
 import 'package:machinery/feature/violations/data/logic/violation_summary/violation_summary_cubit.dart';
 import 'package:machinery/feature/violations/data/logic/violations_list/violations_list_cubit.dart';
@@ -165,6 +167,7 @@ void setupServiceLocator(AppDatabase appDatabase) {
   // stay factories: a screen must never inherit another screen's state.
   getIt.registerLazySingleton<PermissionService>(PermissionService.new);
   getIt.registerLazySingleton<LocaleService>(LocaleService.new);
+  getIt.registerLazySingleton<FinanceChangeNotifier>(FinanceChangeNotifier.new);
   getIt.registerLazySingleton<BiometricService>(BiometricService.new);
   getIt.registerLazySingleton<HandoverBiometricService>(
     HandoverBiometricService.new,
@@ -225,7 +228,11 @@ void setupServiceLocator(AppDatabase appDatabase) {
     ),
   );
   getIt.registerFactory<FinanceOverviewCubit>(
-    () => FinanceOverviewCubit(repo: getIt(), queue: getIt()),
+    () => FinanceOverviewCubit(
+      repo: getIt(),
+      queue: getIt(),
+      financeChangeNotifier: getIt(),
+    ),
   );
   getIt.registerFactory<FinanceTransactionsCubit>(
     () => FinanceTransactionsCubit(repo: getIt()),
@@ -399,6 +406,7 @@ void setupServiceLocator(AppDatabase appDatabase) {
     (String violationId, ViolationEntity? initial) => ViolationDetailCubit(
       violationsRepo: getIt(),
       violationId: violationId,
+      financeChangeNotifier: getIt(),
       initial: initial,
     ),
   );
@@ -406,6 +414,10 @@ void setupServiceLocator(AppDatabase appDatabase) {
   getIt.registerFactoryParam<ViolationSummaryCubit, String, void>(
     (String userId, _) =>
         ViolationSummaryCubit(violationsRepo: getIt(), userId: userId),
+  );
+
+  getIt.registerFactory<ViolationCreateCubit>(
+    () => ViolationCreateCubit(violationsRepo: getIt()),
   );
 
   // ── Maintenance, replacement, decommission ─────────────────────────────────
@@ -467,7 +479,11 @@ void setupServiceLocator(AppDatabase appDatabase) {
   );
 
   getIt.registerFactory<HomeDashboardCubit>(
-    () => HomeDashboardCubit(repo: getIt(), permissionService: getIt()),
+    () => HomeDashboardCubit(
+      repo: getIt(),
+      permissionService: getIt(),
+      financeChangeNotifier: getIt(),
+    ),
   );
 }
 
