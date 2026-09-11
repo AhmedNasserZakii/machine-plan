@@ -12,17 +12,17 @@ class RoleTranslations {
   final String? enDescription;
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-    'ar': <String, dynamic>{
-      'displayName': arName.trim(),
-      if (arDescription?.trim().isNotEmpty == true)
-        'description': arDescription!.trim(),
-    },
-    'en': <String, dynamic>{
-      'displayName': enName.trim(),
-      if (enDescription?.trim().isNotEmpty == true)
-        'description': enDescription!.trim(),
-    },
-  };
+        'ar': <String, dynamic>{
+          'displayName': arName.trim(),
+          if (arDescription?.trim().isNotEmpty == true)
+            'description': arDescription!.trim(),
+        },
+        'en': <String, dynamic>{
+          'displayName': enName.trim(),
+          if (enDescription?.trim().isNotEmpty == true)
+            'description': enDescription!.trim(),
+        },
+      };
 }
 
 class CreateRoleParams {
@@ -37,8 +37,8 @@ class CreateRoleParams {
   final List<String> permissions;
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-    'code': code.trim().toUpperCase(),
-    'translations': translations.toJson(),
-    'permissions': permissions,
-  };
+        'code': code.trim().toUpperCase(),
+        'translations': translations.toJson(),
+        'permissions': permissions,
+      };
 }

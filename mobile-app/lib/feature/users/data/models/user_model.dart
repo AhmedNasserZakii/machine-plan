@@ -41,9 +41,8 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     final dynamic rawRole = json[ApiKeys.role];
-    final Map<String, dynamic> role = rawRole is Map<String, dynamic>
-        ? rawRole
-        : const <String, dynamic>{};
+    final Map<String, dynamic> role =
+        rawRole is Map<String, dynamic> ? rawRole : const <String, dynamic>{};
 
     // Some payloads carry the branch as an object, others as a bare id.
     final dynamic rawBranch = json[ApiKeys.branch];
@@ -58,14 +57,12 @@ class UserModel {
       email: json[ApiKeys.email] as String?,
       roleId: role[ApiKeys.id]?.toString() ?? '',
       roleCode: role[ApiKeys.code] as String? ?? '',
-      roleName:
-          role[ApiKeys.displayName] as String? ??
+      roleName: role[ApiKeys.displayName] as String? ??
           role[ApiKeys.name] as String? ??
           '',
       branchId:
           json[ApiKeys.branchId]?.toString() ?? branch[ApiKeys.id]?.toString(),
-      branchName:
-          json[ApiKeys.branchName] as String? ??
+      branchName: json[ApiKeys.branchName] as String? ??
           branch[ApiKeys.name] as String?,
       isActive: json[ApiKeys.isActive] as bool? ?? true,
       mustChangePassword: json[ApiKeys.mustChangePassword] as bool? ?? false,

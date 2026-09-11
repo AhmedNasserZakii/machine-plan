@@ -10,6 +10,7 @@ import 'package:machinery/core/local_db/app_database.dart';
 import 'package:machinery/core/local_storage/local_storage.dart';
 import 'package:machinery/core/network_services/idempotency_interceptor.dart';
 import 'package:machinery/core/services/locale_service.dart';
+import 'package:machinery/core/services/observability/crash_reporter.dart';
 import 'package:machinery/core/services/sync/sync_coordinator.dart';
 import 'package:machinery/my_app.dart';
 import 'package:path_provider/path_provider.dart';
@@ -30,10 +31,13 @@ Future<void> main() async {
   final AppDatabase appDatabase = await AppDatabase.open();
   setupServiceLocator(appDatabase);
   await _ensureDeviceId();
+  _installCrashHandlers();
 
   final SyncCoordinator syncCoordinator = getIt<SyncCoordinator>();
   syncCoordinator.start();
-  getIt<LocaleService>().registerCacheInvalidator(syncCoordinator.invalidateForLocaleChange);
+  getIt<LocaleService>().registerCacheInvalidator(
+    syncCoordinator.invalidateForLocaleChange,
+  );
 
   await EasyLocalization.ensureInitialized();
   await Future.wait<void>(<Future<void>>[
@@ -54,6 +58,18 @@ Future<void> main() async {
       ),
     ),
   );
+}
+
+void _installCrashHandlers() {
+  final CrashReporter reporter = getIt<CrashReporter>();
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    reporter.recordFlutterError(details);
+  };
+  PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
+    reporter.recordError(error, stack, fatal: true);
+    return true;
+  };
 }
 
 /// A stable per-install id. Login sends it, and it becomes part of the

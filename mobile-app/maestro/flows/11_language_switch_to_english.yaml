@@ -1,4 +1,4 @@
-appId: com.machinery.machinery
+appId: com.machinery.machinery.dev
 name: 11 — Switching to English re-renders the login screen and persists
 tags:
   - l10n

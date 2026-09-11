@@ -17,9 +17,10 @@
 
 set -euo pipefail
 
-APP_ID="com.machinery.machinery"
+APP_ID="com.machinery.machinery.dev"
 MOCK_PORT="${MOCK_PORT:-8787}"
 LIVE="${LIVE:-0}"
+FLAVOR="${FLAVOR:-development}"
 
 # The emulator reaches the host machine on 10.0.2.2, never on localhost.
 if [ "$LIVE" = "1" ]; then
@@ -89,9 +90,17 @@ else
 fi
 
 if [ "${SKIP_BUILD:-0}" != "1" ]; then
-  echo "==> building debug APK against ${API_BASE_URL}"
-  flutter build apk --debug --dart-define=API_BASE_URL="$API_BASE_URL"
-  "$adb" install -r build/app/outputs/flutter-apk/app-debug.apk
+  echo "==> building debug APK against ${API_BASE_URL} (flavor=${FLAVOR})"
+  flutter build apk --debug \
+    --flavor "$FLAVOR" \
+    --dart-define=APP_ENV=development \
+    --dart-define=APP_VERSION=1.0.0 \
+    --dart-define=API_BASE_URL="$API_BASE_URL"
+  apk="build/app/outputs/flutter-apk/app-${FLAVOR}-debug.apk"
+  if [ ! -f "$apk" ]; then
+    apk="build/app/outputs/flutter-apk/app-debug.apk"
+  fi
+  "$adb" install -r "$apk"
 fi
 
 # Animations make assertions racy.

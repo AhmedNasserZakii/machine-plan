@@ -17,8 +17,7 @@ UserCustodyEntity userCustodyFromJson(Map<String, dynamic> json) {
         serial: row['serial']?.toString() ?? '',
         model: row['model']?.toString() ?? '',
         status: row['status']?.toString() ?? '',
-        heldSince:
-            DateTime.tryParse(row['heldSince']?.toString() ?? '') ??
+        heldSince: DateTime.tryParse(row['heldSince']?.toString() ?? '') ??
             DateTime(1970),
         merchantId: merchant['id']?.toString(),
         merchantName: merchant['shopName']?.toString(),

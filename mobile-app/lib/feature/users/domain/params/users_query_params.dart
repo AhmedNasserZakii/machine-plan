@@ -63,11 +63,11 @@ class UsersQueryParams extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[
-    page,
-    limit,
-    search,
-    roleId,
-    branchId,
-    isActive,
-  ];
+        page,
+        limit,
+        search,
+        roleId,
+        branchId,
+        isActive,
+      ];
 }

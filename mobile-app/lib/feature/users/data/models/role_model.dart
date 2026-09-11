@@ -40,8 +40,7 @@ class RoleModel {
     return RoleModel(
       id: json[ApiKeys.id]?.toString() ?? '',
       code: json[ApiKeys.code] as String? ?? '',
-      displayName:
-          json[ApiKeys.displayName] as String? ??
+      displayName: json[ApiKeys.displayName] as String? ??
           json[ApiKeys.name] as String? ??
           '',
       description: json[ApiKeys.description] as String?,

@@ -78,7 +78,6 @@ class _UsersFilterSheetState extends State<UsersFilterSheet> {
           children: <Widget>[
             Text(LocaleKeys.userFilters.tr(), style: Styles.s17(context)),
             const SizedBox(height: AppSpacing.lg),
-
             FilterSection(
               title: LocaleKeys.userRole.tr(),
               child: FilterChoiceRow(
@@ -94,7 +93,6 @@ class _UsersFilterSheetState extends State<UsersFilterSheet> {
                 onSelected: (String? value) => setState(() => _roleId = value),
               ),
             ),
-
             if (widget.branches.isNotEmpty)
               FilterSection(
                 title: LocaleKeys.userBranch.tr(),
@@ -112,7 +110,6 @@ class _UsersFilterSheetState extends State<UsersFilterSheet> {
                       setState(() => _branchId = value),
                 ),
               ),
-
             FilterSection(
               title: LocaleKeys.userFilterStatus.tr(),
               child: FilterChoiceRow(
@@ -128,7 +125,6 @@ class _UsersFilterSheetState extends State<UsersFilterSheet> {
                 ),
               ),
             ),
-
             const SizedBox(height: AppSpacing.lg),
             CustomButton(
               title: LocaleKeys.confirm.tr(),

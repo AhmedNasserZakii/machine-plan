@@ -1,4 +1,4 @@
-appId: com.machinery.machinery
+appId: com.machinery.machinery.dev
 name: 10 — A dead backend must not lock a logged-in user out
 tags:
   - auth

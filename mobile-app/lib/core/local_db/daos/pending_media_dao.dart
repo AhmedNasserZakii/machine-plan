@@ -27,7 +27,8 @@ class PendingMediaDao {
   }
 
   Future<void> delete(String clientUuid) async {
-    await _db.delete('pending_media', where: 'client_uuid = ?', whereArgs: <String>[clientUuid]);
+    await _db.delete('pending_media',
+        where: 'client_uuid = ?', whereArgs: <String>[clientUuid]);
   }
 
   Future<PendingMediaItem?> findByClientUuid(String clientUuid) async {
@@ -41,7 +42,8 @@ class PendingMediaDao {
     return PendingMediaItem.fromRow(rows.first);
   }
 
-  Future<List<PendingMediaItem>> findByClientUuids(List<String> clientUuids) async {
+  Future<List<PendingMediaItem>> findByClientUuids(
+      List<String> clientUuids) async {
     if (clientUuids.isEmpty) return const <PendingMediaItem>[];
     final String placeholders = List.filled(clientUuids.length, '?').join(',');
     final List<Map<String, dynamic>> rows = await _db.query(
@@ -60,6 +62,18 @@ class PendingMediaDao {
       orderBy: 'created_at ASC',
     );
     return rows.map(PendingMediaItem.fromRow).toList(growable: false);
+  }
+
+  /// Process kill mid-upload leaves rows stuck in `uploading`. On the next
+  /// boot they must go back to `staged` so [MediaStagingService.uploadAllPending]
+  /// will retry them instead of waiting forever for a dead request.
+  Future<int> resetInterruptedUploads() async {
+    return _db.update(
+      'pending_media',
+      <String, Object?>{'upload_state': MediaUploadState.staged.name},
+      where: 'upload_state = ?',
+      whereArgs: <String>[MediaUploadState.uploading.name],
+    );
   }
 
   Future<List<PendingMediaItem>> all() async {

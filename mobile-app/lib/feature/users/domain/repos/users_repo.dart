@@ -87,7 +87,7 @@ abstract class UsersRepo {
   });
 
   Future<Either<ServerFailure, List<PermissionGroupEntity>>>
-  fetchPermissionCatalogue();
+      fetchPermissionCatalogue();
 
   Future<Either<ServerFailure, List<BranchEntity>>> fetchBranches();
 }

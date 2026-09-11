@@ -12,7 +12,7 @@ import 'package:machinery/feature/users/domain/repos/users_repo.dart';
 /// create — there is no separate mode flag to keep in sync.
 class UserFormCubit extends Cubit<UserFormState> {
   UserFormCubit({required this.usersRepo, this.existing})
-    : super(const UserFormLoading());
+      : super(const UserFormLoading());
 
   final UsersRepo usersRepo;
   final UserEntity? existing;
@@ -42,8 +42,8 @@ class UserFormCubit extends Cubit<UserFormState> {
     // the picker would be empty.
     if (rolesResult.isLeft()) {
       final ServerFailure failure = rolesResult.swap().getOrElse(
-        () => ServerFailure(''),
-      );
+            () => ServerFailure(''),
+          );
       emit(
         UserFormLoadFailure(
           errorMessage: failure.errorMessage,
@@ -117,9 +117,8 @@ class UserFormCubit extends Cubit<UserFormState> {
       ),
     );
 
-    final String? branchId = role.isBranchScoped
-        ? current.selectedBranchId
-        : null;
+    final String? branchId =
+        role.isBranchScoped ? current.selectedBranchId : null;
 
     final Either<ServerFailure, UserEntity> result = isEditing
         ? await usersRepo.updateUser(

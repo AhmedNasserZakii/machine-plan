@@ -12,8 +12,8 @@ class UserActionsCubit extends Cubit<UserActionsState> {
     required this.usersRepo,
     required this.userId,
     required bool isActive,
-  }) : _isActive = isActive,
-       super(UserActionsIdle(isActive: isActive));
+  })  : _isActive = isActive,
+        super(UserActionsIdle(isActive: isActive));
 
   final UsersRepo usersRepo;
   final String userId;

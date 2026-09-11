@@ -460,7 +460,10 @@ function splitTransferId(payload: Record<string, unknown>): {
   if (typeof transferId !== 'string' || !transferId) {
     throw new AppException(ErrorCode.VALIDATION_FAILED, {
       details: [
-        { field: 'payload.transferId', constraint: 'required for CONFIRM_TRANSFER/REJECT_TRANSFER' },
+        {
+          field: 'payload.transferId',
+          constraint: 'required for CONFIRM_TRANSFER/REJECT_TRANSFER',
+        },
       ],
     });
   }

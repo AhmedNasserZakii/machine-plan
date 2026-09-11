@@ -1,4 +1,4 @@
-appId: com.machinery.machinery
+appId: com.machinery.machinery.dev
 name: Cold-start against the live API and sign in as the director
 ---
 # The live flows write real rows, so they never reset the server the way the

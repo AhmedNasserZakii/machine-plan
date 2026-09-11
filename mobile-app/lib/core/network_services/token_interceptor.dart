@@ -85,9 +85,9 @@ class TokenInterceptor extends Interceptor {
           // forever, so an unexpected throw has to resolve as "no token".
           .onError<Object>((_, _) => null)
           .then((String? token) {
-            _refreshCompleter = null;
-            completer.complete(token);
-          }),
+        _refreshCompleter = null;
+        completer.complete(token);
+      }),
     );
 
     return completer.future;

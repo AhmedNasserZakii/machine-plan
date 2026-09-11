@@ -15,11 +15,11 @@ class UserCustodySummary extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[
-    totalMachines,
-    withMerchants,
-    inHand,
-    openViolations,
-  ];
+        totalMachines,
+        withMerchants,
+        inHand,
+        openViolations,
+      ];
 }
 
 class UserCustodyMachine extends Equatable {
@@ -43,14 +43,14 @@ class UserCustodyMachine extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[
-    id,
-    serial,
-    model,
-    status,
-    heldSince,
-    merchantId,
-    merchantName,
-  ];
+        id,
+        serial,
+        model,
+        status,
+        heldSince,
+        merchantId,
+        merchantName,
+      ];
 }
 
 class UserCustodyEntity extends Equatable {

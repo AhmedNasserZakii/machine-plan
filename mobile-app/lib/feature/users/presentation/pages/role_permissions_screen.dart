@@ -19,7 +19,7 @@ class RolePermissionsScreen extends StatefulWidget {
 
 class _RolePermissionsScreenState extends State<RolePermissionsScreen> {
   late final Set<String> _selected = widget.role.permissions.toSet();
-  bool get _protected => widget.role.code == 'DIRECTOR';
+  bool get _protected => widget.role.isSystem;
 
   Future<void> _save() async {
     final cubit = context.read<RolesCubit>();
@@ -48,60 +48,74 @@ class _RolePermissionsScreenState extends State<RolePermissionsScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(widget.role.displayName)),
-    body: BlocBuilder<RolesCubit, RolesState>(
-      builder: (context, state) {
-        if (state is! RolesReady) return const AppLoadingIndicator();
-        return SafeArea(
-          child: Column(
-            children: <Widget>[
-              if (_protected)
-                MaterialBanner(
-                  content: Text(LocaleKeys.roleSystemProtected.tr()),
-                  actions: const <Widget>[SizedBox.shrink()],
-                ),
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsetsDirectional.all(AppSpacing.md),
-                  children: state.groups.map((group) => Card(
-                    child: ExpansionTile(
-                      title: Text(group.label),
-                      subtitle: Text(LocaleKeys.rolePermissionCount.tr(
-                        args: <String>[
-                          group.permissions.where((p) => _selected.contains(p.code)).length.toString(),
-                        ],
-                      )),
-                      children: group.permissions.map((permission) => CheckboxListTile(
-                        value: _selected.contains(permission.code),
-                        title: Text(permission.displayName),
-                        subtitle: permission.description == null
-                            ? null
-                            : Text(permission.description!),
-                        onChanged: _protected || state.isSaving
-                            ? null
-                            : (checked) => setState(() {
-                                checked == true
-                                    ? _selected.add(permission.code)
-                                    : _selected.remove(permission.code);
-                              }),
-                      )).toList(growable: false),
+        appBar: AppBar(title: Text(widget.role.displayName)),
+        body: BlocBuilder<RolesCubit, RolesState>(
+          builder: (context, state) {
+            if (state is! RolesReady) return const AppLoadingIndicator();
+            return SafeArea(
+              child: Column(
+                children: <Widget>[
+                  if (_protected)
+                    MaterialBanner(
+                      content: Text(LocaleKeys.roleSystemProtected.tr()),
+                      actions: const <Widget>[SizedBox.shrink()],
                     ),
-                  )).toList(growable: false),
-                ),
-              ),
-              if (!_protected)
-                Padding(
-                  padding: const EdgeInsetsDirectional.all(AppSpacing.md),
-                  child: FilledButton.icon(
-                    onPressed: state.isSaving ? null : _save,
-                    icon: const Icon(Icons.save_outlined),
-                    label: Text(LocaleKeys.save.tr()),
+                  Expanded(
+                    child: ListView(
+                      padding: const EdgeInsetsDirectional.all(AppSpacing.md),
+                      children: state.groups
+                          .map((group) => Card(
+                                child: ExpansionTile(
+                                  title: Text(group.label),
+                                  subtitle:
+                                      Text(LocaleKeys.rolePermissionCount.tr(
+                                    args: <String>[
+                                      group.permissions
+                                          .where(
+                                              (p) => _selected.contains(p.code))
+                                          .length
+                                          .toString(),
+                                    ],
+                                  )),
+                                  children: group.permissions
+                                      .map((permission) => CheckboxListTile(
+                                            value: _selected
+                                                .contains(permission.code),
+                                            title: Text(permission.displayName),
+                                            subtitle: permission.description ==
+                                                    null
+                                                ? null
+                                                : Text(permission.description!),
+                                            onChanged: _protected ||
+                                                    state.isSaving
+                                                ? null
+                                                : (checked) => setState(() {
+                                                      checked == true
+                                                          ? _selected.add(
+                                                              permission.code)
+                                                          : _selected.remove(
+                                                              permission.code);
+                                                    }),
+                                          ))
+                                      .toList(growable: false),
+                                ),
+                              ))
+                          .toList(growable: false),
+                    ),
                   ),
-                ),
-            ],
-          ),
-        );
-      },
-    ),
-  );
+                  if (!_protected)
+                    Padding(
+                      padding: const EdgeInsetsDirectional.all(AppSpacing.md),
+                      child: FilledButton.icon(
+                        onPressed: state.isSaving ? null : _save,
+                        icon: const Icon(Icons.save_outlined),
+                        label: Text(LocaleKeys.save.tr()),
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
+        ),
+      );
 }

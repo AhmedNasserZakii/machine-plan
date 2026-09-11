@@ -21,9 +21,9 @@ class PermissionGroupModel {
       label: json[ApiKeys.label] as String? ?? '',
       permissions: rawPermissions is List
           ? rawPermissions
-                .whereType<Map<String, dynamic>>()
-                .map(PermissionModel.fromJson)
-                .toList(growable: false)
+              .whereType<Map<String, dynamic>>()
+              .map(PermissionModel.fromJson)
+              .toList(growable: false)
           : const <PermissionModel>[],
     );
   }

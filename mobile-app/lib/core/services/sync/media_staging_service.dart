@@ -65,6 +65,11 @@ class MediaStagingService {
     return clientUuid;
   }
 
+  /// Process kill mid-upload leaves rows stuck in `uploading`. Call once at
+  /// app start (and before every flush) so retries resume cleanly.
+  Future<int> recoverInterruptedUploads() =>
+      pendingMediaDao.resetInterruptedUploads();
+
   /// Every staged/uploading/previously-failed row that isn't uploaded yet.
   /// `flush()` in `SyncQueueService` drains these before pushing any
   /// operation, since an operation referencing an unresolved media id comes
@@ -86,31 +91,38 @@ class MediaStagingService {
     if (!file.existsSync()) {
       // The file is gone (storage cleared, app data wiped by the OS) and
       // there is nothing left to upload — this can never succeed by retrying.
-      await pendingMediaDao.update(item.copyWith(uploadState: MediaUploadState.failed));
+      await pendingMediaDao
+          .update(item.copyWith(uploadState: MediaUploadState.failed));
       return false;
     }
 
-    await pendingMediaDao.update(item.copyWith(uploadState: MediaUploadState.uploading));
+    await pendingMediaDao
+        .update(item.copyWith(uploadState: MediaUploadState.uploading));
 
     try {
-      final Response<dynamic> response = await apiService.client().post<dynamic>(
-        WebConstant.mediaUpload,
-        data: FormData.fromMap(<String, dynamic>{
-          'purpose': item.purpose,
-          'clientUuid': item.clientUuid,
-          'file': await MultipartFile.fromFile(file.path, filename: p.basename(file.path)),
-        }),
-      );
+      final Response<dynamic> response =
+          await apiService.client().post<dynamic>(
+                WebConstant.mediaUpload,
+                data: FormData.fromMap(<String, dynamic>{
+                  'purpose': item.purpose,
+                  'clientUuid': item.clientUuid,
+                  'file': await MultipartFile.fromFile(file.path,
+                      filename: p.basename(file.path)),
+                }),
+              );
 
       final Map<String, dynamic> body = response.data is Map<String, dynamic>
           ? response.data as Map<String, dynamic>
           : const <String, dynamic>{};
-      final Map<String, dynamic> data =
-          body['data'] is Map<String, dynamic> ? body['data'] as Map<String, dynamic> : body;
+      final Map<String, dynamic> data = body['data'] is Map<String, dynamic>
+          ? body['data'] as Map<String, dynamic>
+          : body;
       final String? serverMediaId = data['id'] as String?;
 
       await pendingMediaDao.update(
-        item.copyWith(uploadState: MediaUploadState.uploaded, serverMediaId: serverMediaId),
+        item.copyWith(
+            uploadState: MediaUploadState.uploaded,
+            serverMediaId: serverMediaId),
       );
 
       // The evidence is safe on the server now; the local copy only ever
@@ -119,14 +131,18 @@ class MediaStagingService {
 
       return true;
     } on DioException catch (error, stackTrace) {
-      printDebug(message: 'media staging upload failed: ${error.message}', stackTrace: stackTrace);
+      printDebug(
+          message: 'media staging upload failed: ${error.message}',
+          stackTrace: stackTrace);
 
       final int attempts = item.attemptCount + 1;
-      final bool permanent = _isPermanentFailure(error) || attempts >= _maxAttemptsBeforeFailed;
+      final bool permanent =
+          _isPermanentFailure(error) || attempts >= _maxAttemptsBeforeFailed;
 
       await pendingMediaDao.update(
         item.copyWith(
-          uploadState: permanent ? MediaUploadState.failed : MediaUploadState.staged,
+          uploadState:
+              permanent ? MediaUploadState.failed : MediaUploadState.staged,
           attemptCount: attempts,
         ),
       );
@@ -148,7 +164,8 @@ class MediaStagingService {
   /// hand). Called by `SyncQueueService` after removing an item, never on a
   /// timer, so an upload still legitimately in flight is never swept.
   Future<void> deleteStaged(String clientUuid) async {
-    final PendingMediaItem? item = await pendingMediaDao.findByClientUuid(clientUuid);
+    final PendingMediaItem? item =
+        await pendingMediaDao.findByClientUuid(clientUuid);
     if (item == null) return;
 
     final File file = File(item.localPath);
@@ -164,9 +181,9 @@ class MediaStagingService {
   }
 
   String _extensionFor(String mimeType) => switch (mimeType) {
-    'image/png' => 'png',
-    'image/webp' => 'webp',
-    'application/pdf' => 'pdf',
-    _ => 'jpg',
-  };
+        'image/png' => 'png',
+        'image/webp' => 'webp',
+        'application/pdf' => 'pdf',
+        _ => 'jpg',
+      };
 }

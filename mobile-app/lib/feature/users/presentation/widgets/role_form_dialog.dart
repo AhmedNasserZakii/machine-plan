@@ -15,7 +15,8 @@ class RoleFormDialog extends StatefulWidget {
   const RoleFormDialog({this.role, super.key});
   final RoleEntity? role;
 
-  static Future<RoleFormResult?> show(BuildContext context, {RoleEntity? role}) =>
+  static Future<RoleFormResult?> show(BuildContext context,
+          {RoleEntity? role}) =>
       showDialog<RoleFormResult>(
         context: context,
         builder: (_) => RoleFormDialog(role: role),
@@ -29,10 +30,12 @@ class _RoleFormDialogState extends State<RoleFormDialog> {
   final _formKey = GlobalKey<FormState>();
   late final _code = TextEditingController(text: widget.role?.code);
   late final _arName = TextEditingController(
-    text: widget.role?.translations['ar']?.displayName ?? widget.role?.displayName,
+    text: widget.role?.translations['ar']?.displayName ??
+        widget.role?.displayName,
   );
   late final _enName = TextEditingController(
-    text: widget.role?.translations['en']?.displayName ?? widget.role?.displayName,
+    text: widget.role?.translations['en']?.displayName ??
+        widget.role?.displayName,
   );
   late final _arDescription = TextEditingController(
     text: widget.role?.translations['ar']?.description,
@@ -69,63 +72,72 @@ class _RoleFormDialogState extends State<RoleFormDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-    title: Text(
-      widget.role == null ? LocaleKeys.roleCreate.tr() : LocaleKeys.roleEdit.tr(),
-    ),
-    content: SizedBox(
-      width: 480,
-      child: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              if (widget.role == null)
-                TextFormField(
-                  controller: _code,
-                  textCapitalization: TextCapitalization.characters,
-                  decoration: InputDecoration(labelText: LocaleKeys.roleCode.tr()),
-                  validator: (value) => RegExp(r'^[A-Z][A-Z0-9_]{1,49}$')
-                          .hasMatch(value?.trim().toUpperCase() ?? '')
-                      ? null
-                      : LocaleKeys.roleCodeHint.tr(),
-                ),
-              const SizedBox(height: AppSpacing.sm),
-              TextFormField(
-                controller: _arName,
-                textDirection: TextDirection.rtl,
-                decoration: InputDecoration(labelText: LocaleKeys.roleNameArabic.tr()),
-                validator: _required,
+        title: Text(
+          widget.role == null
+              ? LocaleKeys.roleCreate.tr()
+              : LocaleKeys.roleEdit.tr(),
+        ),
+        content: SizedBox(
+          width: 480,
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  if (widget.role == null)
+                    TextFormField(
+                      controller: _code,
+                      textCapitalization: TextCapitalization.characters,
+                      decoration:
+                          InputDecoration(labelText: LocaleKeys.roleCode.tr()),
+                      validator: (value) => RegExp(r'^[A-Z][A-Z0-9_]{1,49}$')
+                              .hasMatch(value?.trim().toUpperCase() ?? '')
+                          ? null
+                          : LocaleKeys.roleCodeHint.tr(),
+                    ),
+                  const SizedBox(height: AppSpacing.sm),
+                  TextFormField(
+                    controller: _arName,
+                    textDirection: TextDirection.rtl,
+                    decoration: InputDecoration(
+                        labelText: LocaleKeys.roleNameArabic.tr()),
+                    validator: _required,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  TextFormField(
+                    controller: _enName,
+                    textDirection: TextDirection.ltr,
+                    decoration: InputDecoration(
+                        labelText: LocaleKeys.roleNameEnglish.tr()),
+                    validator: _required,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  TextField(
+                    controller: _arDescription,
+                    textDirection: TextDirection.rtl,
+                    decoration: InputDecoration(
+                        labelText: LocaleKeys.roleDescriptionArabic.tr()),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  TextField(
+                    controller: _enDescription,
+                    textDirection: TextDirection.ltr,
+                    decoration: InputDecoration(
+                        labelText: LocaleKeys.roleDescriptionEnglish.tr()),
+                  ),
+                ],
               ),
-              const SizedBox(height: AppSpacing.sm),
-              TextFormField(
-                controller: _enName,
-                textDirection: TextDirection.ltr,
-                decoration: InputDecoration(labelText: LocaleKeys.roleNameEnglish.tr()),
-                validator: _required,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              TextField(
-                controller: _arDescription,
-                textDirection: TextDirection.rtl,
-                decoration: InputDecoration(labelText: LocaleKeys.roleDescriptionArabic.tr()),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              TextField(
-                controller: _enDescription,
-                textDirection: TextDirection.ltr,
-                decoration: InputDecoration(labelText: LocaleKeys.roleDescriptionEnglish.tr()),
-              ),
-            ],
+            ),
           ),
         ),
-      ),
-    ),
-    actions: <Widget>[
-      TextButton(onPressed: () => Navigator.pop(context), child: Text(LocaleKeys.cancel.tr())),
-      FilledButton(onPressed: _submit, child: Text(LocaleKeys.save.tr())),
-    ],
-  );
+        actions: <Widget>[
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(LocaleKeys.cancel.tr())),
+          FilledButton(onPressed: _submit, child: Text(LocaleKeys.save.tr())),
+        ],
+      );
 }
 
 String? _required(String? value) => value?.trim().isNotEmpty == true

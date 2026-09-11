@@ -78,9 +78,10 @@ class UserDetailCubit extends Cubit<UserDetailState> {
       return;
     }
     final fetched = userResult.toOption().toNullable()!;
-    final user = fetched.branchName == null && initial?.branchId == fetched.branchId
-        ? fetched.copyWith(branchName: initial?.branchName)
-        : fetched;
+    final user =
+        fetched.branchName == null && initial?.branchId == fetched.branchId
+            ? fetched.copyWith(branchName: initial?.branchName)
+            : fetched;
 
     final custodyFuture = permissions.has(P.machinesRead)
         ? usersRepo.fetchUserCustody(id: userId)
@@ -125,9 +126,8 @@ class UserDetailCubit extends Cubit<UserDetailState> {
       results.$1,
       results.$2,
     ]) {
-      for (final transfer
-          in result.toOption().toNullable()?.transfers ??
-              const <TransferEntity>[]) {
+      for (final transfer in result.toOption().toNullable()?.transfers ??
+          const <TransferEntity>[]) {
         rows[transfer.id] = transfer;
       }
     }

@@ -1,11 +1,15 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/di/service_locator.dart';
 import 'package:machinery/core/permissions/permission_keys.dart';
 import 'package:machinery/core/permissions/permission_service.dart';
 import 'package:machinery/core/shared_widgets/app_confirm_dialog.dart';
+import 'package:machinery/core/shared_widgets/app_empty_state.dart';
 import 'package:machinery/core/shared_widgets/app_error_view.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
 import 'package:machinery/core/shared_widgets/error_toast.dart';
+import 'package:machinery/core/shared_widgets/ltr_text.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/feature/finance/domain/entities/finance_entities.dart';
 import 'package:machinery/feature/finance/domain/params/finance_params.dart';
@@ -66,8 +70,8 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
   Future<void> _delete(FinanceBudget budget) async {
     if (!await AppConfirmDialog.show(
       context: context,
-      title: 'Delete budget?',
-      description: 'Transactions are not affected.',
+      title: LocaleKeys.financeDeleteBudgetTitle.tr(),
+      description: LocaleKeys.financeDeleteBudgetBody.tr(),
       isDestructive: true,
     )) {
       return;
@@ -77,9 +81,19 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
     result.fold((f) => showErrorToast(f.errorMessage, context), (_) => _load());
   }
 
+  String _budgetSubtitle(FinanceBudget budget) {
+    final String detail = budget.includeSubcategories
+        ? LocaleKeys.financeIncludeSubcategories.tr()
+        : LocaleKeys.financeDirectSpendOnly.tr();
+    final String inactive = budget.isActive
+        ? ''
+        : ' • ${LocaleKeys.userInactive.tr()}';
+    return '${localizedPeriodType(budget.periodType)} • ${financeDate(budget.periodStart)} – ${financeDate(budget.periodEnd)}\n$detail$inactive';
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Budgets')),
+    appBar: AppBar(title: Text(LocaleKeys.financeBudgets.tr())),
     floatingActionButton: _manage
         ? FloatingActionButton(onPressed: _form, child: const Icon(Icons.add))
         : null,
@@ -87,14 +101,22 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
         ? AppErrorView(message: _error!, onRetry: _load)
         : _budgets == null || _status == null
         ? const AppLoadingIndicator()
+        : _budgets!.isEmpty && _status!.budgets.isEmpty
+        ? AppEmptyState(
+            icon: Icons.speed_outlined,
+            title: LocaleKeys.financeNoBudgets.tr(),
+            subtitle: LocaleKeys.financeNoBudgetsSubtitle.tr(),
+          )
         : RefreshIndicator(
             onRefresh: _load,
             child: ListView(
               padding: const EdgeInsetsDirectional.all(AppSpacing.md),
               children: <Widget>[
                 ..._status!.budgets.map((b) => BudgetStatusCard(budget: b)),
-                const SizedBox(height: AppSpacing.sm),
-                const Divider(),
+                if (_status!.budgets.isNotEmpty && _budgets!.isNotEmpty)
+                  const SizedBox(height: AppSpacing.sm),
+                if (_status!.budgets.isNotEmpty && _budgets!.isNotEmpty)
+                  const Divider(),
                 ..._budgets!.map(
                   (b) => Card(
                     child: ListTile(
@@ -104,15 +126,13 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                             ? b.category.name
                             : b.category.path,
                       ),
-                      subtitle: Text(
-                        '${b.periodType} • ${financeDate(b.periodStart)} – ${financeDate(b.periodEnd)}\n${b.includeSubcategories ? 'Includes subcategories' : 'Direct spend only'}${b.isActive ? '' : ' • Inactive'}',
-                      ),
+                      subtitle: LtrText(_budgetSubtitle(b)),
                       trailing: _manage
                           ? IconButton(
                               onPressed: () => _delete(b),
                               icon: const Icon(Icons.delete_outline),
                             )
-                          : Text(formatMoney(context, b.amount)),
+                          : LtrText(formatMoney(context, b.amount)),
                     ),
                   ),
                 ),

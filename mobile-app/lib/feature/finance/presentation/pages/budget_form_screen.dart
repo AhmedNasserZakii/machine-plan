@@ -1,11 +1,15 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/di/service_locator.dart';
 import 'package:machinery/core/shared_widgets/error_toast.dart';
+import 'package:machinery/core/shared_widgets/ltr_text.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/feature/finance/domain/entities/finance_entities.dart';
 import 'package:machinery/feature/finance/domain/params/finance_params.dart';
 import 'package:machinery/feature/finance/domain/repos/finance_repo.dart';
 import 'package:machinery/feature/finance/presentation/pages/category_picker_screen.dart';
+import 'package:machinery/feature/finance/presentation/widgets/finance_widgets.dart';
 
 class BudgetFormScreen extends StatefulWidget {
   const BudgetFormScreen({super.key, this.existing});
@@ -98,7 +102,11 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: Text(widget.existing == null ? 'Add budget' : 'Edit budget'),
+      title: Text(
+        widget.existing == null
+            ? LocaleKeys.financeAddBudget.tr()
+            : LocaleKeys.financeEditBudget.tr(),
+      ),
     ),
     body: Form(
       key: _key,
@@ -110,11 +118,11 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
               side: BorderSide(color: Theme.of(context).dividerColor),
               borderRadius: BorderRadius.circular(12),
             ),
-            title: const Text('Expense category'),
+            title: Text(LocaleKeys.financeExpenseCategory.tr()),
             subtitle: Text(
               _category?.name ??
                   widget.existing?.category.path ??
-                  'Choose category',
+                  LocaleKeys.financeChooseCategory.tr(),
             ),
             trailing: const Icon(Icons.chevron_right),
             onTap: widget.existing == null ? _pickCategory : null,
@@ -122,13 +130,20 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
           const SizedBox(height: AppSpacing.md),
           DropdownButtonFormField<String>(
             initialValue: _periodType,
-            decoration: const InputDecoration(labelText: 'Period'),
+            decoration: InputDecoration(labelText: LocaleKeys.financePeriod.tr()),
             items: const <String>[
               'MONTHLY',
               'QUARTERLY',
               'YEARLY',
               'CUSTOM',
-            ].map((v) => DropdownMenuItem(value: v, child: Text(v))).toList(),
+            ]
+                .map(
+                  (v) => DropdownMenuItem(
+                    value: v,
+                    child: Text(localizedPeriodType(v)),
+                  ),
+                )
+                .toList(),
             onChanged: widget.existing == null
                 ? (v) => setState(() => _periodType = v!)
                 : null,
@@ -139,7 +154,11 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
               Expanded(
                 child: OutlinedButton(
                   onPressed: widget.existing == null ? () => _date(true) : null,
-                  child: Text('From ${financeDate(_start)}'),
+                  child: LtrText(
+                    LocaleKeys.financeFromDate.tr(
+                      args: <String>[financeDate(_start)],
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -148,7 +167,11 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
                   onPressed: widget.existing == null
                       ? () => _date(false)
                       : null,
-                  child: Text('To ${financeDate(_end)}'),
+                  child: LtrText(
+                    LocaleKeys.financeToDate.tr(
+                      args: <String>[financeDate(_end)],
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -157,38 +180,47 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
           TextFormField(
             controller: _amount,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'Budget amount (EGP)'),
-            validator: (v) =>
-                (double.tryParse(v ?? '') ?? 0) <= 0 ? 'Enter an amount' : null,
+            decoration: InputDecoration(
+              labelText: LocaleKeys.financeBudgetAmount.tr(),
+            ),
+            validator: (v) => (double.tryParse(v ?? '') ?? 0) <= 0
+                ? LocaleKeys.thisFieldIsNotMinusOrZero.tr()
+                : null,
           ),
           const SizedBox(height: AppSpacing.md),
           TextFormField(
             controller: _threshold,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'Warning threshold %'),
+            decoration: InputDecoration(
+              labelText: LocaleKeys.financeWarningThreshold.tr(),
+            ),
             validator: (v) {
               final n = int.tryParse(v ?? '');
               return n == null || n < 1 || n > 100
-                  ? 'Use a value from 1 to 100'
+                  ? LocaleKeys.financeThresholdRange.tr()
                   : null;
             },
           ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Include subcategories'),
+            title: Text(LocaleKeys.financeIncludeSubcategories.tr()),
             value: _include,
             onChanged: (v) => setState(() => _include = v),
           ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Auto renew'),
+            title: Text(LocaleKeys.financeAutoRenew.tr()),
             value: _renew,
             onChanged: (v) => setState(() => _renew = v),
           ),
           const SizedBox(height: AppSpacing.lg),
           FilledButton(
             onPressed: _saving ? null : _save,
-            child: Text(_saving ? 'Saving…' : 'Save budget'),
+            child: Text(
+              _saving
+                  ? LocaleKeys.financeSaving.tr()
+                  : LocaleKeys.financeSaveBudget.tr(),
+            ),
           ),
         ],
       ),

@@ -1,4 +1,4 @@
-appId: com.machinery.machinery
+appId: com.machinery.machinery.dev
 name: 04 — A Director logs in and the bar caps at five tabs
 tags:
   - auth

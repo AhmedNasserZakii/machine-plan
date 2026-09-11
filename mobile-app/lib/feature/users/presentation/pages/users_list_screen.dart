@@ -56,13 +56,13 @@ class _UsersListScreenState extends State<UsersListScreen> {
     }
 
     await context.read<UsersListCubit>().applyFilters(
-      roleId: result.roleId,
-      branchId: result.branchId,
-      isActive: result.isActive,
-      clearRole: result.roleId == null,
-      clearBranch: result.branchId == null,
-      clearActive: result.isActive == null,
-    );
+          roleId: result.roleId,
+          branchId: result.branchId,
+          isActive: result.isActive,
+          clearRole: result.roleId == null,
+          clearBranch: result.branchId == null,
+          clearActive: result.isActive == null,
+        );
   }
 
   Future<void> _openForm({UserEntity? existing}) async {
@@ -166,9 +166,8 @@ class _UsersListScreenState extends State<UsersListScreen> {
               title: _isNarrowed(state)
                   ? LocaleKeys.usersNoSearchResults.tr()
                   : LocaleKeys.usersEmptyTitle.tr(),
-              subtitle: _isNarrowed(state)
-                  ? ''
-                  : LocaleKeys.usersEmptySubtitle.tr(),
+              subtitle:
+                  _isNarrowed(state) ? '' : LocaleKeys.usersEmptySubtitle.tr(),
             ),
             itemBuilder: (BuildContext context, UserEntity user, int index) {
               return UserCard(

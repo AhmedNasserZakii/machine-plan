@@ -1,4 +1,4 @@
-appId: com.machinery.machinery
+appId: com.machinery.machinery.dev
 name: 01 — Login button stays disabled until the form is genuinely valid
 tags:
   - auth

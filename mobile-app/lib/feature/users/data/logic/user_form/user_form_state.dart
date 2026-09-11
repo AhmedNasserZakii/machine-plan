@@ -50,9 +50,8 @@ class UserFormReady extends UserFormState {
       roles: roles ?? this.roles,
       branches: branches ?? this.branches,
       selectedRole: selectedRole ?? this.selectedRole,
-      selectedBranchId: clearBranch
-          ? null
-          : (selectedBranchId ?? this.selectedBranchId),
+      selectedBranchId:
+          clearBranch ? null : (selectedBranchId ?? this.selectedBranchId),
       isSubmitting: isSubmitting ?? this.isSubmitting,
       fieldErrors: fieldErrors ?? this.fieldErrors,
     );
@@ -60,13 +59,13 @@ class UserFormReady extends UserFormState {
 
   @override
   List<Object?> get props => <Object?>[
-    roles,
-    branches,
-    selectedRole,
-    selectedBranchId,
-    isSubmitting,
-    fieldErrors,
-  ];
+        roles,
+        branches,
+        selectedRole,
+        selectedBranchId,
+        isSubmitting,
+        fieldErrors,
+      ];
 }
 
 class UserFormLoadFailure extends UserFormState {

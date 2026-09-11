@@ -9,7 +9,7 @@ import 'package:machinery/feature/users/domain/repos/users_repo.dart';
 
 class UserPermissionsCubit extends Cubit<UserPermissionsState> {
   UserPermissionsCubit({required this.usersRepo, required this.userId})
-    : super(const UserPermissionsLoading());
+      : super(const UserPermissionsLoading());
 
   final UsersRepo usersRepo;
   final String userId;
@@ -38,7 +38,7 @@ class UserPermissionsCubit extends Cubit<UserPermissionsState> {
     // inherited.
     final ServerFailure? failure =
         catalogueResult.swap().toOption().toNullable() ??
-        permissionsResult.swap().toOption().toNullable();
+            permissionsResult.swap().toOption().toNullable();
 
     if (failure != null) {
       emit(
@@ -118,12 +118,12 @@ class UserPermissionsCubit extends Cubit<UserPermissionsState> {
 
     emit(current.copyWith(isSaving: true));
 
-    final Either<ServerFailure, UserPermissionsEntity> result = await usersRepo
-        .setUserPermissions(
-          id: userId,
-          allow: current.draft.allowList,
-          deny: current.draft.denyList,
-        );
+    final Either<ServerFailure, UserPermissionsEntity> result =
+        await usersRepo.setUserPermissions(
+      id: userId,
+      allow: current.draft.allowList,
+      deny: current.draft.denyList,
+    );
 
     if (isClosed) {
       return;

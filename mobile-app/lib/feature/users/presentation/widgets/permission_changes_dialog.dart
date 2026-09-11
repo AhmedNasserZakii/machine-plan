@@ -51,20 +51,20 @@ class PermissionChangesDialog extends StatelessWidget {
   ) {
     return switch (assignment) {
       PermissionAssignment.allowed => (
-        icon: Icons.check_circle_rounded,
-        color: AppColors.successColor,
-        label: LocaleKeys.userPermissionsAllowed,
-      ),
+          icon: Icons.check_circle_rounded,
+          color: AppColors.successColor,
+          label: LocaleKeys.userPermissionsAllowed,
+        ),
       PermissionAssignment.denied => (
-        icon: Icons.cancel_rounded,
-        color: AppColors.dangerColor,
-        label: LocaleKeys.userPermissionsDenied,
-      ),
+          icon: Icons.cancel_rounded,
+          color: AppColors.dangerColor,
+          label: LocaleKeys.userPermissionsDenied,
+        ),
       PermissionAssignment.inherited => (
-        icon: Icons.remove_circle_outline_rounded,
-        color: AppColors.textSecondaryColor,
-        label: LocaleKeys.userPermissionsFromRole,
-      ),
+          icon: Icons.remove_circle_outline_rounded,
+          color: AppColors.textSecondaryColor,
+          label: LocaleKeys.userPermissionsFromRole,
+        ),
     };
   }
 

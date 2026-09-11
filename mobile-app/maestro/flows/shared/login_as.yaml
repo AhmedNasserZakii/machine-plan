@@ -1,4 +1,4 @@
-appId: com.machinery.machinery
+appId: com.machinery.machinery.dev
 name: Fill the login form and submit
 ---
 # Expects PHONE and PASSWORD in env. Leaves the app wherever login lands it,

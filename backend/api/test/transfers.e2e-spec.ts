@@ -232,7 +232,11 @@ describe('Transfers (e2e)', () => {
     );
 
     const path = reserved.uploadUrl.slice(reserved.uploadUrl.indexOf('/api/'));
-    await request(server).put(path).set('Content-Type', 'image/png').send(SIGNATURE_PNG).expect(200);
+    await request(server)
+      .put(path)
+      .set('Content-Type', 'image/png')
+      .send(SIGNATURE_PNG)
+      .expect(200);
 
     await ok(uploader.post('/media/confirm', { mediaId: reserved.mediaId }));
 
@@ -1049,7 +1053,7 @@ describe('Transfers (e2e)', () => {
   // ── signature media access (9.6) ────────────────────────────────────────────
 
   describe('signature media access', () => {
-    it('lets the transfer\'s other party view a signature he did not upload', async () => {
+    it("lets the transfer's other party view a signature he did not upload", async () => {
       const machine = await createMachine();
 
       const created = await ok<TransferResponse>(

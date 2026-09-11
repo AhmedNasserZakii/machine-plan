@@ -1,4 +1,4 @@
-appId: com.machinery.machinery
+appId: com.machinery.machinery.dev
 name: 09 — A stored session skips login on the next cold start
 tags:
   - auth

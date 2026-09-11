@@ -64,20 +64,33 @@ class ServerFailure extends Failures {
 
     return switch (statusCode) {
       401 || 403 => ServerFailure(
-        message,
-        code: code,
-        statusCode: statusCode,
-        isUnauthorized: statusCode == 401,
-      ),
+          message,
+          code: code,
+          statusCode: statusCode,
+          isUnauthorized: statusCode == 401,
+        ),
       400 => ValidationFailure(
-        message,
-        code: code,
-        statusCode: statusCode,
-        fieldErrors: _extractFieldErrors(response),
-      ),
+          message,
+          code: code,
+          statusCode: statusCode,
+          fieldErrors: _extractFieldErrors(response),
+        ),
       409 => ConflictFailure(message, code: code, statusCode: statusCode),
       422 => BusinessFailure(message, code: code, statusCode: statusCode),
-      _ => ServerFailure(message, code: code, statusCode: statusCode),
+      426 => UpgradeRequiredFailure(
+          message,
+          code: code,
+          statusCode: statusCode,
+          minVersion: _extractMinVersion(response),
+        ),
+      _ => code == 'CLIENT_UPGRADE_REQUIRED'
+          ? UpgradeRequiredFailure(
+              message,
+              code: code,
+              statusCode: statusCode,
+              minVersion: _extractMinVersion(response),
+            )
+          : ServerFailure(message, code: code, statusCode: statusCode),
     };
   }
 
@@ -94,6 +107,21 @@ class ServerFailure extends Failures {
   static String _extractCode(dynamic response) {
     final dynamic code = _errorObject(response)?[ApiKeys.code];
     return code is String ? code : '';
+  }
+
+  static String? _extractMinVersion(dynamic response) {
+    final Map<String, dynamic>? error = _errorObject(response);
+    final dynamic extra = error?['extra'] ?? error?[ApiKeys.details];
+    if (extra is Map<String, dynamic>) {
+      final dynamic value = extra['minVersion'];
+      if (value is String && value.isNotEmpty) return value;
+    }
+    final dynamic params = error?['params'];
+    if (params is Map<String, dynamic>) {
+      final dynamic value = params['minVersion'];
+      if (value is String && value.isNotEmpty) return value;
+    }
+    return null;
   }
 
   static String _extractMessage(dynamic response, String code) {
@@ -171,7 +199,7 @@ class ServerFailure extends Failures {
 /// No connection. Read paths fall back to the cache; write paths queue.
 class OfflineFailure extends ServerFailure {
   OfflineFailure([String? message])
-    : super(message ?? LocaleKeys.noInternetConnection.tr());
+      : super(message ?? LocaleKeys.noInternetConnection.tr());
 }
 
 /// 400 — the form has field-level problems to render inline.
@@ -192,6 +220,18 @@ class ConflictFailure extends ServerFailure {
 /// 422 — a business rule rejected this. Explain it; do not offer a retry.
 class BusinessFailure extends ServerFailure {
   BusinessFailure(super.errorMessage, {super.code, super.statusCode});
+}
+
+/// 426 — the installed app is below `MIN_CLIENT_VERSION`. Block the UI.
+class UpgradeRequiredFailure extends ServerFailure {
+  UpgradeRequiredFailure(
+    super.errorMessage, {
+    super.code,
+    super.statusCode,
+    this.minVersion,
+  });
+
+  final String? minVersion;
 }
 
 /// 400 on `POST /machines/bulk` — the whole batch was refused, and [problems]

@@ -80,11 +80,11 @@ class _UserFormScreenState extends State<UserFormScreen> {
     }
 
     context.read<UserFormCubit>().submit(
-      fullName: _nameController.text,
-      phone: _phoneController.text,
-      email: _emailController.text,
-      password: _passwordController.text,
-    );
+          fullName: _nameController.text,
+          phone: _phoneController.text,
+          email: _emailController.text,
+          password: _passwordController.text,
+        );
   }
 
   @override
@@ -158,7 +158,6 @@ class _UserFormScreenState extends State<UserFormScreen> {
                           cubit.selectRole(role),
                       onBranchChanged: cubit.selectBranch,
                     ),
-
                     if (existing != null) ...<Widget>[
                       const SizedBox(height: AppSpacing.lg),
                       UserFormActions(user: existing),

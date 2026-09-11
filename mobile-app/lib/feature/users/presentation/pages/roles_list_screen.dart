@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
+import 'package:machinery/core/shared_widgets/app_empty_state.dart';
 import 'package:machinery/core/shared_widgets/app_error_view.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
 import 'package:machinery/core/shared_widgets/error_toast.dart';
@@ -45,51 +46,62 @@ class _RolesListScreenState extends State<RolesListScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(LocaleKeys.rolesTitle.tr())),
-    floatingActionButton: FloatingActionButton(
-      onPressed: () => _edit(null),
-      child: const Icon(Icons.add),
-    ),
-    body: BlocBuilder<RolesCubit, RolesState>(
-      builder: (context, state) => switch (state) {
-        RolesFailure(:final message, :final isOffline) => AppErrorView(
-          message: isOffline ? LocaleKeys.usersOnlineOnlySubtitle.tr() : message,
-          onRetry: context.read<RolesCubit>().load,
+        appBar: AppBar(title: Text(LocaleKeys.rolesTitle.tr())),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => _edit(null),
+          child: const Icon(Icons.add),
         ),
-        RolesReady() => RefreshIndicator(
-          onRefresh: context.read<RolesCubit>().load,
-          child: ListView.separated(
-            padding: const EdgeInsetsDirectional.all(AppSpacing.md),
-            itemCount: state.roles.length,
-            separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
-            itemBuilder: (context, index) {
-              final role = state.roles[index];
-              return Card(
-                child: ListTile(
-                  leading: const CircleAvatar(child: Icon(Icons.shield_outlined)),
-                  title: Text(role.displayName),
-                  subtitle: Text(
-                    '${role.code} • ${LocaleKeys.rolePermissionCount.tr(args: <String>[role.permissions.length.toString()])}',
-                  ),
-                  onTap: () async {
-                    await AppRoute.goToRolePermissions(
-                      context: context,
-                      role: role,
+        body: BlocBuilder<RolesCubit, RolesState>(
+          builder: (context, state) => switch (state) {
+            RolesFailure(:final message, :final isOffline) => AppErrorView(
+                message: isOffline
+                    ? LocaleKeys.usersOnlineOnlySubtitle.tr()
+                    : message,
+                onRetry: context.read<RolesCubit>().load,
+              ),
+            RolesReady() when state.roles.isEmpty => AppEmptyState(
+                title: LocaleKeys.rolesEmptyTitle.tr(),
+                subtitle: LocaleKeys.rolesEmptySubtitle.tr(),
+              ),
+            RolesReady() => RefreshIndicator(
+                onRefresh: context.read<RolesCubit>().load,
+                child: ListView.separated(
+                  padding: const EdgeInsetsDirectional.all(AppSpacing.md),
+                  itemCount: state.roles.length,
+                  separatorBuilder: (_, _) =>
+                      const SizedBox(height: AppSpacing.sm),
+                  itemBuilder: (context, index) {
+                    final role = state.roles[index];
+                    return Card(
+                      child: ListTile(
+                        leading: const CircleAvatar(
+                          child: Icon(Icons.shield_outlined),
+                        ),
+                        title: Text(role.displayName),
+                        subtitle: Text(
+                          '${role.code} • ${LocaleKeys.rolePermissionCount.tr(args: <String>[
+                                role.permissions.length.toString()
+                              ])}',
+                        ),
+                        onTap: () async {
+                          await AppRoute.goToRolePermissions(
+                            context: context,
+                            role: role,
+                          );
+                          if (mounted) context.read<RolesCubit>().load();
+                        },
+                        trailing: IconButton(
+                          tooltip: LocaleKeys.roleEdit.tr(),
+                          onPressed: () => _edit(role),
+                          icon: const Icon(Icons.edit_outlined),
+                        ),
+                      ),
                     );
-                    if (mounted) context.read<RolesCubit>().load();
                   },
-                  trailing: IconButton(
-                    tooltip: LocaleKeys.roleEdit.tr(),
-                    onPressed: () => _edit(role),
-                    icon: const Icon(Icons.edit_outlined),
-                  ),
                 ),
-              );
-            },
-          ),
+              ),
+            _ => const AppLoadingIndicator(),
+          },
         ),
-        _ => const AppLoadingIndicator(),
-      },
-    ),
-  );
+      );
 }

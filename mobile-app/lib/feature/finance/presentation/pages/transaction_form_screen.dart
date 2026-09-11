@@ -1,7 +1,11 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/di/service_locator.dart';
+import 'package:machinery/core/shared_widgets/app_error_view.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
 import 'package:machinery/core/shared_widgets/error_toast.dart';
+import 'package:machinery/core/shared_widgets/ltr_text.dart';
 import 'package:machinery/core/shared_widgets/success_toast.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/feature/finance/domain/entities/finance_entities.dart';
@@ -114,8 +118,8 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
     result.fold((f) => showErrorToast(f.errorMessage, context), (row) {
       showSuccessToast(
         row.isPendingSync
-            ? 'Saved locally, it will upload when you are back online'
-            : 'Transaction saved',
+            ? LocaleKeys.savedLocallyWillSync.tr()
+            : LocaleKeys.financeTransactionSaved.tr(),
         context,
       );
       Navigator.pop(context, row);
@@ -128,18 +132,22 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       return Scaffold(
         appBar: AppBar(
           title: Text(
-            widget.existing == null ? 'Add transaction' : 'Edit transaction',
+            widget.existing == null
+                ? LocaleKeys.financeAddTransaction.tr()
+                : LocaleKeys.financeEditTransaction.tr(),
           ),
         ),
         body: _loadError == null
             ? const AppLoadingIndicator()
-            : Center(child: Text(_loadError!)),
+            : AppErrorView(message: _loadError!, onRetry: _loadRefs),
       );
     }
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.existing == null ? 'Add transaction' : 'Edit transaction',
+          widget.existing == null
+              ? LocaleKeys.financeAddTransaction.tr()
+              : LocaleKeys.financeEditTransaction.tr(),
         ),
       ),
       body: Form(
@@ -149,16 +157,16 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
           children: <Widget>[
             if (widget.existing == null)
               SegmentedButton<FinanceKind>(
-                segments: const [
+                segments: <ButtonSegment<FinanceKind>>[
                   ButtonSegment(
                     value: FinanceKind.expense,
-                    label: Text('Expense'),
-                    icon: Icon(Icons.north_east),
+                    label: Text(LocaleKeys.financeExpense.tr()),
+                    icon: const Icon(Icons.north_east),
                   ),
                   ButtonSegment(
                     value: FinanceKind.income,
-                    label: Text('Income'),
-                    icon: Icon(Icons.south_west),
+                    label: Text(LocaleKeys.financeIncome.tr()),
+                    icon: const Icon(Icons.south_west),
                   ),
                 ],
                 selected: <FinanceKind>{_kind},
@@ -173,12 +181,12 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
-              decoration: const InputDecoration(
-                labelText: 'Amount (EGP)',
-                prefixIcon: Icon(Icons.payments_outlined),
+              decoration: InputDecoration(
+                labelText: LocaleKeys.financeAmount.tr(),
+                prefixIcon: const Icon(Icons.payments_outlined),
               ),
               validator: (value) => (double.tryParse(value ?? '') ?? 0) <= 0
-                  ? 'Enter an amount greater than zero'
+                  ? LocaleKeys.thisFieldIsNotMinusOrZero.tr()
                   : null,
             ),
             const SizedBox(height: AppSpacing.md),
@@ -192,11 +200,11 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
               leading: const Icon(Icons.category_outlined),
-              title: const Text('Category'),
+              title: Text(LocaleKeys.financeCategory.tr()),
               subtitle: Text(
                 _category?.name ??
                     widget.existing?.category.path ??
-                    'Choose a matching category',
+                    LocaleKeys.financeChooseMatchingCategory.tr(),
               ),
               trailing: const Icon(Icons.chevron_right),
               onTap: _pickCategory,
@@ -204,23 +212,28 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
             const SizedBox(height: AppSpacing.md),
             DropdownButtonFormField<String>(
               initialValue: _paymentId,
-              decoration: const InputDecoration(labelText: 'Payment method'),
+              decoration: InputDecoration(
+                labelText: LocaleKeys.financePaymentMethod.tr(),
+              ),
               items: _payments!
                   .map(
                     (p) => DropdownMenuItem(value: p.id, child: Text(p.name)),
                   )
                   .toList(),
               onChanged: (value) => setState(() => _paymentId = value),
-              validator: (value) => value == null ? 'Required' : null,
+              validator: (value) =>
+                  value == null ? LocaleKeys.thisFieldIsRequired.tr() : null,
             ),
             const SizedBox(height: AppSpacing.md),
             DropdownButtonFormField<String?>(
               initialValue: _branchId,
-              decoration: const InputDecoration(labelText: 'Branch (optional)'),
+              decoration: InputDecoration(
+                labelText: LocaleKeys.financeBranchOptional.tr(),
+              ),
               items: <DropdownMenuItem<String?>>[
-                const DropdownMenuItem(
+                DropdownMenuItem(
                   value: null,
-                  child: Text('Company-wide'),
+                  child: Text(LocaleKeys.financeCompanyWide.tr()),
                 ),
                 ..._branches.map(
                   (b) => DropdownMenuItem(value: b.id, child: Text(b.name)),
@@ -234,11 +247,14 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
               const SizedBox(height: AppSpacing.md),
               DropdownButtonFormField<String?>(
                 initialValue: _supplierId,
-                decoration: const InputDecoration(
-                  labelText: 'Supplier (optional)',
+                decoration: InputDecoration(
+                  labelText: LocaleKeys.financeSupplierOptional.tr(),
                 ),
                 items: <DropdownMenuItem<String?>>[
-                  const DropdownMenuItem(value: null, child: Text('None')),
+                  DropdownMenuItem(
+                    value: null,
+                    child: Text(LocaleKeys.financeNone.tr()),
+                  ),
                   ..._suppliers.map(
                     (s) => DropdownMenuItem(value: s.id, child: Text(s.name)),
                   ),
@@ -253,8 +269,8 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
               leading: const Icon(Icons.event_outlined),
-              title: const Text('Transaction date'),
-              subtitle: Text(financeDate(_date)),
+              title: Text(LocaleKeys.financeTransactionDate.tr()),
+              subtitle: LtrText(financeDate(_date)),
               onTap: _pickDate,
             ),
             const SizedBox(height: AppSpacing.md),
@@ -262,7 +278,9 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
               controller: _notes,
               maxLength: 1000,
               maxLines: 3,
-              decoration: const InputDecoration(labelText: 'Notes (optional)'),
+              decoration: InputDecoration(
+                labelText: LocaleKeys.financeNotesOptional.tr(),
+              ),
             ),
             const SizedBox(height: AppSpacing.lg),
             FilledButton.icon(
@@ -273,7 +291,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.save_outlined),
-              label: const Text('Save transaction'),
+              label: Text(LocaleKeys.financeSaveTransaction.tr()),
             ),
           ],
         ),

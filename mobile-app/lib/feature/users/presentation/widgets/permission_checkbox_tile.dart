@@ -35,31 +35,30 @@ class PermissionCheckboxTile extends StatelessWidget {
   final bool enabled;
 
   bool get _isGranted => switch (assignment) {
-    PermissionAssignment.allowed => true,
-    PermissionAssignment.denied => false,
-    PermissionAssignment.inherited => grantedByRole,
-  };
+        PermissionAssignment.allowed => true,
+        PermissionAssignment.denied => false,
+        PermissionAssignment.inherited => grantedByRole,
+      };
 
   Color get _accent => switch (assignment) {
-    PermissionAssignment.allowed => AppColors.successColor,
-    PermissionAssignment.denied => AppColors.dangerColor,
-    PermissionAssignment.inherited => AppColors.textSecondaryColor,
-  };
+        PermissionAssignment.allowed => AppColors.successColor,
+        PermissionAssignment.denied => AppColors.dangerColor,
+        PermissionAssignment.inherited => AppColors.textSecondaryColor,
+      };
 
   IconData get _icon => switch (assignment) {
-    PermissionAssignment.allowed => Icons.check_circle_rounded,
-    PermissionAssignment.denied => Icons.cancel_rounded,
-    PermissionAssignment.inherited =>
-      grantedByRole
-          ? Icons.check_circle_outline_rounded
-          : Icons.circle_outlined,
-  };
+        PermissionAssignment.allowed => Icons.check_circle_rounded,
+        PermissionAssignment.denied => Icons.cancel_rounded,
+        PermissionAssignment.inherited => grantedByRole
+            ? Icons.check_circle_outline_rounded
+            : Icons.circle_outlined,
+      };
 
   String get _label => switch (assignment) {
-    PermissionAssignment.allowed => LocaleKeys.userPermissionsAllowed,
-    PermissionAssignment.denied => LocaleKeys.userPermissionsDenied,
-    PermissionAssignment.inherited => LocaleKeys.userPermissionsFromRole,
-  };
+        PermissionAssignment.allowed => LocaleKeys.userPermissionsAllowed,
+        PermissionAssignment.denied => LocaleKeys.userPermissionsDenied,
+        PermissionAssignment.inherited => LocaleKeys.userPermissionsFromRole,
+      };
 
   @override
   Widget build(BuildContext context) {

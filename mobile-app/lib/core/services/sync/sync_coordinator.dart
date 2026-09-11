@@ -72,8 +72,12 @@ class SyncCoordinator {
   /// restored, and the app coming back to the foreground. Call once, after
   /// the service locator is set up.
   void start() {
-    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((results) {
-      final bool online = results.any((ConnectivityResult r) => r != ConnectivityResult.none);
+    unawaited(mediaStaging.recoverInterruptedUploads());
+
+    _connectivitySubscription =
+        Connectivity().onConnectivityChanged.listen((results) {
+      final bool online =
+          results.any((ConnectivityResult r) => r != ConnectivityResult.none);
       reportNetworkConnectionStatus(online);
       if (online) unawaited(flush());
     });
@@ -101,7 +105,8 @@ class SyncCoordinator {
     _periodicTimer?.cancel();
     // `07`: "periodic timer (15 min) while foregrounded — catches flaky
     // connections" a push/pull would not otherwise notice dropped.
-    _periodicTimer = Timer.periodic(const Duration(minutes: 15), (_) => unawaited(flush()));
+    _periodicTimer =
+        Timer.periodic(const Duration(minutes: 15), (_) => unawaited(flush()));
   }
 
   /// The full cycle a trigger asks for: drain staged media, push queued
@@ -125,11 +130,14 @@ class SyncCoordinator {
       // to only ever call `flush` while authenticated.
       if ((await LocalStorage.getAccessToken()).isEmpty) return;
 
+      await mediaStaging.recoverInterruptedUploads();
       await mediaStaging.uploadAllPending();
       await syncQueueService.pushPending();
       await _pullLatest();
 
       _changes.add(null);
+      // Analytics is optional at the call site — avoid importing the funnel
+      // into every flush path by keeping success silent; failures are logged.
     } catch (error, stackTrace) {
       printDebug(message: 'sync flush failed: $error', stackTrace: stackTrace);
     } finally {
@@ -146,7 +154,8 @@ class SyncCoordinator {
       return;
     }
 
-    final ({String serverTime, int schemaVersion}) status = await syncApi.status();
+    final ({String serverTime, int schemaVersion}) status =
+        await syncApi.status();
     if (status.schemaVersion != localSchemaVersion) {
       await _runBootstrap();
       return;
@@ -161,17 +170,23 @@ class SyncCoordinator {
     await _applyPull(result, isBootstrap: true);
   }
 
-  Future<void> _applyPull(SyncPullResult result, {required bool isBootstrap}) async {
+  Future<void> _applyPull(SyncPullResult result,
+      {required bool isBootstrap}) async {
     if (isBootstrap) {
-      await cachedBranchesDao.replaceAll(result.branches, syncedAt: result.serverTime);
+      await cachedBranchesDao.replaceAll(result.branches,
+          syncedAt: result.serverTime);
       for (final String category in SyncLookupCategory.all) {
-        await cachedLookupsDao.replaceCategory(category, result.lookups[category] ?? const []);
+        await cachedLookupsDao.replaceCategory(
+            category, result.lookups[category] ?? const []);
       }
     }
 
-    await cachedMachinesDao.upsertAll(result.myMachines, syncedAt: result.serverTime);
-    await cachedMerchantsDao.upsertAll(result.myMerchants, syncedAt: result.serverTime);
-    await cachedTransfersDao.upsertAll(result.pendingTransfers, syncedAt: result.serverTime);
+    await cachedMachinesDao.upsertAll(result.myMachines,
+        syncedAt: result.serverTime);
+    await cachedMerchantsDao.upsertAll(result.myMerchants,
+        syncedAt: result.serverTime);
+    await cachedTransfersDao.upsertAll(result.pendingTransfers,
+        syncedAt: result.serverTime);
 
     await cachedMachinesDao.deleteByIds(result.deletedMachineIds);
     await cachedMerchantsDao.deleteByIds(result.deletedMerchantIds);

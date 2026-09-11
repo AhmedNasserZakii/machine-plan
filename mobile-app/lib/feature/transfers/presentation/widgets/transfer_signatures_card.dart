@@ -171,6 +171,7 @@ class _SignatureThumbnailState extends State<_SignatureThumbnail> {
               (String url) => CachedNetworkImage(
                 imageUrl: url,
                 fit: BoxFit.contain,
+                memCacheWidth: 256,
                 errorWidget: (_, _, _) => const Icon(
                   Icons.broken_image_outlined,
                   size: 16,
@@ -240,6 +241,7 @@ class _SignatureViewerPage extends StatelessWidget {
                 child: CachedNetworkImage(
                   imageUrl: url,
                   fit: BoxFit.contain,
+                  memCacheWidth: 1200,
                   errorWidget: (_, _, _) => Text(
                     LocaleKeys.transferSignatureImageFailed.tr(),
                     style: const TextStyle(color: Colors.white),

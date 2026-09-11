@@ -4,6 +4,7 @@ import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/di/service_locator.dart';
 import 'package:machinery/core/permissions/permission_keys.dart';
 import 'package:machinery/core/permissions/permission_service.dart';
+import 'package:machinery/core/shared_widgets/permission_boundary.dart';
 import 'package:machinery/feature/machines/data/logic/machines_list/machines_list_cubit.dart';
 import 'package:machinery/feature/finance/data/logic/finance_overview/finance_overview_cubit.dart';
 import 'package:machinery/feature/finance/presentation/pages/finance_overview_screen.dart';
@@ -102,9 +103,12 @@ Widget _buildMerchants() => BlocProvider<MerchantsListCubit>(
   child: const MerchantsListScreen(),
 );
 
-Widget _buildFinance() => BlocProvider<FinanceOverviewCubit>(
-  create: (_) => getIt<FinanceOverviewCubit>(),
-  child: const FinanceOverviewScreen(),
+Widget _buildFinance() => PermissionBoundary(
+  permission: P.financeRead,
+  child: BlocProvider<FinanceOverviewCubit>(
+    create: (_) => getIt<FinanceOverviewCubit>(),
+    child: const FinanceOverviewScreen(),
+  ),
 );
 
 Widget _buildMore() => const MoreScreen();

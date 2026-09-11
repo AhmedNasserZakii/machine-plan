@@ -44,11 +44,11 @@ class PaginationMetaModel extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[
-    page,
-    limit,
-    total,
-    totalPages,
-    hasNext,
-    nextCursor,
-  ];
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext,
+        nextCursor,
+      ];
 }

@@ -80,9 +80,8 @@ class UserFormActions extends StatelessWidget {
           }
         },
         builder: (BuildContext context, UserActionsState state) {
-          final bool isActive = state is UserActionsIdle
-              ? state.isActive
-              : user.isActive;
+          final bool isActive =
+              state is UserActionsIdle ? state.isActive : user.isActive;
 
           return Container(
             decoration: BoxDecoration(

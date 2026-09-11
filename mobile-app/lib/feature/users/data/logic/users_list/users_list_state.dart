@@ -66,14 +66,14 @@ class UsersListLoaded extends UsersListState {
 
   @override
   List<Object?> get props => <Object?>[
-    users,
-    query,
-    hasNext,
-    isLoadingMore,
-    total,
-    roles,
-    branches,
-  ];
+        users,
+        query,
+        hasNext,
+        isLoadingMore,
+        total,
+        roles,
+        branches,
+      ];
 }
 
 class UsersListFailure extends UsersListState {

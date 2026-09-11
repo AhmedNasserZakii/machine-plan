@@ -1,11 +1,14 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/di/service_locator.dart';
 import 'package:machinery/core/permissions/permission_keys.dart';
 import 'package:machinery/core/permissions/permission_service.dart';
 import 'package:machinery/core/shared_widgets/app_empty_state.dart';
 import 'package:machinery/core/shared_widgets/app_error_view.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
+import 'package:machinery/core/shared_widgets/ltr_text.dart';
 import 'package:machinery/core/shared_widgets/paginated_list_view.dart';
 import 'package:machinery/feature/finance/data/logic/transactions/finance_transactions_cubit.dart';
 import 'package:machinery/feature/finance/data/logic/transactions/finance_transactions_state.dart';
@@ -73,7 +76,7 @@ class _FinanceTransactionsScreenState extends State<FinanceTransactionsScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('Transactions'),
+      title: Text(LocaleKeys.financeTransactions.tr()),
       actions: <Widget>[
         BlocBuilder<FinanceTransactionsCubit, FinanceTransactionsState>(
           builder: (_, state) => IconButton(
@@ -97,10 +100,10 @@ class _FinanceTransactionsScreenState extends State<FinanceTransactionsScreen> {
           onRefresh: () =>
               context.read<FinanceTransactionsCubit>().load(showLoader: false),
           onLoadMore: context.read<FinanceTransactionsCubit>().loadMore,
-          emptyState: const AppEmptyState(
+          emptyState: AppEmptyState(
             icon: Icons.receipt_long_outlined,
-            title: 'No transactions',
-            subtitle: 'Try another date range or filter.',
+            title: LocaleKeys.financeNoTransactions.tr(),
+            subtitle: LocaleKeys.financeNoTransactionsSubtitle.tr(),
           ),
           itemBuilder: (_, row, _) => FinanceTransactionTile(
             transaction: row,
@@ -153,27 +156,33 @@ class _TransactionFiltersState extends State<_TransactionFilters> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            const Text(
-              'Filter transactions',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Text(
+              LocaleKeys.financeFilterTransactions.tr(),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _search,
-              decoration: const InputDecoration(
-                labelText: 'Reference or notes',
-                prefixIcon: Icon(Icons.search),
+              decoration: InputDecoration(
+                labelText: LocaleKeys.financeReferenceOrNotes.tr(),
+                prefixIcon: const Icon(Icons.search),
               ),
             ),
             const SizedBox(height: 12),
             SegmentedButton<FinanceKind?>(
-              segments: const [
-                ButtonSegment(value: null, label: Text('All')),
+              segments: <ButtonSegment<FinanceKind?>>[
+                ButtonSegment(
+                  value: null,
+                  label: Text(LocaleKeys.userFilterAll.tr()),
+                ),
                 ButtonSegment(
                   value: FinanceKind.expense,
-                  label: Text('Expense'),
+                  label: Text(LocaleKeys.financeExpense.tr()),
                 ),
-                ButtonSegment(value: FinanceKind.income, label: Text('Income')),
+                ButtonSegment(
+                  value: FinanceKind.income,
+                  label: Text(LocaleKeys.financeIncome.tr()),
+                ),
               ],
               selected: <FinanceKind?>{_kind},
               onSelectionChanged: (v) => setState(() => _kind = v.first),
@@ -185,8 +194,8 @@ class _TransactionFiltersState extends State<_TransactionFilters> {
                   child: TextField(
                     controller: _min,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Minimum amount',
+                    decoration: InputDecoration(
+                      labelText: LocaleKeys.financeMinAmount.tr(),
                     ),
                   ),
                 ),
@@ -195,8 +204,8 @@ class _TransactionFiltersState extends State<_TransactionFilters> {
                   child: TextField(
                     controller: _max,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Maximum amount',
+                    decoration: InputDecoration(
+                      labelText: LocaleKeys.financeMaxAmount.tr(),
                     ),
                   ),
                 ),
@@ -204,7 +213,7 @@ class _TransactionFiltersState extends State<_TransactionFilters> {
             ),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Include voided'),
+              title: Text(LocaleKeys.financeIncludeVoided.tr()),
               value: _voided,
               onChanged: (v) => setState(() => _voided = v),
             ),
@@ -223,11 +232,11 @@ class _TransactionFiltersState extends State<_TransactionFilters> {
                 }
               },
               icon: const Icon(Icons.date_range),
-              label: Text(
-                _from == null
-                    ? 'Date range'
-                    : '${financeDate(_from!)} – ${financeDate(_to!)}',
-              ),
+              label: _from == null
+                  ? Text(LocaleKeys.financeDateRange.tr())
+                  : LtrText(
+                      '${financeDate(_from!)} – ${financeDate(_to!)}',
+                    ),
             ),
             const SizedBox(height: 16),
             SizedBox(
@@ -246,7 +255,7 @@ class _TransactionFiltersState extends State<_TransactionFilters> {
                     branchId: widget.query.branchId,
                   ),
                 ),
-                child: const Text('Apply filters'),
+                child: Text(LocaleKeys.financeApplyFilters.tr()),
               ),
             ),
           ],

@@ -84,12 +84,12 @@ class UserPermissionsReady extends UserPermissionsState {
 
   @override
   List<Object?> get props => <Object?>[
-    groups,
-    draft,
-    searchTerm,
-    expandedGroups,
-    isSaving,
-  ];
+        groups,
+        draft,
+        searchTerm,
+        expandedGroups,
+        isSaving,
+      ];
 }
 
 class UserPermissionsLoadFailure extends UserPermissionsState {

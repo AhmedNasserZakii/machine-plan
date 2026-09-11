@@ -38,9 +38,9 @@ class UsersRepoImpl implements UsersRepo {
   }) {
     return _guard('fetchUsers', () async {
       final Response<dynamic> response = await apiService.client().get<dynamic>(
-        WebConstant.users,
-        queryParameters: params.toQuery(),
-      );
+            WebConstant.users,
+            queryParameters: params.toQuery(),
+          );
 
       final Map<String, dynamic> body = _body(response.data);
 
@@ -60,8 +60,8 @@ class UsersRepoImpl implements UsersRepo {
   Future<Either<ServerFailure, UserEntity>> fetchUser({required String id}) {
     return _guard('fetchUser', () async {
       final Response<dynamic> response = await apiService.client().get<dynamic>(
-        WebConstant.user(id),
-      );
+            WebConstant.user(id),
+          );
 
       return UserModel.fromJson(_data(response.data)).toEntity();
     });
@@ -70,12 +70,13 @@ class UsersRepoImpl implements UsersRepo {
   @override
   Future<Either<ServerFailure, UserCustodyEntity>> fetchUserCustody({
     required String id,
-  }) => _guard('fetchUserCustody', () async {
-    final response = await apiService.client().get<dynamic>(
-      WebConstant.userCustody(id),
-    );
-    return userCustodyFromJson(_data(response.data));
-  });
+  }) =>
+      _guard('fetchUserCustody', () async {
+        final response = await apiService.client().get<dynamic>(
+              WebConstant.userCustody(id),
+            );
+        return userCustodyFromJson(_data(response.data));
+      });
 
   @override
   Future<Either<ServerFailure, UserEntity>> createUser({
@@ -111,10 +112,10 @@ class UsersRepoImpl implements UsersRepo {
   }) {
     return _guard('setUserActive', () async {
       await apiService.client().patch<dynamic>(
-        isActive
-            ? WebConstant.userActivate(id)
-            : WebConstant.userDeactivate(id),
-      );
+            isActive
+                ? WebConstant.userActivate(id)
+                : WebConstant.userDeactivate(id),
+          );
 
       return unit;
     });
@@ -141,8 +142,8 @@ class UsersRepoImpl implements UsersRepo {
   }) {
     return _guard('fetchUserPermissions', () async {
       final Response<dynamic> response = await apiService.client().get<dynamic>(
-        WebConstant.userPermissions(id),
-      );
+            WebConstant.userPermissions(id),
+          );
 
       return UserPermissionsModel.fromJson(_data(response.data)).toEntity();
     });
@@ -170,11 +171,11 @@ class UsersRepoImpl implements UsersRepo {
   }) {
     return _guard('fetchRoles', () async {
       final Response<dynamic> response = await apiService.client().get<dynamic>(
-        WebConstant.roles,
-        queryParameters: rawTranslations
-            ? const <String, dynamic>{'raw_translations': 'true'}
-            : null,
-      );
+            WebConstant.roles,
+            queryParameters: rawTranslations
+                ? const <String, dynamic>{'raw_translations': 'true'}
+                : null,
+          );
 
       return _list(_body(response.data)[ApiKeys.data])
           .map(
@@ -187,45 +188,48 @@ class UsersRepoImpl implements UsersRepo {
   @override
   Future<Either<ServerFailure, RoleEntity>> createRole({
     required CreateRoleParams params,
-  }) => _guard('createRole', () async {
-    final response = await apiService.client().post<dynamic>(
-      WebConstant.roles,
-      data: params.toJson(),
-    );
-    return RoleModel.fromJson(_data(response.data)).toEntity();
-  });
+  }) =>
+      _guard('createRole', () async {
+        final response = await apiService.client().post<dynamic>(
+              WebConstant.roles,
+              data: params.toJson(),
+            );
+        return RoleModel.fromJson(_data(response.data)).toEntity();
+      });
 
   @override
   Future<Either<ServerFailure, RoleEntity>> updateRole({
     required String id,
     required RoleTranslations translations,
-  }) => _guard('updateRole', () async {
-    final response = await apiService.client().patch<dynamic>(
-      WebConstant.role(id),
-      data: <String, dynamic>{'translations': translations.toJson()},
-    );
-    return RoleModel.fromJson(_data(response.data)).toEntity();
-  });
+  }) =>
+      _guard('updateRole', () async {
+        final response = await apiService.client().patch<dynamic>(
+          WebConstant.role(id),
+          data: <String, dynamic>{'translations': translations.toJson()},
+        );
+        return RoleModel.fromJson(_data(response.data)).toEntity();
+      });
 
   @override
   Future<Either<ServerFailure, RoleEntity>> setRolePermissions({
     required String id,
     required List<String> permissions,
-  }) => _guard('setRolePermissions', () async {
-    final response = await apiService.client().put<dynamic>(
-      WebConstant.rolePermissions(id),
-      data: <String, dynamic>{'permissions': permissions},
-    );
-    return RoleModel.fromJson(_data(response.data)).toEntity();
-  });
+  }) =>
+      _guard('setRolePermissions', () async {
+        final response = await apiService.client().put<dynamic>(
+          WebConstant.rolePermissions(id),
+          data: <String, dynamic>{'permissions': permissions},
+        );
+        return RoleModel.fromJson(_data(response.data)).toEntity();
+      });
 
   @override
   Future<Either<ServerFailure, List<PermissionGroupEntity>>>
-  fetchPermissionCatalogue() {
+      fetchPermissionCatalogue() {
     return _guard('fetchPermissionCatalogue', () async {
       final Response<dynamic> response = await apiService.client().get<dynamic>(
-        WebConstant.permissions,
-      );
+            WebConstant.permissions,
+          );
 
       return _list(_body(response.data)[ApiKeys.data])
           .map(
@@ -240,8 +244,8 @@ class UsersRepoImpl implements UsersRepo {
   Future<Either<ServerFailure, List<BranchEntity>>> fetchBranches() {
     return _guard('fetchBranches', () async {
       final Response<dynamic> response = await apiService.client().get<dynamic>(
-        WebConstant.branches,
-      );
+            WebConstant.branches,
+          );
 
       return _list(_body(response.data)[ApiKeys.data])
           .map(

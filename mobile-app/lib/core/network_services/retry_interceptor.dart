@@ -40,8 +40,7 @@ class RetryInterceptor extends Interceptor {
       handler.resolve(response);
     } on DioException catch (retryError) {
       printDebug(
-        message:
-            'retry interceptor attempt ${attempt + 1} failed: '
+        message: 'retry interceptor attempt ${attempt + 1} failed: '
             '${retryError.message}',
       );
       handler.next(retryError);

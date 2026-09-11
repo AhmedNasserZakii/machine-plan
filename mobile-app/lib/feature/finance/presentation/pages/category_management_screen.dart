@@ -1,9 +1,13 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/di/service_locator.dart';
 import 'package:machinery/core/shared_widgets/app_confirm_dialog.dart';
+import 'package:machinery/core/shared_widgets/app_empty_state.dart';
 import 'package:machinery/core/shared_widgets/app_error_view.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
 import 'package:machinery/core/shared_widgets/error_toast.dart';
+import 'package:machinery/core/shared_widgets/ltr_text.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/feature/finance/domain/entities/finance_entities.dart';
@@ -50,24 +54,34 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialog) => AlertDialog(
-          title: Text(existing == null ? 'Add category' : 'Edit category'),
+          title: Text(
+            existing == null
+                ? LocaleKeys.financeAddCategory.tr()
+                : LocaleKeys.financeEditCategory.tr(),
+          ),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 TextField(
                   controller: name,
-                  decoration: const InputDecoration(labelText: 'Name'),
+                  decoration: InputDecoration(
+                    labelText: LocaleKeys.financeCategoryName.tr(),
+                  ),
                 ),
                 TextField(
                   controller: description,
-                  decoration: const InputDecoration(labelText: 'Description'),
+                  decoration: InputDecoration(
+                    labelText: LocaleKeys.financeCategoryDescription.tr(),
+                  ),
                 ),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Parent'),
+                  title: Text(LocaleKeys.financeCategoryParent.tr()),
                   subtitle: Text(
-                    parentId == null ? 'Root category' : 'Selected',
+                    parentId == null
+                        ? LocaleKeys.financeRootCategory.tr()
+                        : LocaleKeys.financeSelected.tr(),
                   ),
                   trailing: const Icon(Icons.account_tree),
                   onTap: () async {
@@ -90,11 +104,11 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
+              child: Text(LocaleKeys.cancel.tr()),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Save'),
+              child: Text(LocaleKeys.save.tr()),
             ),
           ],
         ),
@@ -148,9 +162,8 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
   Future<void> _delete(FinanceCategory c) async {
     if (!await AppConfirmDialog.show(
       context: context,
-      title: 'Delete category?',
-      description:
-          'Categories with children or transactions cannot be deleted.',
+      title: LocaleKeys.financeDeleteCategoryTitle.tr(),
+      description: LocaleKeys.financeDeleteCategoryBody.tr(),
       isDestructive: true,
     )) {
       return;
@@ -166,97 +179,125 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Finance categories')),
-    floatingActionButton: FloatingActionButton(
-      onPressed: _edit,
-      child: const Icon(Icons.add),
-    ),
-    body: Column(
-      children: <Widget>[
-        Padding(
-          padding: const EdgeInsetsDirectional.all(AppSpacing.sm),
-          child: SegmentedButton<FinanceKind>(
-            segments: const <ButtonSegment<FinanceKind>>[
-              ButtonSegment(value: FinanceKind.expense, label: Text('Expense')),
-              ButtonSegment(value: FinanceKind.income, label: Text('Income')),
-            ],
-            selected: <FinanceKind>{_kind},
-            onSelectionChanged: (v) {
-              _kind = v.first;
-              _load();
-            },
-          ),
-        ),
-        Expanded(
-          child: _error != null
-              ? AppErrorView(message: _error!, onRetry: _load)
-              : _rows == null
-              ? const AppLoadingIndicator()
-              : ListView(
-                  children: _rows!
-                      .expand((e) => e.flattened)
-                      .map(
-                        (c) => ListTile(
-                          contentPadding: EdgeInsetsDirectional.only(
-                            start: AppSpacing.md + c.depth * 18,
-                            end: AppSpacing.sm,
-                          ),
-                          leading: Icon(
-                            c.isSystem
-                                ? Icons.lock_outline
-                                : Icons.category_outlined,
-                            color: c.isActive
-                                ? AppColors.primaryColor
-                                : AppColors.textDisabledColor,
-                          ),
-                          title: Text(c.name),
-                          subtitle: Text(
-                            '${c.transactionCount} transactions • ${c.rolledUpTotal.toStringAsFixed(2)} EGP${c.isActive ? '' : ' • Inactive'}',
-                          ),
-                          trailing: c.isSystem
-                              ? null
-                              : PopupMenuButton<String>(
-                                  onSelected: (value) {
-                                    if (value == 'edit') _edit(c);
-                                    if (value == 'toggle') _toggle(c);
-                                    if (value == 'delete') _delete(c);
-                                  },
-                                  itemBuilder: (_) => <PopupMenuEntry<String>>[
-                                    const PopupMenuItem(
-                                      value: 'edit',
-                                      child: Text('Edit / move'),
-                                    ),
-                                    PopupMenuItem(
-                                      value: 'toggle',
-                                      child: Text(
-                                        c.isActive ? 'Deactivate' : 'Activate',
-                                      ),
-                                    ),
-                                    const PopupMenuItem(
-                                      value: 'delete',
-                                      child: Text('Delete'),
-                                    ),
-                                  ],
-                                ),
-                        ),
-                      )
-                      .toList(),
-                ),
-        ),
+  String _categorySubtitle(FinanceCategory category) {
+    final String stats = LocaleKeys.financeCategoryStats.tr(
+      args: <String>[
+        category.transactionCount.toString(),
+        category.rolledUpTotal.toStringAsFixed(2),
       ],
-    ),
-  );
+    );
+    return category.isActive ? stats : '$stats • ${LocaleKeys.userInactive.tr()}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final List<FinanceCategory> flatRows = _rows
+            ?.expand((e) => e.flattened)
+            .toList(growable: false) ??
+        const <FinanceCategory>[];
+    return Scaffold(
+      appBar: AppBar(title: Text(LocaleKeys.financeCategories.tr())),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _edit,
+        child: const Icon(Icons.add),
+      ),
+      body: Column(
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsetsDirectional.all(AppSpacing.sm),
+            child: SegmentedButton<FinanceKind>(
+              segments: <ButtonSegment<FinanceKind>>[
+                ButtonSegment(
+                  value: FinanceKind.expense,
+                  label: Text(LocaleKeys.financeExpense.tr()),
+                ),
+                ButtonSegment(
+                  value: FinanceKind.income,
+                  label: Text(LocaleKeys.financeIncome.tr()),
+                ),
+              ],
+              selected: <FinanceKind>{_kind},
+              onSelectionChanged: (v) {
+                _kind = v.first;
+                _load();
+              },
+            ),
+          ),
+          Expanded(
+            child: _error != null
+                ? AppErrorView(message: _error!, onRetry: _load)
+                : _rows == null
+                ? const AppLoadingIndicator()
+                : flatRows.isEmpty
+                ? AppEmptyState(
+                    icon: Icons.category_outlined,
+                    title: LocaleKeys.financeNoCategories.tr(),
+                    subtitle: LocaleKeys.financeNoCategoriesSubtitle.tr(),
+                  )
+                : ListView(
+                    children: flatRows
+                        .map(
+                          (c) => ListTile(
+                            contentPadding: EdgeInsetsDirectional.only(
+                              start: AppSpacing.md + c.depth * 18,
+                              end: AppSpacing.sm,
+                            ),
+                            leading: Icon(
+                              c.isSystem
+                                  ? Icons.lock_outline
+                                  : Icons.category_outlined,
+                              color: c.isActive
+                                  ? AppColors.primaryColor
+                                  : AppColors.textDisabledColor,
+                            ),
+                            title: Text(c.name),
+                            subtitle: LtrText(_categorySubtitle(c)),
+                            trailing: c.isSystem
+                                ? null
+                                : PopupMenuButton<String>(
+                                    onSelected: (value) {
+                                      if (value == 'edit') _edit(c);
+                                      if (value == 'toggle') _toggle(c);
+                                      if (value == 'delete') _delete(c);
+                                    },
+                                    itemBuilder: (_) =>
+                                        <PopupMenuEntry<String>>[
+                                      PopupMenuItem(
+                                        value: 'edit',
+                                        child: Text(
+                                          LocaleKeys.financeEditMove.tr(),
+                                        ),
+                                      ),
+                                      PopupMenuItem(
+                                        value: 'toggle',
+                                        child: Text(
+                                          c.isActive
+                                              ? LocaleKeys.userDeactivate.tr()
+                                              : LocaleKeys.userActivate.tr(),
+                                        ),
+                                      ),
+                                      PopupMenuItem(
+                                        value: 'delete',
+                                        child: Text(LocaleKeys.delete.tr()),
+                                      ),
+                                    ],
+                                  ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 String _friendlyCategoryError(String code, String fallback) => switch (code) {
-  'CIRCULAR_CATEGORY_REFERENCE' =>
-    'A category cannot be moved inside its own subtree.',
-  'CATEGORY_HAS_CHILDREN' => 'Move or delete the child categories first.',
-  'CATEGORY_HAS_TRANSACTIONS' =>
-    'This category has transactions. Deactivate it instead.',
+  'CIRCULAR_CATEGORY_REFERENCE' => LocaleKeys.errorCategoryCycle.tr(),
+  'CATEGORY_HAS_CHILDREN' => LocaleKeys.errorCategoryHasChildren.tr(),
+  'CATEGORY_HAS_TRANSACTIONS' => LocaleKeys.errorCategoryHasTransactions.tr(),
   'SYSTEM_CATEGORY_PROTECTED' =>
-    'System categories cannot be changed or deleted.',
+    LocaleKeys.errorSystemCategoryProtected.tr(),
   _ => fallback,
 };

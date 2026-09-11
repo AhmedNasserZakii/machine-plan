@@ -170,9 +170,17 @@ abstract class AppRoute {
     Navigator.push(
       context,
       MaterialPageRoute<void>(
-        builder: (_) => BlocProvider<ReportsHubCubit>(
-          create: (_) => getIt<ReportsHubCubit>(),
-          child: const ReportsHubScreen(),
+        builder: (_) => PermissionBoundary(
+          anyOf: const <String>[
+            P.reportsMachines,
+            P.reportsTransfers,
+            P.reportsViolations,
+            P.reportsFinance,
+          ],
+          child: BlocProvider<ReportsHubCubit>(
+            create: (_) => getIt<ReportsHubCubit>(),
+            child: const ReportsHubScreen(),
+          ),
         ),
       ),
     );
@@ -288,10 +296,13 @@ abstract class AppRoute {
     return Navigator.push<bool>(
       context,
       MaterialPageRoute<bool>(
-        builder: (_) => BlocProvider<MachineDetailCubit>(
-          create: (_) =>
-              getIt<MachineDetailCubit>(param1: machineId, param2: initial),
-          child: const MachineDetailScreen(),
+        builder: (_) => PermissionBoundary(
+          permission: P.machinesRead,
+          child: BlocProvider<MachineDetailCubit>(
+            create: (_) =>
+                getIt<MachineDetailCubit>(param1: machineId, param2: initial),
+            child: const MachineDetailScreen(),
+          ),
         ),
       ),
     );
@@ -304,9 +315,12 @@ abstract class AppRoute {
     return Navigator.push<bool>(
       context,
       MaterialPageRoute<bool>(
-        builder: (_) => BlocProvider<MachineFormCubit>(
-          create: (_) => getIt<MachineFormCubit>(param1: existing),
-          child: MachineFormScreen(existing: existing),
+        builder: (_) => PermissionBoundary(
+          permission: existing == null ? P.machinesCreate : P.machinesUpdate,
+          child: BlocProvider<MachineFormCubit>(
+            create: (_) => getIt<MachineFormCubit>(param1: existing),
+            child: MachineFormScreen(existing: existing),
+          ),
         ),
       ),
     );
@@ -396,9 +410,12 @@ abstract class AppRoute {
     return Navigator.push<bool>(
       context,
       MaterialPageRoute<bool>(
-        builder: (_) => BlocProvider<CreateTransferCubit>(
-          create: (_) => getIt<CreateTransferCubit>(),
-          child: const CreateTransferScreen(),
+        builder: (_) => PermissionBoundary(
+          permission: P.transfersCreate,
+          child: BlocProvider<CreateTransferCubit>(
+            create: (_) => getIt<CreateTransferCubit>(),
+            child: const CreateTransferScreen(),
+          ),
         ),
       ),
     );
@@ -464,10 +481,13 @@ abstract class AppRoute {
     return Navigator.push<bool>(
       context,
       MaterialPageRoute<bool>(
-        builder: (_) => BlocProvider<MerchantDetailCubit>(
-          create: (_) =>
-              getIt<MerchantDetailCubit>(param1: merchantId, param2: initial),
-          child: const MerchantDetailScreen(),
+        builder: (_) => PermissionBoundary(
+          permission: P.merchantsRead,
+          child: BlocProvider<MerchantDetailCubit>(
+            create: (_) =>
+                getIt<MerchantDetailCubit>(param1: merchantId, param2: initial),
+            child: const MerchantDetailScreen(),
+          ),
         ),
       ),
     );
@@ -502,9 +522,12 @@ abstract class AppRoute {
     return Navigator.push<void>(
       context,
       MaterialPageRoute<void>(
-        builder: (_) => BlocProvider<ViolationsListCubit>(
-          create: (_) => getIt<ViolationsListCubit>(),
-          child: ViolationsListScreen(scope: scope),
+        builder: (_) => PermissionBoundary(
+          permission: P.violationsRead,
+          child: BlocProvider<ViolationsListCubit>(
+            create: (_) => getIt<ViolationsListCubit>(),
+            child: ViolationsListScreen(scope: scope),
+          ),
         ),
       ),
     );
@@ -520,10 +543,13 @@ abstract class AppRoute {
     return Navigator.push<ViolationEntity>(
       context,
       MaterialPageRoute<ViolationEntity>(
-        builder: (_) => BlocProvider<ViolationDetailCubit>(
-          create: (_) =>
-              getIt<ViolationDetailCubit>(param1: violationId, param2: initial),
-          child: const ViolationDetailScreen(),
+        builder: (_) => PermissionBoundary(
+          permission: P.violationsRead,
+          child: BlocProvider<ViolationDetailCubit>(
+            create: (_) =>
+                getIt<ViolationDetailCubit>(param1: violationId, param2: initial),
+            child: const ViolationDetailScreen(),
+          ),
         ),
       ),
     );
@@ -552,9 +578,12 @@ abstract class AppRoute {
     return Navigator.push<ViolationEntity>(
       context,
       MaterialPageRoute<ViolationEntity>(
-        builder: (_) => BlocProvider<ViolationCreateCubit>(
-          create: (_) => getIt<ViolationCreateCubit>(),
-          child: const ViolationCreateScreen(),
+        builder: (_) => PermissionBoundary(
+          permission: P.violationsCreate,
+          child: BlocProvider<ViolationCreateCubit>(
+            create: (_) => getIt<ViolationCreateCubit>(),
+            child: const ViolationCreateScreen(),
+          ),
         ),
       ),
     );
@@ -569,9 +598,12 @@ abstract class AppRoute {
     return Navigator.push<void>(
       context,
       MaterialPageRoute<void>(
-        builder: (_) => BlocProvider<MaintenanceListCubit>(
-          create: (_) => getIt<MaintenanceListCubit>(),
-          child: MaintenanceListScreen(scope: scope),
+        builder: (_) => PermissionBoundary(
+          permission: P.maintenanceRead,
+          child: BlocProvider<MaintenanceListCubit>(
+            create: (_) => getIt<MaintenanceListCubit>(),
+            child: MaintenanceListScreen(scope: scope),
+          ),
         ),
       ),
     );

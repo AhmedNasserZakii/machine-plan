@@ -14,13 +14,11 @@ class UserStatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StatusChip(
-      label: isActive
-          ? LocaleKeys.userActive.tr()
-          : LocaleKeys.userInactive.tr(),
+      label:
+          isActive ? LocaleKeys.userActive.tr() : LocaleKeys.userInactive.tr(),
       color: isActive ? AppColors.successColor : AppColors.neutralColor,
-      icon: isActive
-          ? Icons.check_circle_outline_rounded
-          : Icons.block_outlined,
+      icon:
+          isActive ? Icons.check_circle_outline_rounded : Icons.block_outlined,
     );
   }
 }

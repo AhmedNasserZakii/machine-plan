@@ -1,25 +1,39 @@
 import 'dart:io' show Platform;
 
+import 'package:machinery/core/config/app_environment.dart';
+
 /// Endpoint catalogue. Repositories must never hard-code a path.
 abstract class WebConstant {
-  // TODO(backend): replace with the real host once the API is deployed.
-  static const String _prodHost = 'https://api.machinery.example.com/api/v1/';
+  /// Explicit override wins over flavor defaults. Used by Maestro, LAN
+  /// devices, and any one-off host that is not baked into a flavor file.
+  static const String _overrideHost = String.fromEnvironment('API_BASE_URL');
 
-  static const bool isDev = true;
+  /// Staging / production hosts come from flavor config (`config/*.env.json`).
+  /// Leaving them empty forces an explicit `API_BASE_URL` so a release build
+  /// cannot silently talk to a placeholder host.
+  static const String _stagingHost =
+      String.fromEnvironment('STAGING_API_BASE_URL');
+  static const String _productionHost = String.fromEnvironment(
+    'PRODUCTION_API_BASE_URL',
+  );
 
   /// Port the local NestJS API listens on (`backend/api`, `npm run start:dev`).
   static const String _localPort = '3000';
 
-  /// Set with `--dart-define=API_BASE_URL=…`. The end-to-end suite points this
-  /// at a local mock server, and a physical device needs the machine's LAN
-  /// address here. Leaving it unset falls back to the loopback host below.
-  static const String _overrideHost = String.fromEnvironment('API_BASE_URL');
+  static bool get isDev => AppEnvironment.isDevelopment;
 
   static String get host {
     if (_overrideHost.isNotEmpty) {
-      return _overrideHost;
+      return _normalize(_overrideHost);
     }
-    return isDev ? _localHost : _prodHost;
+    return switch (AppEnvironment.flavor) {
+      AppFlavor.development => _localHost,
+      AppFlavor.staging => _requireHost(_stagingHost, 'STAGING_API_BASE_URL'),
+      AppFlavor.production => _requireHost(
+          _productionHost,
+          'PRODUCTION_API_BASE_URL',
+        ),
+    };
   }
 
   /// The Android emulator is a VM, so its `localhost` is the emulator itself;
@@ -29,6 +43,20 @@ abstract class WebConstant {
     final String address = Platform.isAndroid ? '10.0.2.2' : 'localhost';
     return 'http://$address:$_localPort/api/v1/';
   }
+
+  static String _requireHost(String value, String defineName) {
+    if (value.isEmpty) {
+      throw StateError(
+        'Missing $defineName (or API_BASE_URL) for '
+        '${AppEnvironment.raw} builds. Pass --dart-define-from-file=config/'
+        '${AppEnvironment.raw}.env.json',
+      );
+    }
+    return _normalize(value);
+  }
+
+  static String _normalize(String value) =>
+      value.endsWith('/') ? value : '$value/';
 
   // ── Auth ─────────────────────────────────────────────────────────────────
   static const String login = 'auth/login';

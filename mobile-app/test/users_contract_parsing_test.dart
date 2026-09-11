@@ -3,9 +3,11 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:machinery/feature/users/data/models/permission_group_model.dart';
 import 'package:machinery/feature/users/data/models/role_model.dart';
+import 'package:machinery/feature/users/data/models/user_custody_model.dart';
 import 'package:machinery/feature/users/data/models/user_model.dart';
 import 'package:machinery/feature/users/data/models/user_permissions_model.dart';
 import 'package:machinery/feature/users/domain/entities/user_permissions_entity.dart';
+import 'package:machinery/feature/users/domain/params/role_write_params.dart';
 import 'package:machinery/feature/users/domain/params/user_form_params.dart';
 import 'package:machinery/feature/users/domain/params/users_query_params.dart';
 
@@ -94,15 +96,88 @@ void main() {
 
     expect(role.displayName, 'محاسب');
     expect(role.permissions, <String>['finance.read', 'machines.read']);
+    expect(role.toEntity().isSystem, isTrue);
     expect(role.toEntity().isBranchScoped, isFalse);
+  });
+
+  test('raw role translations survive for the rename dialog', () {
+    final RoleModel role = RoleModel.fromJson(
+      decode('''
+{
+  "id": "r-1",
+  "code": "VIEWER",
+  "displayName": "مشاهد",
+  "isSystem": false,
+  "permissions": [],
+  "translations": {
+    "ar": { "displayName": "مشاهد", "description": "عرض فقط" },
+    "en": { "displayName": "Viewer", "description": "Read only" }
+  }
+}
+'''),
+    );
+
+    expect(role.translations['en']?.displayName, 'Viewer');
+    expect(role.translations['ar']?.description, 'عرض فقط');
+  });
+
+  test('create-role body uppercases the code and trims names', () {
+    final json = CreateRoleParams(
+      code: ' field_ops ',
+      translations: const RoleTranslations(
+        arName: ' ميداني ',
+        enName: ' Field ',
+        arDescription: ' ',
+        enDescription: 'On site',
+      ),
+      permissions: const <String>['machines.read'],
+    ).toJson();
+
+    expect(json['code'], 'FIELD_OPS');
+    expect(json['translations']['ar']['displayName'], 'ميداني');
+    expect(json['translations']['en']['description'], 'On site');
+    expect(
+      (json['translations']['ar'] as Map<String, dynamic>)
+          .containsKey('description'),
+      isFalse,
+    );
+  });
+
+  test('user custody summary and merchant nesting parse', () {
+    final custody = userCustodyFromJson(
+      decode('''
+{
+  "summary": {
+    "totalMachines": 4,
+    "withMerchants": 2,
+    "inHand": 2,
+    "openViolations": 1
+  },
+  "machines": [
+    {
+      "id": "m-1",
+      "serial": "SN-1",
+      "model": "X1",
+      "status": "WITH_MERCHANT",
+      "heldSince": "2026-09-01T10:00:00.000Z",
+      "merchant": { "id": "shop-1", "shopName": "محل النور" }
+    }
+  ]
+}
+'''),
+    );
+
+    expect(custody.summary.totalMachines, 4);
+    expect(custody.machines.single.merchantName, 'محل النور');
+    expect(custody.machines.single.serial, 'SN-1');
   });
 
   test('branch-scoped roles are the ones the form asks a branch for', () {
     RoleModel roleWith(String code) => RoleModel.fromJson(<String, dynamic>{
-      'id': 'r',
-      'code': code,
-      'displayName': code,
-    });
+          'id': 'r',
+          'code': code,
+          'displayName': code,
+        });
 
     expect(roleWith('REPRESENTATIVE').toEntity().isBranchScoped, isTrue);
     expect(roleWith('BRANCH_SUPERVISOR').toEntity().isBranchScoped, isTrue);

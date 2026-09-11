@@ -16,6 +16,8 @@ import 'package:machinery/core/services/biometric/biometric_service.dart';
 import 'package:machinery/core/services/biometric/handover_biometric_service.dart';
 import 'package:machinery/core/services/finance_change_notifier.dart';
 import 'package:machinery/core/services/locale_service.dart';
+import 'package:machinery/core/services/observability/app_analytics.dart';
+import 'package:machinery/core/services/observability/crash_reporter.dart';
 import 'package:machinery/core/services/sync/pending_sync_counter.dart';
 import 'package:machinery/core/services/sync/finance_sync_queue.dart';
 import 'package:machinery/core/services/sync/media_staging_service.dart';
@@ -102,6 +104,8 @@ void setupServiceLocator(AppDatabase appDatabase) {
   getIt.registerLazySingleton<NetworkInfo>(
     () => NetworkInfoImpl(connectivity: getIt()),
   );
+  getIt.registerLazySingleton<CrashReporter>(LoggingCrashReporter.new);
+  getIt.registerLazySingleton<AppAnalytics>(LoggingAnalytics.new);
 
   // ── Offline local database (`6.1`/`6.2`) ─────────────────────────────────
   getIt.registerSingleton<AppDatabase>(appDatabase);

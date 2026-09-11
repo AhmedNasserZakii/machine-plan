@@ -34,14 +34,14 @@ class RoleEntity extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[
-    id,
-    code,
-    displayName,
-    description,
-    isSystem,
-    permissions,
-    translations,
-  ];
+        id,
+        code,
+        displayName,
+        description,
+        isSystem,
+        permissions,
+        translations,
+      ];
 }
 
 class RoleTranslation extends Equatable {

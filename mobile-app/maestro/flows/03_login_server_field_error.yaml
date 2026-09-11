@@ -1,4 +1,4 @@
-appId: com.machinery.machinery
+appId: com.machinery.machinery.dev
 name: 03 — A 400 with field details renders inline under the phone field
 tags:
   - auth

@@ -172,7 +172,7 @@ export class TransfersController {
   @Permissions(Perm.TRANSFERS_READ)
   @BranchScoped(Perm.TRANSFERS_READ_ALL)
   @ApiOperation({
-    summary: 'A signed URL for one signature\'s drawn image, for whoever can read this transfer',
+    summary: "A signed URL for one signature's drawn image, for whoever can read this transfer",
   })
   @ApiResponse({ status: 200, type: TransferSignatureMediaResponse })
   @ApiResponse({ status: 404, description: 'MEDIA_NOT_FOUND — no drawn image on this signature' })

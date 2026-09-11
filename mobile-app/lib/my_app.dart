@@ -5,7 +5,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/di/service_locator.dart';
 import 'package:machinery/core/network_services/unauthorized_session_handler.dart';
+import 'package:machinery/core/network_services/upgrade_required_handler.dart';
+import 'package:machinery/core/services/observability/app_analytics.dart';
 import 'package:machinery/core/shared_widgets/app_confirm_dialog.dart';
+import 'package:machinery/core/shared_widgets/upgrade_required_screen.dart';
 import 'package:machinery/core/theme/styles/app_theme.dart';
 import 'package:machinery/core/utils/app_route.dart';
 import 'package:machinery/feature/auth/data/logic/auth/auth_cubit.dart';
@@ -28,6 +31,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     UnauthorizedSessionHandler.register(_onSessionExpired);
+    UpgradeRequiredHandler.register(_onUpgradeRequired);
   }
 
   @override
@@ -68,6 +72,29 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     if (context.mounted) {
       AppRoute.goToLoginScreen(context: context);
     }
+  }
+
+  Future<void> _onUpgradeRequired({
+    required String message,
+    String? minVersion,
+  }) async {
+    getIt<AppAnalytics>().track(
+      AnalyticsEvents.upgradeRequiredShown,
+      properties: <String, Object?>{
+        if (minVersion != null) 'min_version': minVersion,
+      },
+    );
+    final navigator = navigatorKey.currentState;
+    if (navigator == null) return;
+    await navigator.pushAndRemoveUntil<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => UpgradeRequiredScreen(
+          message: message,
+          minVersion: minVersion,
+        ),
+      ),
+      (_) => false,
+    );
   }
 
   @override

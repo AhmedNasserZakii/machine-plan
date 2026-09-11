@@ -1,7 +1,11 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/di/service_locator.dart';
+import 'package:machinery/core/shared_widgets/app_empty_state.dart';
 import 'package:machinery/core/shared_widgets/app_error_view.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
+import 'package:machinery/core/shared_widgets/ltr_text.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/feature/finance/domain/entities/finance_entities.dart';
@@ -48,15 +52,21 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Category breakdown')),
+    appBar: AppBar(title: Text(LocaleKeys.financeBreakdown.tr())),
     body: Column(
       children: <Widget>[
         Padding(
           padding: const EdgeInsetsDirectional.all(AppSpacing.sm),
           child: SegmentedButton<FinanceKind>(
-            segments: const [
-              ButtonSegment(value: FinanceKind.expense, label: Text('Expense')),
-              ButtonSegment(value: FinanceKind.income, label: Text('Income')),
+            segments: <ButtonSegment<FinanceKind>>[
+              ButtonSegment(
+                value: FinanceKind.expense,
+                label: Text(LocaleKeys.financeExpense.tr()),
+              ),
+              ButtonSegment(
+                value: FinanceKind.income,
+                label: Text(LocaleKeys.financeIncome.tr()),
+              ),
             ],
             selected: <FinanceKind>{_kind},
             onSelectionChanged: (v) {
@@ -75,7 +85,7 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
             child: Row(
               children: <Widget>[
                 ActionChip(
-                  label: const Text('All'),
+                  label: Text(LocaleKeys.all.tr()),
                   onPressed: () {
                     _trail.clear();
                     _load();
@@ -97,13 +107,19 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
               ? AppErrorView(message: _error!, onRetry: _load)
               : _data == null
               ? const AppLoadingIndicator()
+              : _data!.categories.isEmpty
+              ? AppEmptyState(
+                  icon: Icons.donut_small_outlined,
+                  title: LocaleKeys.financeNoCategories.tr(),
+                  subtitle: LocaleKeys.financeNoCategoriesSubtitle.tr(),
+                )
               : RefreshIndicator(
                   onRefresh: _load,
                   child: ListView(
                     padding: const EdgeInsetsDirectional.all(AppSpacing.md),
                     children: <Widget>[
                       FinanceMetricCard(
-                        label: 'Grand total',
+                        label: LocaleKeys.financeGrandTotal.tr(),
                         value: formatMoney(context, _data!.grandTotal),
                         color: _kind == FinanceKind.expense
                             ? AppColors.dangerColor
@@ -114,19 +130,24 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
                         (c) => Card(
                           child: ExpansionTile(
                             leading: CircleAvatar(
-                              child: Text(
+                              child: LtrText(
                                 '${c.percentOfGrandTotal.toStringAsFixed(0)}%',
                               ),
                             ),
                             title: Text(c.name),
-                            subtitle: Text(
-                              'Direct ${formatMoney(context, c.directTotal)} • Rolled up ${formatMoney(context, c.rolledUpTotal)}',
+                            subtitle: LtrText(
+                              LocaleKeys.financeDirectRolledUp.tr(
+                                args: <String>[
+                                  formatMoney(context, c.directTotal),
+                                  formatMoney(context, c.rolledUpTotal),
+                                ],
+                              ),
                             ),
                             trailing: c.children.isEmpty
                                 ? null
                                 : IconButton(
                                     icon: const Icon(Icons.open_in_new),
-                                    tooltip: 'Open subtree',
+                                    tooltip: LocaleKeys.financeOpenSubtree.tr(),
                                     onPressed: () {
                                       _trail.add(c);
                                       _load();
@@ -154,10 +175,14 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
                                     end: AppSpacing.md,
                                   ),
                                   title: Text(child.name),
-                                  subtitle: Text(
-                                    'Direct ${formatMoney(context, child.directTotal)}',
+                                  subtitle: LtrText(
+                                    LocaleKeys.financeDirectTotal.tr(
+                                      args: <String>[
+                                        formatMoney(context, child.directTotal),
+                                      ],
+                                    ),
                                   ),
-                                  trailing: Text(
+                                  trailing: LtrText(
                                     formatMoney(context, child.rolledUpTotal),
                                   ),
                                 ),

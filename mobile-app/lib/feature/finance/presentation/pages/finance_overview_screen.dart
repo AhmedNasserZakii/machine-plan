@@ -143,6 +143,7 @@ class _FinanceOverviewScreenState extends State<FinanceOverviewScreen> {
                     ? AppColors.dangerColor
                     : AppColors.warningColor,
                 icon: Icons.speed,
+                ltrValue: false,
               ),
             ],
           ),

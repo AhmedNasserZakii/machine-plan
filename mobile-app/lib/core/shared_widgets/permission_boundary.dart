@@ -9,13 +9,23 @@ import 'package:machinery/core/theme/styles/app_spacing.dart';
 /// stale deep link or an already-open route cannot bypass the screen boundary.
 class PermissionBoundary extends StatelessWidget {
   const PermissionBoundary({
-    required this.permission,
     required this.child,
     super.key,
-  });
+    this.permission,
+    this.anyOf = const <String>[],
+  }) : assert(
+          permission != null || anyOf.isNotEmpty,
+          'Provide permission or anyOf',
+        );
 
-  final String permission;
+  final String? permission;
+  final List<String> anyOf;
   final Widget child;
+
+  bool _allowed(PermissionService service) {
+    if (permission != null && service.has(permission!)) return true;
+    return anyOf.any(service.has);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +33,7 @@ class PermissionBoundary extends StatelessWidget {
     return ValueListenableBuilder<List<String>>(
       valueListenable: service.permissions,
       builder: (context, _, _) {
-        if (service.has(permission)) return child;
+        if (_allowed(service)) return child;
         return Scaffold(
           appBar: AppBar(),
           body: Center(

@@ -1,4 +1,4 @@
-appId: com.machinery.machinery
+appId: com.machinery.machinery.dev
 name: 14 — Logout confirms, returns to login, and does not leave a session behind
 tags:
   - auth

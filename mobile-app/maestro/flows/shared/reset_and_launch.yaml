@@ -1,4 +1,4 @@
-appId: com.machinery.machinery
+appId: com.machinery.machinery.dev
 name: Reset mock backend and cold-start the app
 ---
 # The mock backend keeps mutable state (passwords, mustChangePassword), so

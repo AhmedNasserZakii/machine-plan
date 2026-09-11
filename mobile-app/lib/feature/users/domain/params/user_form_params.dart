@@ -39,13 +39,13 @@ class CreateUserParams extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[
-    fullName,
-    phone,
-    roleId,
-    password,
-    email,
-    branchId,
-  ];
+        fullName,
+        phone,
+        roleId,
+        password,
+        email,
+        branchId,
+      ];
 }
 
 /// `PATCH /users/:id`. Everything is optional, and null is meaningful for
@@ -91,12 +91,12 @@ class UpdateUserParams extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[
-    fullName,
-    phone,
-    email,
-    roleId,
-    branchId,
-    clearEmail,
-    clearBranch,
-  ];
+        fullName,
+        phone,
+        email,
+        roleId,
+        branchId,
+        clearEmail,
+        clearBranch,
+      ];
 }

@@ -48,9 +48,9 @@ class UserPermissionsEntity extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[
-    userId,
-    rolePermissions,
-    overrides,
-    effectivePermissions,
-  ];
+        userId,
+        rolePermissions,
+        overrides,
+        effectivePermissions,
+      ];
 }

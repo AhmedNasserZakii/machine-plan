@@ -28,6 +28,7 @@ abstract class ErrorMapper {
       'EDIT_WINDOW_EXPIRED' => LocaleKeys.errorFinanceEditWindowExpired,
       'OVERLAPPING_BUDGET' => LocaleKeys.errorOverlappingBudget,
       'BUDGET_ON_INCOME_CATEGORY' => LocaleKeys.errorBudgetOnIncomeCategory,
+      'CLIENT_UPGRADE_REQUIRED' => LocaleKeys.upgradeRequiredMessage,
       'INVALID_CREDENTIALS' => LocaleKeys.errorInvalidCredentials,
       'ACCOUNT_INACTIVE' => LocaleKeys.errorAccountInactive,
       'ACCOUNT_LOCKED' => LocaleKeys.errorAccountLocked,

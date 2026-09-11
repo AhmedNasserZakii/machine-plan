@@ -1,4 +1,4 @@
-appId: com.machinery.machinery
+appId: com.machinery.machinery.dev
 name: Sign in and leave the app sitting on the merchants tab
 ---
 # Not an assertion flow. This signs the director in against the live API and
