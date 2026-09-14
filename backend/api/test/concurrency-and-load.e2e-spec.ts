@@ -55,7 +55,7 @@ describe('Concurrency and load (e2e)', () => {
     branchId = branch.id;
 
     const models = await ok<{ id: string; machineType: { requiresSim: boolean } }[]>(
-      director.get('/machine-models'),
+      director.get('/machine-models?limit=100'),
     );
     posModelId = models.find((model) => model.machineType.requiresSim)!.id;
   });

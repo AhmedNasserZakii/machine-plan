@@ -77,11 +77,13 @@ interface BootstrapResponse extends SyncStatusResponse {
   myMerchants: { id: string }[];
   pendingTransfers: TransferResponse[];
   permissions: string[];
+  truncated: { myMachines: boolean; myMerchants: boolean };
 }
 
 interface DeltaResponse extends BootstrapResponse {
   deleted: { machines: string[]; merchants: string[]; transfers: string[] };
   nextSince: string;
+  hasMore: boolean;
 }
 
 interface OperationResult {
@@ -136,7 +138,7 @@ describe('Offline sync (e2e)', () => {
       fullName: 'مندوب المزامنة',
     });
 
-    const models = await ok<MachineModelResponse[]>(director.get('/machine-models'));
+    const models = await ok<MachineModelResponse[]>(director.get('/machine-models?limit=100'));
     posModelId = models.find((model) => model.machineType.requiresSim)!.id;
   });
 
@@ -310,6 +312,9 @@ describe('Offline sync (e2e)', () => {
       expect(boot.lookups.financeCategories.length).toBeGreaterThan(0);
       expect(boot.lookups.branches.some((branch) => branch.id === branchId)).toBe(true);
       expect(boot.permissions).toContain('transfers.create');
+      expect(boot.truncated.myMachines).toBe(false);
+      expect(boot.myMerchants.length).toBeLessThanOrEqual(500);
+      expect(typeof boot.truncated.myMerchants).toBe('boolean');
     });
 
     it('gives a representative the machines in his hands and the shops he registered', async () => {
@@ -386,11 +391,33 @@ describe('Offline sync (e2e)', () => {
       );
 
       expect(Date.parse(delta.nextSince)).toBeGreaterThanOrEqual(Date.parse(before));
+      expect(delta.hasMore).toBe(false);
 
       const nothingSince = await ok<DeltaResponse>(
         representative.api.get(`/sync/delta?since=${encodeURIComponent(delta.nextSince)}`),
       );
       expect(nothingSince.myMachines).toEqual([]);
+      expect(nothingSince.hasMore).toBe(false);
+    });
+
+    it('sets hasMore when a collection hits the cap, and not when it does not', async () => {
+      const cursor = (await serverTime()).serverTime;
+      const first = await createMachine();
+      await deliverToRepresentative(first);
+      const second = await createMachine();
+      await deliverToRepresentative(second);
+
+      const capped = await ok<DeltaResponse>(
+        representative.api.get(`/sync/delta?since=${encodeURIComponent(cursor)}&limit=1`),
+      );
+      expect(capped.myMachines).toHaveLength(1);
+      expect(capped.hasMore).toBe(true);
+
+      const full = await ok<DeltaResponse>(
+        representative.api.get(`/sync/delta?since=${encodeURIComponent(cursor)}&limit=10`),
+      );
+      expect(full.myMachines.map((row) => row.id).sort()).toEqual([first.id, second.id].sort());
+      expect(full.hasMore).toBe(false);
     });
 
     it('names the machine that left the caller’s custody so the device can drop it', async () => {

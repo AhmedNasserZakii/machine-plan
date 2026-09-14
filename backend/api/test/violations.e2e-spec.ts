@@ -105,7 +105,7 @@ describe('Violations (e2e)', () => {
       fullName: 'مندوب المخالفات',
     });
 
-    const models = await ok<MachineModelResponse[]>(director.get('/machine-models'));
+    const models = await ok<MachineModelResponse[]>(director.get('/machine-models?limit=100'));
     posModelId = models.find((model) => model.machineType.requiresSim)!.id;
 
     const methods = await ok<PaymentMethodResponse[]>(director.get('/payment-methods'));

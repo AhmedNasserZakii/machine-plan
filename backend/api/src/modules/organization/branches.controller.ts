@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { BranchScoped, CurrentUser, Permissions, Scope } from 'src/common/decorators';
+import { PaginatedResult } from 'src/common/dto/paginated-result';
 import { AuthUser, BranchScope } from 'src/common/types/request.types';
 import { Perm } from 'src/modules/roles/permissions.catalogue';
 import { BranchesService } from './branches.service';
@@ -18,9 +19,9 @@ export class BranchesController {
   @Get()
   @ApiOperation({ summary: 'List branches with their warehouse' })
   @ApiResponse({ status: 200, type: [BranchResponse] })
-  async findAll(@Query() query: QueryBranchesDto): Promise<BranchResponse[]> {
-    const branches = await this.branches.findAll(query);
-    return branches.map((branch) => toBranchResponse(branch));
+  async findAll(@Query() query: QueryBranchesDto): Promise<PaginatedResult<BranchResponse>> {
+    const page = await this.branches.findAll(query);
+    return page.map((branch) => toBranchResponse(branch));
   }
 
   @Get(':id')

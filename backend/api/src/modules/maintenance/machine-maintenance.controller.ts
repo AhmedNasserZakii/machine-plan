@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Locale } from 'src/common/constants/locales';
 import { BranchScoped, Permissions, ReqLocale, Scope } from 'src/common/decorators';
@@ -7,6 +7,7 @@ import { MachinesService } from 'src/modules/machines/machines.service';
 import { ReplacementMachineDto } from 'src/modules/replacements/dto/replacement.dto';
 import { Perm } from 'src/modules/roles/permissions.catalogue';
 import { MaintenanceHistoryResponse } from './dto/responses/maintenance.response';
+import { QueryMachineMaintenanceHistoryDto } from './dto/maintenance.dto';
 import { MachineReplacedResponse } from './dto/responses/replace.response';
 import { toMaintenanceListItemResponse } from './mappers/maintenance.mapper';
 import { MaintenanceActor, MaintenanceService } from './maintenance.service';
@@ -32,19 +33,25 @@ export class MachineMaintenanceController {
   @ApiResponse({ status: 200, type: MaintenanceHistoryResponse })
   async history(
     @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: QueryMachineMaintenanceHistoryDto,
     @Scope() scope: BranchScope,
     @ReqLocale() locale: Locale,
   ): Promise<MaintenanceHistoryResponse> {
     // Visibility is the machine's, checked by the module that owns it. A history endpoint that
     // enforced its own idea of scope would be a second answer to the same question.
     const machine = await this.machines.findById(id, scope, locale);
-    const { orders, totals } = await this.maintenance.historyOf(machine.id, locale);
+    const { orders, totals, ordersMeta } = await this.maintenance.historyOf(
+      machine.id,
+      locale,
+      query,
+    );
 
     return {
       machineId: machine.id,
       serial: machine.serial,
       totals,
       orders: orders.map((order) => toMaintenanceListItemResponse(order, locale)),
+      ordersMeta,
     };
   }
 

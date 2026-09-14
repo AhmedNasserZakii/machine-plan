@@ -177,7 +177,7 @@ describe('Reports (e2e)', () => {
       fullName: 'محاسب التقارير',
     });
 
-    const models = await ok<MachineModelResponse[]>(director.get('/machine-models'));
+    const models = await ok<MachineModelResponse[]>(director.get('/machine-models?limit=100'));
     posModelId = models.find((model) => model.machineType.requiresSim)!.id;
 
     cashMethodId = (await ok<{ id: string }[]>(director.get('/payment-methods')))[0].id;

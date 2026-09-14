@@ -155,7 +155,7 @@ describe('Notifications (e2e)', () => {
       fullName: 'مسؤول ورشة الإشعارات',
     });
 
-    const models = await ok<MachineModelResponse[]>(director.get('/machine-models'));
+    const models = await ok<MachineModelResponse[]>(director.get('/machine-models?limit=100'));
     posModelId = models.find((model) => model.machineType.requiresSim)!.id;
 
     // Nothing seeds a workshop store, and the internal-workshop route has nowhere to send a

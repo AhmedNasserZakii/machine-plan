@@ -167,7 +167,13 @@ export class MachinesService {
    * in his branch's warehouse are not ones he can hand over without a transfer he cannot create
    * offline anyway.
    */
-  async inCustodyOf(userId: string, locale: Locale, since?: Date): Promise<Machine[]> {
+  async inCustodyOf(
+    userId: string,
+    locale: Locale,
+    since?: Date,
+    take?: number,
+    orderByUpdatedAt = false,
+  ): Promise<Machine[]> {
     const qb = this.baseQuery(locale)
       .where('machine.current_holder_type IN (:...holderTypes)', { holderTypes: USER_PARTIES })
       .andWhere('machine.current_holder_id = :userId', { userId });
@@ -176,7 +182,15 @@ export class MachinesService {
       qb.andWhere('machine.updated_at > :since', { since });
     }
 
-    return qb.orderBy('machine.serial', 'ASC').getMany();
+    if (orderByUpdatedAt) {
+      qb.orderBy('machine.updatedAt', 'ASC').addOrderBy('machine.id', 'ASC');
+    } else {
+      qb.orderBy('machine.serial', 'ASC').addOrderBy('machine.id', 'ASC');
+    }
+
+    if (take !== undefined) qb.take(take);
+
+    return qb.getMany();
   }
 
   /**

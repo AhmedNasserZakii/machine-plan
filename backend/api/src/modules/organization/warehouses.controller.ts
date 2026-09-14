@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, Permissions } from 'src/common/decorators';
+import { PaginatedResult } from 'src/common/dto/paginated-result';
 import { Perm } from 'src/modules/roles/permissions.catalogue';
 import { CreateWarehouseDto, QueryWarehousesDto } from './dto/warehouse.dto';
 import { WarehouseResponse } from './dto/responses/branch.response';
@@ -16,9 +17,9 @@ export class WarehousesController {
   @Get()
   @ApiOperation({ summary: 'List warehouses, optionally filtered by type or branch' })
   @ApiResponse({ status: 200, type: [WarehouseResponse] })
-  async findAll(@Query() query: QueryWarehousesDto): Promise<WarehouseResponse[]> {
-    const warehouses = await this.warehouses.findAll(query);
-    return warehouses.map(toWarehouseResponse);
+  async findAll(@Query() query: QueryWarehousesDto): Promise<PaginatedResult<WarehouseResponse>> {
+    const page = await this.warehouses.findAll(query);
+    return page.map(toWarehouseResponse);
   }
 
   @Get(':id')

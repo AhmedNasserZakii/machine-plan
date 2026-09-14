@@ -48,6 +48,7 @@ interface UserCustodyResponse {
     merchant: { id: string; shopName: string } | null;
     heldSince: string;
   }>;
+  machinesMeta: { page: number; limit: number; total: number; hasNext: boolean };
 }
 
 const UNKNOWN_UUID = '00000000-0000-4000-8000-000000000000';
@@ -68,7 +69,7 @@ describe('Users (e2e)', () => {
     roles = await rolesByCode(director);
     branch = await createBranch(director, 'فرع المستخدمين');
     const models = await ok<Array<{ id: string; machineType: { requiresSim: boolean } }>>(
-      director.get('/machine-models'),
+      director.get('/machine-models?limit=100'),
     );
     machineModelId = models.find((model) => model.machineType.requiresSim)!.id;
   });
@@ -457,6 +458,19 @@ describe('Users (e2e)', () => {
       expect(
         custody.machines.find((machine) => machine.id === merchantMachine.id)?.merchant,
       ).toEqual({ id: merchant.id, shopName: merchant.shopName });
+      expect(custody.machinesMeta).toMatchObject({ total: 2, limit: 20 });
+
+      const paged = await ok<UserCustodyResponse>(
+        director.get(`/users/${representative.id}/custody?limit=1`),
+      );
+      expect(paged.machines).toHaveLength(1);
+      expect(paged.summary.totalMachines).toBe(2);
+      expect(paged.machinesMeta).toMatchObject({ total: 2, limit: 1, hasNext: true });
+      await fails(
+        director.get(`/users/${representative.id}/custody?limit=1000`),
+        400,
+        'VALIDATION_FAILED',
+      );
 
       await fails(
         director.patch(`/users/${representative.id}/deactivate`),
@@ -507,6 +521,7 @@ describe('Users (e2e)', () => {
         openViolations: 0,
       });
       expect(custody.machines).toEqual([]);
+      expect(custody.machinesMeta).toMatchObject({ total: 0, hasNext: false });
     });
 
     it('reports a single machine held directly by the user', async () => {

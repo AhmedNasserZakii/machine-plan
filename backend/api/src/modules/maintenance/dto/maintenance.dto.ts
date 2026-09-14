@@ -292,3 +292,5 @@ export class QueryMaintenanceOrdersDto extends PaginationDto {
   @IsIn(MAINTENANCE_SORT_FIELDS)
   sortBy: MaintenanceSortField = 'sentAt';
 }
+
+export class QueryMachineMaintenanceHistoryDto extends PaginationDto {}

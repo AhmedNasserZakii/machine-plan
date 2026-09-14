@@ -154,10 +154,10 @@ describe('Decommission (e2e)', () => {
       fullName: 'مندوب الإحلال',
     });
 
-    const warehouses = await ok<WarehouseResponse[]>(director.get('/warehouses'));
+    const warehouses = await ok<WarehouseResponse[]>(director.get('/warehouses?limit=100'));
     companyWarehouseId = warehouses.find((row) => row.type === WarehouseType.COMPANY_MAIN)!.id;
 
-    posModelId = (await ok<MachineModelResponse[]>(director.get('/machine-models'))).find(
+    posModelId = (await ok<MachineModelResponse[]>(director.get('/machine-models?limit=100'))).find(
       (model) => model.machineType.requiresSim,
     )!.id;
 

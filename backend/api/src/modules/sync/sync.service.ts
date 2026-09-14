@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { Locale } from 'src/common/constants/locales';
+import { MAX_BULK_LIMIT } from 'src/common/dto/pagination.dto';
 import { LookupEntity } from 'src/common/entities/lookup.entity';
 import { AuthUser, BranchScope } from 'src/common/types/request.types';
 import { joinTranslation } from 'src/common/utils';
@@ -45,8 +46,10 @@ import { SYNC_SCHEMA_VERSION } from './sync-schema-version';
  * an `updated_at > since` predicate — so the client cannot end up with a delta that reports a
  * field bootstrap never gave it.
  *
- * Both are deliberately unpaginated. They are scoped instead: a device is told about the
- * machines its user is holding and the merchants he may see, not about the fleet.
+ * Both are scoped rather than paged: a device is told about the machines its user is holding
+ * and the merchants he may see, not about the fleet. Bootstrap caps `myMachines`/`myMerchants`
+ * at `MAX_BULK_LIMIT` and sets `truncated` when the cap bites. Delta chunks with `limit` and
+ * `hasMore`.
  */
 @Injectable()
 export class SyncService {
@@ -72,7 +75,8 @@ export class SyncService {
   }
 
   async bootstrap(user: AuthUser, locale: Locale): Promise<SyncBootstrapResponse> {
-    return this.collect(user, locale, null);
+    const { payload } = await this.collect(user, locale, null, MAX_BULK_LIMIT);
+    return payload;
   }
 
   /**
@@ -81,12 +85,19 @@ export class SyncService {
    * Handing back a slightly early cursor costs one row being sent twice, which the `clientUuid`
    * and `id` the client already holds make harmless.
    */
-  async delta(since: Date, user: AuthUser, locale: Locale): Promise<SyncDeltaResponse> {
+  async delta(
+    since: Date,
+    user: AuthUser,
+    locale: Locale,
+    limit: number,
+  ): Promise<SyncDeltaResponse> {
     const nextSince = new Date();
-    const changed = await this.collect(user, locale, since);
+    const { payload, resumeAt } = await this.collect(user, locale, since, limit);
+
+    const hasMore = payload.truncated.myMachines || payload.truncated.myMerchants;
 
     return {
-      ...changed,
+      ...payload,
       deleted: {
         machines: user.permissions.includes(Perm.MACHINES_READ)
           ? await this.machines.releasedFromCustody(user.id, since)
@@ -102,7 +113,8 @@ export class SyncService {
           ? await this.transfers.settledSince(user, since)
           : [],
       },
-      nextSince: nextSince.toISOString(),
+      nextSince: (hasMore && resumeAt ? resumeAt : nextSince).toISOString(),
+      hasMore,
     };
   }
 
@@ -110,17 +122,21 @@ export class SyncService {
     user: AuthUser,
     locale: Locale,
     since: Date | null,
-  ): Promise<SyncBootstrapResponse> {
+    limit: number,
+  ): Promise<{ payload: SyncBootstrapResponse; resumeAt: Date | null }> {
+    const fetch = limit + 1;
     const [lookups, myMachines, myMerchants, pendingTransfers] = await Promise.all([
       this.lookups(user, locale, since),
       user.permissions.includes(Perm.MACHINES_READ)
-        ? this.machines.inCustodyOf(user.id, locale, since ?? undefined)
+        ? this.machines.inCustodyOf(user.id, locale, since ?? undefined, fetch, Boolean(since))
         : [],
       this.canReadMerchants(user)
         ? this.merchants.visibleForSync(
             this.scopeFor(user, Perm.MERCHANTS_READ_ALL),
             user,
             since ?? undefined,
+            fetch,
+            Boolean(since),
           )
         : [],
       user.permissions.includes(Perm.TRANSFERS_READ)
@@ -128,20 +144,42 @@ export class SyncService {
         : [],
     ]);
 
+    const machinesTruncated = myMachines.length > limit;
+    const merchantsTruncated = myMerchants.length > limit;
+    const machinesPage = myMachines.slice(0, limit);
+    const merchantsPage = myMerchants.slice(0, limit);
+
+    const resumeAt = this.lastUpdatedAt(
+      machinesTruncated ? machinesPage.at(-1)?.updatedAt : undefined,
+      merchantsTruncated ? merchantsPage.at(-1)?.merchant.updatedAt : undefined,
+    );
+
     return {
-      serverTime: new Date().toISOString(),
-      schemaVersion: SYNC_SCHEMA_VERSION,
-      lookups,
-      myMachines: myMachines.map((machine) => toMachineListItemResponse(machine, locale)),
-      myMerchants: myMerchants.map((row) =>
-        toMerchantListItemResponse(row.merchant, row.machinesCount),
-      ),
-      // Not filtered by `since`: an unsigned transfer is a job still to do, and a device that
-      // syncs after its cursor has moved past the day the transfer was created would otherwise
-      // never be told about it.
-      pendingTransfers: pendingTransfers.map((transfer) => toTransferResponse(transfer, locale)),
-      permissions: user.permissions,
+      payload: {
+        serverTime: new Date().toISOString(),
+        schemaVersion: SYNC_SCHEMA_VERSION,
+        lookups,
+        myMachines: machinesPage.map((machine) => toMachineListItemResponse(machine, locale)),
+        myMerchants: merchantsPage.map((row) =>
+          toMerchantListItemResponse(row.merchant, row.machinesCount),
+        ),
+        // Not filtered by `since`: an unsigned transfer is a job still to do, and a device that
+        // syncs after its cursor has moved past the day the transfer was created would otherwise
+        // never be told about it.
+        pendingTransfers: pendingTransfers.map((transfer) => toTransferResponse(transfer, locale)),
+        permissions: user.permissions,
+        truncated: { myMachines: machinesTruncated, myMerchants: merchantsTruncated },
+      },
+      resumeAt: resumeAt ?? null,
     };
+  }
+
+  private lastUpdatedAt(...values: Array<Date | string | undefined>): Date | undefined {
+    const stamps = values
+      .map((value) => (value instanceof Date ? value : value ? new Date(value) : undefined))
+      .filter((value): value is Date => value instanceof Date && !Number.isNaN(value.getTime()));
+    if (stamps.length === 0) return undefined;
+    return new Date(Math.min(...stamps.map((value) => value.getTime())));
   }
 
   private async lookups(

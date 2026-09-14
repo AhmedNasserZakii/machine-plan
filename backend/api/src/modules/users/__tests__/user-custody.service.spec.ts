@@ -1,5 +1,6 @@
 import { DataSource } from 'typeorm';
 import { MachineStatus } from 'src/common/enums/machine-status.enum';
+import { QueryUserCustodyDto } from '../dto/query-users.dto';
 import { UserCustodyService } from '../user-custody.service';
 import { UsersService } from '../users.service';
 
@@ -9,6 +10,7 @@ describe('UserCustodyService', () => {
     fullName: 'Representative',
     role: { code: 'REPRESENTATIVE' },
   };
+  const query = Object.assign(new QueryUserCustodyDto(), { page: 1, limit: 20 });
 
   function service(
     machineRows: unknown[],
@@ -30,10 +32,11 @@ describe('UserCustodyService', () => {
   it('returns an empty summary when the user has no custody', async () => {
     const { subject } = service([]);
 
-    await expect(subject.findForUser(user.id, 'branch-1', 'ar')).resolves.toEqual({
+    await expect(subject.findForUser(user.id, 'branch-1', 'ar', query)).resolves.toEqual({
       user: { id: user.id, fullName: user.fullName, role: 'REPRESENTATIVE' },
       summary: { totalMachines: 0, withMerchants: 0, inHand: 0, openViolations: 0 },
       machines: [],
+      machinesMeta: { page: 1, limit: 20, total: 0, totalPages: 0, hasNext: false },
     });
   });
 
@@ -47,10 +50,12 @@ describe('UserCustodyService', () => {
         merchant_id: null,
         merchant_shop_name: null,
         held_since: '2026-09-08T10:00:00.000Z',
+        total_count: '1',
+        with_merchants_count: '0',
       },
     ]);
 
-    const result = await subject.findForUser(user.id, null, 'en');
+    const result = await subject.findForUser(user.id, null, 'en', query);
 
     expect(result.summary).toEqual({
       totalMachines: 1,
@@ -66,6 +71,8 @@ describe('UserCustodyService', () => {
       model_name: 'Model A',
       status: MachineStatus.WITH_MERCHANT,
       held_since: new Date('2026-09-08T10:00:00.000Z'),
+      total_count: '3',
+      with_merchants_count: '2',
     };
     const { subject } = service(
       [
@@ -95,7 +102,7 @@ describe('UserCustodyService', () => {
       '2',
     );
 
-    const result = await subject.findForUser(user.id, null, 'ar');
+    const result = await subject.findForUser(user.id, null, 'ar', query);
 
     expect(result.summary).toEqual({
       totalMachines: 3,

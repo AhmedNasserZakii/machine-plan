@@ -51,6 +51,7 @@ import {
   CancelMaintenanceOrderDto,
   CloseMaintenanceOrderDto,
   CreateMaintenanceOrderDto,
+  QueryMachineMaintenanceHistoryDto,
   QueryMaintenanceOrdersDto,
   ReceiveMaintenanceOrderDto,
   SendMaintenanceOrderDto,
@@ -655,13 +656,30 @@ export class MaintenanceService {
   async historyOf(
     machineId: string,
     locale: Locale,
-  ): Promise<{ orders: MaintenanceOrder[]; totals: MaintenanceTotals }> {
-    const orders = await this.baseQuery(locale)
-      .andWhere('order.machine_id = :machineId', { machineId })
-      .orderBy('order.sent_at', 'DESC')
-      .getMany();
+    query: QueryMachineMaintenanceHistoryDto,
+  ): Promise<{
+    orders: MaintenanceOrder[];
+    totals: MaintenanceTotals;
+    ordersMeta: PaginatedResult<MaintenanceOrder>['meta'];
+  }> {
+    const filtered = this.baseQuery(locale).andWhere('order.machine_id = :machineId', {
+      machineId,
+    });
 
-    return { orders, totals: totalsOf(orders) };
+    const all = await filtered.clone().getMany();
+    const [orders, total] = await filtered
+      .clone()
+      .orderBy('order.sentAt', 'DESC')
+      .addOrderBy('order.id', 'ASC')
+      .skip(query.skip)
+      .take(query.take)
+      .getManyAndCount();
+
+    return {
+      orders,
+      totals: totalsOf(all),
+      ordersMeta: new PaginatedResult(orders, total, query.page, query.limit).meta,
+    };
   }
 
   /** Used by decommission (`13`, step 2) to refuse scrapping a machine that is still in a shop. */

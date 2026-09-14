@@ -45,6 +45,11 @@ export class SyncLookupsResponse {
   @ApiProperty({ type: [BranchResponse] }) branches: BranchResponse[];
 }
 
+export class SyncTruncatedResponse {
+  @ApiProperty() myMachines: boolean;
+  @ApiProperty() myMerchants: boolean;
+}
+
 export class SyncBootstrapResponse {
   @ApiProperty({ description: "The server's clock. The client stores it and sends it back." })
   serverTime: string;
@@ -67,6 +72,9 @@ export class SyncBootstrapResponse {
   pendingTransfers: TransferResponse[];
 
   @ApiProperty({ example: ['transfers.create', 'merchants.read'] }) permissions: string[];
+
+  @ApiProperty({ type: SyncTruncatedResponse })
+  truncated: SyncTruncatedResponse;
 }
 
 /** Ids the client must drop from its local database, per collection. */
@@ -81,6 +89,12 @@ export class SyncDeltaResponse extends SyncBootstrapResponse {
 
   @ApiProperty({ description: 'The cursor for the next call. Always the server’s timestamp.' })
   nextSince: string;
+
+  @ApiProperty({
+    description:
+      'True when a collection was capped at `limit`. Loop with `nextSince` until this is false.',
+  })
+  hasMore: boolean;
 }
 
 export class SyncStatusResponse {

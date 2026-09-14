@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { PaginationMeta } from 'src/common/dto/paginated-result';
 import {
   MAINTENANCE_RESULTS,
   MAINTENANCE_STATUSES,
@@ -95,4 +96,7 @@ export class MaintenanceHistoryResponse {
   @ApiProperty({ type: MaintenanceTotalsResponse }) totals: MaintenanceTotalsResponse;
   @ApiProperty({ type: [MaintenanceOrderListItemResponse] })
   orders: MaintenanceOrderListItemResponse[];
+
+  @ApiProperty({ type: PaginationMeta })
+  ordersMeta: PaginationMeta;
 }

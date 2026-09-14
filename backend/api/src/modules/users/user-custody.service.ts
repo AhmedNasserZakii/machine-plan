@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { DEFAULT_LOCALE, Locale } from 'src/common/constants/locales';
+import { PaginatedResult } from 'src/common/dto/paginated-result';
 import { MachineStatus } from 'src/common/enums/machine-status.enum';
 import { PartyType } from 'src/common/enums/transfer.enum';
 import { ViolationStatus } from 'src/common/enums/operations.enum';
 import { UserCustodyResponse } from './dto/responses/user-custody.response';
+import { QueryUserCustodyDto } from './dto/query-users.dto';
 import { UsersService } from './users.service';
 
 interface CustodyRow {
@@ -15,6 +17,8 @@ interface CustodyRow {
   merchant_id: string | null;
   merchant_shop_name: string | null;
   held_since: Date | string;
+  total_count: string;
+  with_merchants_count: string;
 }
 
 @Injectable()
@@ -28,6 +32,7 @@ export class UserCustodyService {
     userId: string,
     branchScope: string | null,
     locale: Locale,
+    query: QueryUserCustodyDto,
   ): Promise<UserCustodyResponse> {
     const user = await this.users.findById(userId, branchScope);
 
@@ -49,7 +54,9 @@ export class UserCustodyService {
                     AND transfer.to_party_type = machine.current_holder_type
                     AND transfer.to_party_id = machine.current_holder_id),
                 machine.created_at
-              ) AS held_since
+              ) AS held_since,
+              COUNT(*) OVER() AS total_count,
+              COUNT(merchant.id) OVER() AS with_merchants_count
          FROM machines machine
          JOIN machine_models model ON model.id = machine.machine_model_id
          LEFT JOIN machine_model_translations requested_model
@@ -65,7 +72,8 @@ export class UserCustodyService {
             (machine.current_holder_type IN ($5, $6) AND machine.current_holder_id = $1)
             OR merchant.created_by_user_id = $1
           )
-        ORDER BY held_since ASC, machine.serial ASC`,
+        ORDER BY held_since ASC, machine.serial ASC, machine.id ASC
+        LIMIT $7 OFFSET $8`,
       [
         userId,
         locale,
@@ -73,6 +81,8 @@ export class UserCustodyService {
         PartyType.MERCHANT,
         PartyType.SUPERVISOR,
         PartyType.REPRESENTATIVE,
+        query.take,
+        query.skip,
       ],
     );
 
@@ -85,6 +95,8 @@ export class UserCustodyService {
       [userId, ViolationStatus.OPEN, ViolationStatus.ACKNOWLEDGED],
     );
 
+    const totalMachines = Number(rows[0]?.total_count ?? 0);
+    const withMerchants = Number(rows[0]?.with_merchants_count ?? 0);
     const machines = rows.map((row) => ({
       id: row.id,
       serial: row.serial,
@@ -96,17 +108,17 @@ export class UserCustodyService {
           : null,
       heldSince: new Date(row.held_since).toISOString(),
     }));
-    const withMerchants = machines.filter((machine) => machine.merchant !== null).length;
 
     return {
       user: { id: user.id, fullName: user.fullName, role: user.role.code },
       summary: {
-        totalMachines: machines.length,
+        totalMachines,
         withMerchants,
-        inHand: machines.length - withMerchants,
+        inHand: totalMachines - withMerchants,
         openViolations: Number(openViolationRows[0]?.count ?? 0),
       },
       machines,
+      machinesMeta: new PaginatedResult(machines, totalMachines, query.page, query.limit).meta,
     };
   }
 }

@@ -6,11 +6,15 @@ import {
   IsArray,
   IsDateString,
   IsIn,
+  IsInt,
   IsObject,
   IsOptional,
   IsUUID,
+  Max,
+  Min,
   ValidateNested,
 } from 'class-validator';
+import { MAX_BULK_LIMIT } from 'src/common/dto/pagination.dto';
 import { SYNC_OPERATION_TYPES, SyncOperationType } from 'src/common/enums/sync.enum';
 
 export class SyncDeltaQueryDto {
@@ -20,6 +24,19 @@ export class SyncDeltaQueryDto {
   })
   @IsDateString()
   since: string;
+
+  @ApiPropertyOptional({
+    minimum: 1,
+    maximum: MAX_BULK_LIMIT,
+    default: 200,
+    description: 'Cap per collection. When any collection hits the cap, `hasMore` is true.',
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(MAX_BULK_LIMIT)
+  limit: number = 200;
 }
 
 export class SyncOperationDto {

@@ -75,17 +75,6 @@ export class BudgetStatusResponse {
   @ApiProperty({ enum: BUDGET_STATUSES }) status: BudgetStatus;
   @ApiProperty({ type: BudgetPaceResponse }) pace: BudgetPaceResponse;
   @ApiProperty({ nullable: true }) lastAlertLevel: string | null;
-}
-
-export class BudgetStatusSummaryResponse {
-  @ApiProperty() total: number;
-  @ApiProperty() ok: number;
-  @ApiProperty() warning: number;
-  @ApiProperty() exceeded: number;
-}
-
-export class BudgetStatusListResponse {
-  @ApiProperty({ example: '2026-09-07' }) asOf: string;
-  @ApiProperty({ type: [BudgetStatusResponse] }) budgets: BudgetStatusResponse[];
-  @ApiProperty({ type: BudgetStatusSummaryResponse }) summary: BudgetStatusSummaryResponse;
+  @ApiProperty({ example: '2026-09-07', description: 'The day the pace was measured against.' })
+  asOf: string;
 }

@@ -13,6 +13,7 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Locale } from 'src/common/constants/locales';
 import { CurrentUser, Permissions, ReqLocale } from 'src/common/decorators';
+import { PaginatedResult } from 'src/common/dto/paginated-result';
 import { Perm } from 'src/modules/roles/permissions.catalogue';
 import {
   CreateFinanceCategoryDto,
@@ -49,9 +50,9 @@ export class FinanceCategoriesController {
   async findAll(
     @Query() query: QueryFinanceCategoriesDto,
     @ReqLocale() locale: Locale,
-  ): Promise<FinanceCategoryResponse[]> {
-    const nodes = await this.categories.findAll(query, locale);
-    return nodes.map((node) => toFinanceCategoryResponse(node, locale));
+  ): Promise<PaginatedResult<FinanceCategoryResponse>> {
+    const page = await this.categories.findAll(query, locale);
+    return page.map((node) => toFinanceCategoryResponse(node, locale));
   }
 
   /**
@@ -60,7 +61,11 @@ export class FinanceCategoriesController {
    */
   @Get('tree')
   @Permissions(Perm.FINANCE_READ)
-  @ApiOperation({ summary: 'The whole nested tree, already localized' })
+  @ApiOperation({
+    summary: 'The whole nested tree, already localized',
+    description:
+      'A tree whose shape is the payload. Not paginated; bound it with `maxDepth` instead.',
+  })
   @ApiResponse({ status: 200, type: [FinanceCategoryResponse] })
   async tree(
     @Query() query: QueryFinanceCategoryTreeDto,

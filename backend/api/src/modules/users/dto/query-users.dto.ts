@@ -37,3 +37,5 @@ export class QueryUsersDto extends PaginationDto {
   @IsIn(USER_SORT_FIELDS)
   sortBy: UserSortField = 'createdAt';
 }
+
+export class QueryUserCustodyDto extends PaginationDto {}

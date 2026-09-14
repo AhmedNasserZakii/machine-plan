@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { AuditService } from 'src/common/audit';
 import { ErrorCode } from 'src/common/constants/error-codes';
+import { PaginatedResult } from 'src/common/dto/paginated-result';
 import { AuditAction, AuditEntityType } from 'src/common/enums';
 import { WarehouseType } from 'src/common/enums/operations.enum';
 import { AppException } from 'src/common/errors';
@@ -28,7 +29,7 @@ export class BranchesService {
     private readonly audit: AuditService,
   ) {}
 
-  async findAll(query: QueryBranchesDto): Promise<Branch[]> {
+  async findAll(query: QueryBranchesDto): Promise<PaginatedResult<Branch>> {
     const qb = this.branches
       .createQueryBuilder('branch')
       .leftJoinAndSelect('branch.warehouses', 'warehouse', 'warehouse.type = :branchType', {
@@ -43,7 +44,14 @@ export class BranchesService {
       });
     }
 
-    return qb.orderBy('branch.name', 'ASC').getMany();
+    const [rows, total] = await qb
+      .orderBy('branch.name', 'ASC')
+      .addOrderBy('branch.id', 'ASC')
+      .skip(query.skip)
+      .take(query.take)
+      .getManyAndCount();
+
+    return new PaginatedResult(rows, total, query.page, query.limit);
   }
 
   async findById(id: string): Promise<Branch> {

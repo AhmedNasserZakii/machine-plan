@@ -21,6 +21,7 @@ import {
   Scope,
 } from 'src/common/decorators';
 import { BranchScope } from 'src/common/types/request.types';
+import { PaginatedResult } from 'src/common/dto/paginated-result';
 import { Perm } from 'src/modules/roles/permissions.catalogue';
 import {
   BudgetStatusQueryDto,
@@ -28,8 +29,8 @@ import {
   QueryBudgetsDto,
   UpdateBudgetDto,
 } from './dto/budget.dto';
-import { BudgetResponse, BudgetStatusListResponse } from './dto/responses/budget.response';
-import { toBudgetResponse, toBudgetStatusListResponse } from './mappers/budget.mapper';
+import { BudgetResponse, BudgetStatusResponse } from './dto/responses/budget.response';
+import { toBudgetResponse, toBudgetStatusResponse } from './mappers/budget.mapper';
 import { BudgetsService } from './services/budgets.service';
 
 @ApiTags('finance')
@@ -48,9 +49,9 @@ export class BudgetsController {
     @Query() query: QueryBudgetsDto,
     @Scope() scope: BranchScope,
     @ReqLocale() locale: Locale,
-  ): Promise<BudgetResponse[]> {
-    const { budgets, view } = await this.budgets.findAll(query, scope, locale);
-    return budgets.map((budget) => toBudgetResponse(budget, view));
+  ): Promise<PaginatedResult<BudgetResponse>> {
+    const { page, view } = await this.budgets.findAll(query, scope, locale);
+    return page.map((budget) => toBudgetResponse(budget, view));
   }
 
   /** Declared before `:id` so the literal wins the route match. */
@@ -59,14 +60,14 @@ export class BudgetsController {
   @Permissions(Perm.FINANCE_READ)
   @BranchScoped(Perm.FINANCE_READ_ALL)
   @ApiOperation({ summary: 'Every budget with its spend, status and pace' })
-  @ApiResponse({ status: 200, type: BudgetStatusListResponse })
+  @ApiResponse({ status: 200, type: [BudgetStatusResponse] })
   async status(
     @Query() query: BudgetStatusQueryDto,
     @Scope() scope: BranchScope,
     @ReqLocale() locale: Locale,
-  ): Promise<BudgetStatusListResponse> {
-    const { asOf, computed, view } = await this.budgets.status(query, scope, locale);
-    return toBudgetStatusListResponse(asOf, computed, view);
+  ): Promise<PaginatedResult<BudgetStatusResponse>> {
+    const { asOf, page, view } = await this.budgets.status(query, scope, locale);
+    return page.map((computed) => toBudgetStatusResponse(computed, view, asOf));
   }
 
   @Get(':id')

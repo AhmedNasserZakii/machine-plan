@@ -118,11 +118,11 @@ describe('Transfers (e2e)', () => {
       fullName: 'مندوب التسليمات',
     });
 
-    const warehouses = await ok<WarehouseResponse[]>(director.get('/warehouses'));
+    const warehouses = await ok<WarehouseResponse[]>(director.get('/warehouses?limit=100'));
     companyWarehouseId = warehouses.find((w) => w.type === WarehouseType.COMPANY_MAIN)!.id;
     scrapWarehouseId = warehouses.find((w) => w.type === WarehouseType.SCRAP)!.id;
 
-    const models = await ok<MachineModelResponse[]>(director.get('/machine-models'));
+    const models = await ok<MachineModelResponse[]>(director.get('/machine-models?limit=100'));
     posModelId = models.find((model) => model.machineType.requiresSim)!.id;
   });
 
@@ -1038,6 +1038,19 @@ describe('Transfers (e2e)', () => {
       );
 
       expect(recipients.map((entry) => entry.id)).toContain(scrapWarehouseId);
+    });
+
+    it('pages the recipient picker and rejects an oversized limit', async () => {
+      const { items, meta } = await okPage<TransferRecipientResponse>(
+        director.get(`/transfers/recipients?type=${TransferType.COMPANY_TO_SCRAP}&limit=1`),
+      );
+      expect(items.length).toBeLessThanOrEqual(1);
+      expect(meta.limit).toBe(1);
+      await fails(
+        director.get(`/transfers/recipients?type=${TransferType.COMPANY_TO_SCRAP}&limit=1000`),
+        400,
+        'VALIDATION_FAILED',
+      );
     });
 
     it('offers nothing to a role that holds no custody', async () => {

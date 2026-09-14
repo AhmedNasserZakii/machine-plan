@@ -2,7 +2,7 @@ import type { App } from 'supertest/types';
 import { INestApplication } from '@nestjs/common';
 import { Severity, WarehouseType } from 'src/common/enums/operations.enum';
 import { SystemRole } from 'src/modules/roles/entities/role.entity';
-import { Api, fails, hasFieldError, ok } from './utils/api-client';
+import { Api, fails, hasFieldError, ok, okPage } from './utils/api-client';
 import {
   createBranch,
   loginAsDirector,
@@ -83,7 +83,7 @@ describe('Branches and warehouses (e2e)', () => {
 
       // The warehouse is discoverable through the warehouses endpoint too.
       const warehouses = await ok<WarehouseResponse[]>(
-        director.get(`/warehouses?branchId=${branch.id}`),
+        director.get(`/warehouses?branchId=${branch.id}&limit=100`),
       );
       expect(warehouses).toHaveLength(1);
       expect(warehouses[0].type).toBe(WarehouseType.BRANCH);
@@ -134,11 +134,13 @@ describe('Branches and warehouses (e2e)', () => {
       const branch = await createBranch(director, 'فرع للإخفاء');
       await ok(director.patch(`/branches/${branch.id}/deactivate`));
 
-      const active = await ok<BranchResponse[]>(director.get('/branches'));
+      const active = await ok<BranchResponse[]>(director.get('/branches?limit=100'));
       expect(active.map((row) => row.id)).not.toContain(branch.id);
       expect(active.every((row) => row.isActive)).toBe(true);
 
-      const all = await ok<BranchResponse[]>(director.get('/branches?includeInactive=true'));
+      const all = await ok<BranchResponse[]>(
+        director.get('/branches?includeInactive=true&limit=100'),
+      );
       expect(all.map((row) => row.id)).toContain(branch.id);
     });
 
@@ -154,11 +156,19 @@ describe('Branches and warehouses (e2e)', () => {
     });
 
     it('is readable by any authenticated user', async () => {
-      await ok(viewer.get('/branches'));
+      await ok(viewer.get('/branches?limit=100'));
     });
 
     it('rejects an unknown query parameter', async () => {
       await fails(director.get('/branches?nope=1'), 400, 'VALIDATION_FAILED');
+    });
+
+    it('pages the list and rejects an oversized limit', async () => {
+      const { items, meta } = await okPage<BranchResponse>(director.get('/branches?limit=2'));
+      expect(items.length).toBeLessThanOrEqual(2);
+      expect(meta.limit).toBe(2);
+      expect(meta.total).toBeGreaterThan(0);
+      await fails(director.get('/branches?limit=1000'), 400, 'VALIDATION_FAILED');
     });
   });
 
@@ -326,7 +336,7 @@ describe('Branches and warehouses (e2e)', () => {
 
   describe('warehouses', () => {
     it('exposes the two seeded company warehouses', async () => {
-      const warehouses = await ok<WarehouseResponse[]>(director.get('/warehouses'));
+      const warehouses = await ok<WarehouseResponse[]>(director.get('/warehouses?limit=100'));
       const byType = new Map(warehouses.map((row) => [row.type, row]));
 
       expect(byType.get(WarehouseType.COMPANY_MAIN)?.branchId).toBeNull();
@@ -335,11 +345,18 @@ describe('Branches and warehouses (e2e)', () => {
 
     it('filters by type', async () => {
       const scrap = await ok<WarehouseResponse[]>(
-        director.get(`/warehouses?type=${WarehouseType.SCRAP}`),
+        director.get(`/warehouses?type=${WarehouseType.SCRAP}&limit=100`),
       );
 
       expect(scrap).toHaveLength(1);
       expect(scrap[0].type).toBe(WarehouseType.SCRAP);
+    });
+
+    it('pages the warehouse list and rejects an oversized limit', async () => {
+      const { items, meta } = await okPage<WarehouseResponse>(director.get('/warehouses?limit=1'));
+      expect(items).toHaveLength(1);
+      expect(meta.total).toBeGreaterThan(1);
+      await fails(director.get('/warehouses?limit=1000'), 400, 'VALIDATION_FAILED');
     });
 
     it('rejects a second company-level warehouse of the same type', async () => {

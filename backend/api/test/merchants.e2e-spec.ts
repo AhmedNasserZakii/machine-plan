@@ -102,7 +102,7 @@ describe('Merchants (e2e)', () => {
       fullName: 'مندوب آخر',
     });
 
-    const models = await ok<MachineModelResponse[]>(director.get('/machine-models'));
+    const models = await ok<MachineModelResponse[]>(director.get('/machine-models?limit=100'));
     posModelId = models.find((model) => model.machineType.requiresSim)!.id;
 
     const methods = await ok<PaymentMethodResponse[]>(director.get('/payment-methods'));
@@ -296,7 +296,9 @@ describe('Merchants (e2e)', () => {
         201,
       );
 
-      const warehouses = await ok<{ id: string; type: string }[]>(director.get('/warehouses'));
+      const warehouses = await ok<{ id: string; type: string }[]>(
+        director.get('/warehouses?limit=100'),
+      );
       const branchWarehouse = warehouses.find((w) => w.type === 'COMPANY_MAIN')!;
       void branchWarehouse;
 
@@ -674,5 +676,38 @@ describe('Merchants (e2e)', () => {
     expect(timeline.map((entry) => entry.kind)).toEqual(
       expect.arrayContaining(['SUBSCRIPTION_STARTED', 'COLLECTION']),
     );
+
+    const { items, meta } = await okPage<{ kind: string }>(
+      director.get(`/merchants/${merchant}/timeline?limit=1`),
+    );
+    expect(items).toHaveLength(1);
+    expect(meta.hasNext).toBe(true);
+
+    const cursor = (meta as unknown as { nextCursor: string | null }).nextCursor;
+    expect(cursor).toBeTruthy();
+
+    const rest = await okPage<{ kind: string }>(
+      director.get(`/merchants/${merchant}/timeline?limit=1&cursor=${encodeURIComponent(cursor!)}`),
+    );
+    expect(rest.items.length).toBeGreaterThan(0);
+
+    const { items: machines, meta: machinesMeta } = await okPage<{ id: string }>(
+      director.get(`/merchants/${merchant}/machines?limit=1`),
+    );
+    expect(machines.length).toBeLessThanOrEqual(1);
+    expect(machinesMeta.limit).toBe(1);
+
+    const { items: plans, meta: plansMeta } = await okPage<{ id: string }>(
+      director.get(`/merchants/${merchant}/subscriptions?limit=1`),
+    );
+    expect(plans).toHaveLength(1);
+    expect(plansMeta.total).toBeGreaterThanOrEqual(1);
+
+    const { items: pickable, meta: pickableMeta } = await okPage<{ id: string }>(
+      representative.api.get('/merchants/pickable?limit=1'),
+    );
+    expect(pickable.length).toBeLessThanOrEqual(1);
+    expect(pickableMeta.limit).toBe(1);
+    await fails(director.get('/merchants/pickable?limit=1000'), 400, 'VALIDATION_FAILED');
   });
 });

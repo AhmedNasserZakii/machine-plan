@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { PaginationMeta } from 'src/common/dto/paginated-result';
 import { MachineStatus } from 'src/common/enums/machine-status.enum';
 
 export class UserCustodySubjectResponse {
@@ -33,4 +34,5 @@ export class UserCustodyResponse {
   @ApiProperty({ type: UserCustodySubjectResponse }) user: UserCustodySubjectResponse;
   @ApiProperty({ type: UserCustodySummaryResponse }) summary: UserCustodySummaryResponse;
   @ApiProperty({ type: [UserCustodyMachineResponse] }) machines: UserCustodyMachineResponse[];
+  @ApiProperty({ type: PaginationMeta }) machinesMeta: PaginationMeta;
 }

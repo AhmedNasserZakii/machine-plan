@@ -16,7 +16,7 @@ import {
 } from 'class-validator';
 import { MAX_MONEY_AMOUNT } from 'src/common/constants/money';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { toBoolean } from 'src/common/dto/query.dto';
+import { LocalizedQueryDto, toBoolean } from 'src/common/dto/query.dto';
 import { SUBSCRIPTION_PLAN_TYPES, SubscriptionPlanType } from 'src/common/enums/finance.enum';
 import { IsEgyptianMobile } from 'src/common/validators/is-egyptian-mobile.validator';
 
@@ -259,6 +259,16 @@ export class CollectSubscriptionDto {
 
 export class QueryMerchantMachinesDto extends PaginationDto {}
 
+export class QueryMerchantSubscriptionsDto extends PaginationDto {}
+
+export class QueryPickableMerchantsDto extends PaginationDto {
+  @ApiPropertyOptional({ description: 'Matches name or shop name.' })
+  @IsOptional()
+  @IsString()
+  @Length(1, 150)
+  search?: string;
+}
+
 export class DeactivateMerchantDto {
   @ApiPropertyOptional({ maxLength: 500 })
   @IsOptional()
@@ -267,16 +277,20 @@ export class DeactivateMerchantDto {
   reason?: string;
 }
 
+const MAX_TIMELINE_PAGE = 100;
+
 /** Kept out of `QueryMerchantsDto` so the list endpoint's own `sortBy` default is not shadowed. */
-export class MerchantTimelineQueryDto {
-  @ApiPropertyOptional({ default: 50, minimum: 1, maximum: 200 })
+export class MerchantTimelineQueryDto extends LocalizedQueryDto {
+  @ApiPropertyOptional({ minimum: 1, maximum: MAX_TIMELINE_PAGE, default: 30 })
   @IsOptional()
   @Type(() => Number)
-  // The documented maximum was never enforced: `@IsNumber` accepts 1e9 and a fraction, and
-  // the value goes straight into a `LIMIT`. `@IsInt` with a real ceiling is what the
-  // annotation above was already promising.
   @IsInt()
   @Min(1)
-  @Max(200)
-  limit = 50;
+  @Max(MAX_TIMELINE_PAGE)
+  limit: number = 30;
+
+  @ApiPropertyOptional({ description: 'The `nextCursor` from the previous page.' })
+  @IsOptional()
+  @IsString()
+  cursor?: string;
 }

@@ -3,13 +3,18 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { ErrorCode } from 'src/common/constants/error-codes';
 import { Locale } from 'src/common/constants/locales';
+import { PaginatedResult } from 'src/common/dto/paginated-result';
 import { AppException } from 'src/common/errors';
 import { joinTranslation } from 'src/common/utils';
-import { CreateMachineModelDto, UpdateMachineModelDto } from '../dto/lookup.dto';
+import {
+  CreateMachineModelDto,
+  QueryMachineModelsDto,
+  UpdateMachineModelDto,
+} from '../dto/lookup.dto';
 import { MachineModel } from '../entities/machine-model.entity';
 import { MachineModelTranslation } from '../entities/machine-model-translation.entity';
 import { MachineType } from '../entities/machine-type.entity';
-import { LookupCrudService, LookupListOptions } from '../lookup-crud.service';
+import { LookupCrudService } from '../lookup-crud.service';
 
 @Injectable()
 export class MachineModelsService extends LookupCrudService<MachineModelTranslation, MachineModel> {
@@ -21,18 +26,20 @@ export class MachineModelsService extends LookupCrudService<MachineModelTranslat
   }
 
   /** Models are usually listed for one type at a time, to populate a dependent dropdown. */
-  findAllByType(
+  async findAllByType(
     locale: Locale,
-    machineTypeId?: string,
-    options: LookupListOptions = {},
-  ): Promise<MachineModel[]> {
-    const qb = this.listQuery(locale, options);
+    query: QueryMachineModelsDto,
+  ): Promise<PaginatedResult<MachineModel>> {
+    const qb = this.listQuery(locale, query);
 
-    if (machineTypeId) {
-      qb.andWhere(`${this.alias}.machine_type_id = :machineTypeId`, { machineTypeId });
+    if (query.machineTypeId) {
+      qb.andWhere(`${this.alias}.machine_type_id = :machineTypeId`, {
+        machineTypeId: query.machineTypeId,
+      });
     }
 
-    return qb.getMany();
+    const [rows, total] = await qb.skip(query.skip).take(query.take).getManyAndCount();
+    return new PaginatedResult(rows, total, query.page, query.limit);
   }
 
   async createMachineModel(dto: CreateMachineModelDto, actorId: string): Promise<MachineModel> {

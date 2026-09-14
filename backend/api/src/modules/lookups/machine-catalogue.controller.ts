@@ -12,6 +12,7 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Locale } from 'src/common/constants/locales';
 import { CurrentUser, Permissions, ReqLocale } from 'src/common/decorators';
+import { PaginatedResult } from 'src/common/dto/paginated-result';
 import { Perm } from 'src/modules/roles/permissions.catalogue';
 import {
   CreateMachineModelDto,
@@ -42,7 +43,12 @@ export class MachineCatalogueController {
   ) {}
 
   @Get('machine-types')
-  @ApiOperation({ summary: 'List machine types, names resolved for the request locale' })
+  @ApiOperation({
+    summary: 'List machine types, names resolved for the request locale',
+    description:
+      'Seeded catalogue bounded by code and capped at 100 rows. Not paginated; if the table ' +
+      'ever exceeds that ceiling it graduates to a paginated list.',
+  })
   @ApiResponse({ status: 200, type: [MachineTypeResponse] })
   async listTypes(
     @ReqLocale() locale: Locale,
@@ -86,9 +92,9 @@ export class MachineCatalogueController {
   async listModels(
     @ReqLocale() locale: Locale,
     @Query() query: QueryMachineModelsDto,
-  ): Promise<MachineModelResponse[]> {
-    const models = await this.machineModels.findAllByType(locale, query.machineTypeId, query);
-    return models.map((model) => toMachineModelResponse(model, locale, query.rawTranslations));
+  ): Promise<PaginatedResult<MachineModelResponse>> {
+    const page = await this.machineModels.findAllByType(locale, query);
+    return page.map((model) => toMachineModelResponse(model, locale, query.rawTranslations));
   }
 
   @Post('machine-models')

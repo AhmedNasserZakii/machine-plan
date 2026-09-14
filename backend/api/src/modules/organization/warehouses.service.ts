@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, IsNull, Repository } from 'typeorm';
 import { AuditService } from 'src/common/audit';
 import { ErrorCode } from 'src/common/constants/error-codes';
+import { PaginatedResult } from 'src/common/dto/paginated-result';
 import { AuditAction, AuditEntityType } from 'src/common/enums';
 import { WarehouseType } from 'src/common/enums/operations.enum';
 import { AppException } from 'src/common/errors';
@@ -25,7 +26,7 @@ export class WarehousesService {
     private readonly audit: AuditService,
   ) {}
 
-  async findAll(query: QueryWarehousesDto): Promise<Warehouse[]> {
+  async findAll(query: QueryWarehousesDto): Promise<PaginatedResult<Warehouse>> {
     const qb = this.warehouses
       .createQueryBuilder('warehouse')
       .leftJoinAndSelect('warehouse.branch', 'branch');
@@ -35,7 +36,15 @@ export class WarehousesService {
       qb.andWhere('warehouse.branch_id = :branchId', { branchId: query.branchId });
     if (!query.includeInactive) qb.andWhere('warehouse.is_active = true');
 
-    return qb.orderBy('warehouse.type', 'ASC').addOrderBy('warehouse.name', 'ASC').getMany();
+    const [rows, total] = await qb
+      .orderBy('warehouse.type', 'ASC')
+      .addOrderBy('warehouse.name', 'ASC')
+      .addOrderBy('warehouse.id', 'ASC')
+      .skip(query.skip)
+      .take(query.take)
+      .getManyAndCount();
+
+    return new PaginatedResult(rows, total, query.page, query.limit);
   }
 
   async findById(id: string): Promise<Warehouse> {

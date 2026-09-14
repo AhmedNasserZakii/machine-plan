@@ -4,6 +4,7 @@ import { DataSource, EntityManager, Repository, SelectQueryBuilder } from 'typeo
 import { AuditService } from 'src/common/audit';
 import { ErrorCode } from 'src/common/constants/error-codes';
 import { Locale } from 'src/common/constants/locales';
+import { PaginatedResult } from 'src/common/dto/paginated-result';
 import { AuditAction, AuditEntityType } from 'src/common/enums';
 import { FinanceKind } from 'src/common/enums/finance.enum';
 import { AppException } from 'src/common/errors';
@@ -56,11 +57,18 @@ export interface BudgetResult {
 }
 
 export interface BudgetListResult {
-  budgets: Budget[];
+  page: PaginatedResult<Budget>;
   view: BudgetView;
 }
 
 export interface BudgetStatusResult {
+  asOf: string;
+  page: PaginatedResult<ComputedBudget>;
+  view: BudgetView;
+}
+
+/** Unpaged status, for the budget-performance report that already has its own row cap. */
+export interface BudgetStatusAllResult {
   asOf: string;
   computed: ComputedBudget[];
   view: BudgetView;
@@ -107,12 +115,17 @@ export class BudgetsService {
     }
     if (!query.includeInactive) qb.andWhere('budget.is_active = true');
 
-    const budgets = await qb
-      .orderBy('budget.period_start', 'DESC')
+    const [budgets, total] = await qb
+      .orderBy('budget.periodStart', 'DESC')
       .addOrderBy('budget.id', 'ASC')
-      .getMany();
+      .skip(query.skip)
+      .take(query.take)
+      .getManyAndCount();
 
-    return { budgets, view: await this.view(locale) };
+    return {
+      page: new PaginatedResult(budgets, total, query.page, query.limit),
+      view: await this.view(locale),
+    };
   }
 
   async findById(id: string, scope: BranchScope, locale: Locale): Promise<BudgetResult> {
@@ -237,6 +250,48 @@ export class BudgetsService {
     locale: Locale,
   ): Promise<BudgetStatusResult> {
     const asOf = query.asOf ?? toDateOnly(new Date());
+    const qb = this.statusQuery(query.branchId, scope);
+    const [budgets, total] = await qb
+      .orderBy('budget.periodStart', 'DESC')
+      .addOrderBy('budget.id', 'ASC')
+      .skip(query.skip)
+      .take(query.take)
+      .getManyAndCount();
+
+    return {
+      asOf,
+      page: new PaginatedResult(
+        await this.computeAll(budgets, asOf),
+        total,
+        query.page,
+        query.limit,
+      ),
+      view: await this.view(locale),
+    };
+  }
+
+  /**
+   * Same rows as `status`, without a page. The budget-performance report needs every matching
+   * budget; it already truncates at `context.maxRows`.
+   */
+  async statusAll(
+    query: Pick<BudgetStatusQueryDto, 'asOf' | 'branchId'>,
+    scope: BranchScope,
+    locale: Locale,
+  ): Promise<BudgetStatusAllResult> {
+    const asOf = query.asOf ?? toDateOnly(new Date());
+    const budgets = await this.statusQuery(query.branchId, scope)
+      .orderBy('budget.periodStart', 'DESC')
+      .addOrderBy('budget.id', 'ASC')
+      .getMany();
+
+    return { asOf, computed: await this.computeAll(budgets, asOf), view: await this.view(locale) };
+  }
+
+  private statusQuery(
+    branchId: string | undefined,
+    scope: BranchScope,
+  ): SelectQueryBuilder<Budget> {
     const qb = this.budgets
       .createQueryBuilder('budget')
       .leftJoinAndSelect('budget.branch', 'branch')
@@ -244,21 +299,19 @@ export class BudgetsService {
 
     this.applyScope(qb, scope);
 
-    if (scope.unrestricted && query.branchId) {
-      qb.andWhere('budget.branch_id = :branchId', { branchId: query.branchId });
+    if (scope.unrestricted && branchId) {
+      qb.andWhere('budget.branch_id = :branchId', { branchId });
     }
 
-    const budgets = await qb
-      .orderBy('budget.period_start', 'DESC')
-      .addOrderBy('budget.id', 'ASC')
-      .getMany();
+    return qb;
+  }
 
+  private async computeAll(budgets: Budget[], asOf: string): Promise<ComputedBudget[]> {
     const computed: ComputedBudget[] = [];
     for (const budget of budgets) {
       computed.push(await this.compute(budget, asOf));
     }
-
-    return { asOf, computed, view: await this.view(locale) };
+    return computed;
   }
 
   /** The numbers behind one budget line, including the pace that makes it actionable (`16`). */

@@ -18,7 +18,7 @@ import {
   ReqLocale,
   Scope,
 } from 'src/common/decorators';
-import { PaginatedResult } from 'src/common/dto/paginated-result';
+import { CursorResult, PaginatedResult } from 'src/common/dto/paginated-result';
 import { Locale } from 'src/common/constants/locales';
 import { AuthUser, BranchScope } from 'src/common/types/request.types';
 import { MachineListItemResponse } from 'src/modules/machines/dto/responses/machine.response';
@@ -29,7 +29,10 @@ import {
   CreateMerchantDto,
   CreateSubscriptionDto,
   MerchantTimelineQueryDto,
+  QueryMerchantMachinesDto,
+  QueryMerchantSubscriptionsDto,
   QueryMerchantsDto,
+  QueryPickableMerchantsDto,
   UpdateMerchantDto,
 } from './dto/merchant.dto';
 import {
@@ -79,13 +82,14 @@ export class MerchantsController {
   @ApiOperation({ summary: 'Merchants this caller may hand a machine to, for the transfer wizard' })
   @ApiResponse({ status: 200, type: [MerchantListItemResponse] })
   async pickable(
+    @Query() query: QueryPickableMerchantsDto,
     @Scope() scope: BranchScope,
     @CurrentUser() actor: AuthUser,
-  ): Promise<MerchantListItemResponse[]> {
-    const merchants = await this.merchants.pickable(scope, actor);
+  ): Promise<PaginatedResult<MerchantListItemResponse>> {
+    const page = await this.merchants.pickable(query, scope, actor);
 
     // The count is not worth a second query here: this feeds a picker, not a dashboard.
-    return merchants.map((merchant) => toMerchantListItemResponse(merchant, 0));
+    return page.map((merchant) => toMerchantListItemResponse(merchant, 0));
   }
 
   // A POST because the phone travels in a body rather than a query string, but it creates
@@ -134,12 +138,13 @@ export class MerchantsController {
   @ApiResponse({ status: 200, type: [MachineListItemResponse] })
   async machines(
     @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: QueryMerchantMachinesDto,
     @Scope() scope: BranchScope,
     @CurrentUser() actor: AuthUser,
     @ReqLocale() locale: Locale,
-  ): Promise<MachineListItemResponse[]> {
-    const machines = await this.merchants.machinesOf(id, scope, actor);
-    return machines.map((machine) => toMachineListItemResponse(machine, locale));
+  ): Promise<PaginatedResult<MachineListItemResponse>> {
+    const page = await this.merchants.machinesOf(id, query, scope, actor);
+    return page.map((machine) => toMachineListItemResponse(machine, locale));
   }
 
   @Get(':id/timeline')
@@ -152,12 +157,13 @@ export class MerchantsController {
     @Query() query: MerchantTimelineQueryDto,
     @Scope() scope: BranchScope,
     @CurrentUser() actor: AuthUser,
-  ): Promise<MerchantTimelineEntryResponse[]> {
-    const entries = await this.merchants.timeline(id, query.limit, scope, actor);
+  ): Promise<CursorResult<MerchantTimelineEntryResponse>> {
+    const page = await this.merchants.timeline(id, query, scope, actor);
 
-    return entries.map((entry) => ({
+    return page.map((entry) => ({
       kind: entry.kind,
       occurredAt: entry.occurredAt.toISOString(),
+      refId: entry.refId,
       referenceNo: entry.referenceNo,
       machineSerial: entry.machineSerial,
       amount: entry.amount,
@@ -172,11 +178,12 @@ export class MerchantsController {
   @ApiResponse({ status: 200, type: [SubscriptionResponse] })
   async subscriptions(
     @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: QueryMerchantSubscriptionsDto,
     @Scope() scope: BranchScope,
     @CurrentUser() actor: AuthUser,
-  ): Promise<SubscriptionResponse[]> {
-    const subscriptions = await this.merchants.subscriptionsOf(id, scope, actor);
-    return subscriptions.map((subscription) => toSubscriptionResponse(subscription));
+  ): Promise<PaginatedResult<SubscriptionResponse>> {
+    const page = await this.merchants.subscriptionsOf(id, query, scope, actor);
+    return page.map((subscription) => toSubscriptionResponse(subscription));
   }
 
   @Post()

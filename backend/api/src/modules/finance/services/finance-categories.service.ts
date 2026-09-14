@@ -6,6 +6,7 @@ import { AuditService } from 'src/common/audit';
 import { ErrorCode } from 'src/common/constants/error-codes';
 import { DEFAULT_LOCALE, Locale, SUPPORTED_LOCALES } from 'src/common/constants/locales';
 import { TranslationsMap } from 'src/common/dto/translations.dto';
+import { PaginatedResult } from 'src/common/dto/paginated-result';
 import { AuditAction, AuditEntityType } from 'src/common/enums';
 import { FinanceKind } from 'src/common/enums/finance.enum';
 import { AppException } from 'src/common/errors';
@@ -75,10 +76,11 @@ export class FinanceCategoriesService {
   }
 
   /** The flat list, with roll-ups intact even where a filter removed a node's descendants. */
-  async findAll(query: QueryFinanceCategoriesDto, locale: Locale): Promise<CategoryTreeNode[]> {
-    const nodes = flattenCategoryTree(await this.fullTree(locale));
-
-    return nodes.filter((node) => {
+  async findAll(
+    query: QueryFinanceCategoriesDto,
+    locale: Locale,
+  ): Promise<PaginatedResult<CategoryTreeNode>> {
+    const nodes = flattenCategoryTree(await this.fullTree(locale)).filter((node) => {
       const category = node.category;
 
       if (query.kind && category.kind !== query.kind) return false;
@@ -92,6 +94,9 @@ export class FinanceCategoriesService {
 
       return true;
     });
+
+    const page = nodes.slice(query.skip, query.skip + query.take);
+    return new PaginatedResult(page, nodes.length, query.page, query.limit);
   }
 
   async tree(query: QueryFinanceCategoryTreeDto, locale: Locale): Promise<CategoryTreeNode[]> {

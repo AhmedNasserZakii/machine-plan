@@ -2,13 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { AuditLog } from 'src/common/audit';
+import { decodeCursor, encodeCursor, KeysetCursor } from 'src/common/dto/cursor.util';
 import { CursorResult } from 'src/common/dto/paginated-result';
 import { QueryAuditLogsDto } from './dto/query-audit-logs.dto';
-
-interface Cursor {
-  createdAt: string;
-  id: string;
-}
 
 /**
  * Read-only: nothing in this module ever writes a row — that is `AuditService`'s job — or
@@ -85,26 +81,12 @@ export class AuditLogsService {
    * `(created_at, id) < (cursor.created_at, cursor.id)` in DESC order — the standard keyset seek,
    * expressed as a row comparison so it stays a single index scan rather than an OR of two ranges.
    */
-  private applyCursor(qb: SelectQueryBuilder<AuditLog>, cursor: Cursor | null): void {
+  private applyCursor(qb: SelectQueryBuilder<AuditLog>, cursor: KeysetCursor | null): void {
     if (!cursor) return;
 
     qb.andWhere('(log.created_at, log.id) < (:cursorCreatedAt, :cursorId)', {
-      cursorCreatedAt: cursor.createdAt,
+      cursorCreatedAt: cursor.occurredAt,
       cursorId: cursor.id,
     });
   }
-}
-
-function encodeCursor(createdAt: Date, id: string): string {
-  return Buffer.from(`${createdAt.toISOString()}|${id}`).toString('base64url');
-}
-
-/** A malformed cursor reads as "start from the top" rather than failing the request. */
-function decodeCursor(cursor?: string): Cursor | null {
-  if (!cursor) return null;
-
-  const [createdAt, id] = Buffer.from(cursor, 'base64url').toString('utf8').split('|');
-  if (!createdAt || !id || Number.isNaN(Date.parse(createdAt))) return null;
-
-  return { createdAt, id };
 }

@@ -11,7 +11,8 @@ import {
 } from 'typeorm';
 import { AuditService } from 'src/common/audit';
 import { ErrorCode } from 'src/common/constants/error-codes';
-import { PaginatedResult } from 'src/common/dto/paginated-result';
+import { CursorResult, PaginatedResult } from 'src/common/dto/paginated-result';
+import { decodeCursor, encodeCursor } from 'src/common/dto/cursor.util';
 import { AuditAction, AuditEntityType } from 'src/common/enums';
 import {
   FinanceKind,
@@ -39,7 +40,11 @@ import {
   CollectSubscriptionDto,
   CreateMerchantDto,
   CreateSubscriptionDto,
+  MerchantTimelineQueryDto,
+  QueryMerchantMachinesDto,
+  QueryMerchantSubscriptionsDto,
   QueryMerchantsDto,
+  QueryPickableMerchantsDto,
   UpdateMerchantDto,
   UpdateSubscriptionDto,
 } from './dto/merchant.dto';
@@ -61,6 +66,7 @@ export interface MerchantDuplicates {
 export interface MerchantTimelineEntry {
   kind: 'TRANSFER' | 'SUBSCRIPTION_STARTED' | 'COLLECTION';
   occurredAt: Date;
+  refId: string;
   referenceNo: string | null;
   machineSerial: string | null;
   amount: number | null;
@@ -159,6 +165,8 @@ export class MerchantsService {
     scope: BranchScope,
     actor: AuthUser,
     since?: Date,
+    take?: number,
+    orderByUpdatedAt = false,
   ): Promise<MerchantWithCount[]> {
     const qb = this.baseQuery().andWhere('merchant.is_active = true');
 
@@ -168,7 +176,15 @@ export class MerchantsService {
       qb.andWhere('merchant.updated_at > :since', { since });
     }
 
-    return this.withCounts(await qb.orderBy('merchant.name', 'ASC').getMany());
+    if (orderByUpdatedAt) {
+      qb.orderBy('merchant.updatedAt', 'ASC').addOrderBy('merchant.id', 'ASC');
+    } else {
+      qb.orderBy('merchant.name', 'ASC').addOrderBy('merchant.id', 'ASC');
+    }
+
+    if (take !== undefined) qb.take(take);
+
+    return this.withCounts(await qb.getMany());
   }
 
   /**
@@ -414,25 +430,46 @@ export class MerchantsService {
   }
 
   /** Machines this merchant is holding right now. */
-  async machinesOf(id: string, scope: BranchScope, actor: AuthUser): Promise<Machine[]> {
+  async machinesOf(
+    id: string,
+    query: QueryMerchantMachinesDto,
+    scope: BranchScope,
+    actor: AuthUser,
+  ): Promise<PaginatedResult<Machine>> {
     const { merchant } = await this.findById(id, scope, actor);
-    return this.heldMachines(merchant.id);
+    const [rows, total] = await this.dataSource.getRepository(Machine).findAndCount({
+      where: {
+        currentHolderType: PartyType.MERCHANT,
+        currentHolderId: merchant.id,
+        status: MachineStatus.WITH_MERCHANT,
+      },
+      relations: { battery: true, machineModel: true, machineType: true, currentBranch: true },
+      order: { serial: 'ASC', id: 'ASC' },
+      skip: query.skip,
+      take: query.take,
+    });
+
+    return new PaginatedResult(rows, total, query.page, query.limit);
   }
 
   // ── subscriptions ──────────────────────────────────────────────────────────
 
   async subscriptionsOf(
     id: string,
+    query: QueryMerchantSubscriptionsDto,
     scope: BranchScope,
     actor: AuthUser,
-  ): Promise<MerchantSubscription[]> {
+  ): Promise<PaginatedResult<MerchantSubscription>> {
     const { merchant } = await this.findById(id, scope, actor);
-
-    return this.subscriptions.find({
+    const [rows, total] = await this.subscriptions.findAndCount({
       where: { merchantId: merchant.id },
       relations: { machine: true },
-      order: { createdAt: 'DESC' },
+      order: { createdAt: 'DESC', id: 'ASC' },
+      skip: query.skip,
+      take: query.take,
     });
+
+    return new PaginatedResult(rows, total, query.page, query.limit);
   }
 
   async createSubscription(
@@ -673,50 +710,56 @@ export class MerchantsService {
   /**
    * What has happened to this shop, newest first: hand-offs in and out, plans starting, money
    * collected. Assembled in the service rather than in SQL because the three sources have nothing
-   * in common but a timestamp.
+   * in common but a timestamp. Keyset is on the merged `(occurred_at, ref_id)` so each source
+   * over-fetches at most `limit + 1` and the merge is sliced in memory.
    */
   async timeline(
     id: string,
-    limit: number,
+    query: MerchantTimelineQueryDto,
     scope: BranchScope,
     actor: AuthUser,
-  ): Promise<MerchantTimelineEntry[]> {
+  ): Promise<CursorResult<MerchantTimelineEntry>> {
     const { merchant } = await this.findById(id, scope, actor);
+    const cursor = decodeCursor(query.cursor);
+    const fetch = query.limit + 1;
 
-    const transfers = await this.dataSource.query<
-      Array<{
-        occurred_at: Date;
-        reference_no: string;
-        type: string;
-        serial: string;
-        direction: string;
-      }>
-    >(
-      `SELECT t.occurred_at, t.reference_no, t.type, t.direction, m.serial
-         FROM transfers t
-         JOIN transfer_items ti ON ti.transfer_id = t.id
-         JOIN machines m ON m.id = ti.machine_id
-        WHERE t.status = 'CONFIRMED'
-          AND (
-            (t.to_party_type = $1 AND t.to_party_id = $2)
-            OR (t.from_party_type = $1 AND t.from_party_id = $2)
-          )
-        ORDER BY t.occurred_at DESC
-        LIMIT $3`,
-      [PartyType.MERCHANT, merchant.id, limit],
-    );
-
-    const plans = await this.subscriptions.find({
-      where: { merchantId: merchant.id },
-      relations: { machine: true },
-      order: { createdAt: 'DESC' },
-      take: limit,
-    });
+    const [transfers, plans, collections] = await Promise.all([
+      this.dataSource.query<
+        Array<{
+          occurred_at: Date;
+          reference_no: string;
+          type: string;
+          serial: string;
+          direction: string;
+          ref_id: string;
+        }>
+      >(
+        `SELECT t.occurred_at, t.reference_no, t.type, t.direction, m.serial,
+                ('t:' || ti.id::text) AS ref_id
+           FROM transfers t
+           JOIN transfer_items ti ON ti.transfer_id = t.id
+           JOIN machines m ON m.id = ti.machine_id
+          WHERE t.status = 'CONFIRMED'
+            AND (
+              (t.to_party_type = $1 AND t.to_party_id = $2)
+              OR (t.from_party_type = $1 AND t.from_party_id = $2)
+            )
+            AND ($3::timestamptz IS NULL
+                 OR t.occurred_at < $3::timestamptz
+                 OR (t.occurred_at = $3::timestamptz AND ('t:' || ti.id::text) < $4::text))
+          ORDER BY t.occurred_at DESC, ref_id DESC
+          LIMIT $5`,
+        [PartyType.MERCHANT, merchant.id, cursor?.occurredAt ?? null, cursor?.id ?? null, fetch],
+      ),
+      this.subscriptionTimeline(merchant.id, 's:', 'createdAt', cursor, fetch),
+      this.subscriptionTimeline(merchant.id, 'c:', 'lastCollectedAt', cursor, fetch, true),
+    ]);
 
     const entries: MerchantTimelineEntry[] = [
       ...transfers.map((row) => ({
         kind: 'TRANSFER' as const,
         occurredAt: row.occurred_at,
+        refId: row.ref_id,
         referenceNo: row.reference_no,
         machineSerial: row.serial,
         amount: null,
@@ -725,37 +768,94 @@ export class MerchantsService {
       ...plans.map((plan) => ({
         kind: 'SUBSCRIPTION_STARTED' as const,
         occurredAt: plan.createdAt,
+        refId: `s:${plan.id}`,
         referenceNo: null,
         machineSerial: plan.machine?.serial ?? null,
         amount: Number(plan.amount),
         code: `PLAN_${plan.planType}`,
       })),
-      // Only the most recent collection per plan is reconstructable until the finance ledger lands
-      // in Phase 7 — the running total is a sum, not a log.
-      ...plans
-        .filter((plan) => plan.lastCollectedAt !== null)
-        .map((plan) => ({
-          kind: 'COLLECTION' as const,
-          occurredAt: plan.lastCollectedAt!,
-          referenceNo: null,
-          machineSerial: plan.machine?.serial ?? null,
-          amount: Number(plan.amount),
-          code: 'COLLECTED',
-        })),
+      ...collections.map((plan) => ({
+        kind: 'COLLECTION' as const,
+        occurredAt: plan.lastCollectedAt!,
+        refId: `c:${plan.id}`,
+        referenceNo: null,
+        machineSerial: plan.machine?.serial ?? null,
+        amount: Number(plan.amount),
+        code: 'COLLECTED',
+      })),
     ];
 
-    return entries.sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime()).slice(0, limit);
+    entries.sort((a, b) => {
+      const byTime = b.occurredAt.getTime() - a.occurredAt.getTime();
+      return byTime !== 0 ? byTime : b.refId.localeCompare(a.refId);
+    });
+
+    const page = entries.slice(0, query.limit);
+    const last = page.at(-1);
+
+    return new CursorResult(
+      page,
+      query.limit,
+      entries.length > query.limit && last ? encodeCursor(last.occurredAt, last.refId) : null,
+    );
+  }
+
+  private subscriptionTimeline(
+    merchantId: string,
+    prefix: 's:' | 'c:',
+    column: 'createdAt' | 'lastCollectedAt',
+    cursor: { occurredAt: string; id: string } | null,
+    take: number,
+    collectedOnly = false,
+  ): Promise<MerchantSubscription[]> {
+    const sqlColumn = column === 'createdAt' ? 'plan.created_at' : 'plan.last_collected_at';
+    const qb = this.subscriptions
+      .createQueryBuilder('plan')
+      .leftJoinAndSelect('plan.machine', 'machine')
+      .where('plan.merchant_id = :merchantId', { merchantId });
+
+    if (collectedOnly) qb.andWhere('plan.last_collected_at IS NOT NULL');
+
+    if (cursor) {
+      qb.andWhere(
+        `(${sqlColumn} < :cursorAt OR (${sqlColumn} = :cursorAt AND CONCAT(CAST(:prefix AS text), CAST(plan.id AS text)) < :cursorId))`,
+        {
+          prefix,
+          cursorAt: cursor.occurredAt,
+          cursorId: cursor.id,
+        },
+      );
+    }
+
+    return qb.orderBy(`plan.${column}`, 'DESC').addOrderBy('plan.id', 'DESC').take(take).getMany();
   }
 
   /**
    * The picker the transfer wizard opens for a `REPRESENTATIVE_TO_MERCHANT`. Scoped exactly as the
    * list is, so a representative is only ever offered shops he registered.
    */
-  async pickable(scope: BranchScope, actor: AuthUser): Promise<Merchant[]> {
+  async pickable(
+    query: QueryPickableMerchantsDto,
+    scope: BranchScope,
+    actor: AuthUser,
+  ): Promise<PaginatedResult<Merchant>> {
     const qb = this.baseQuery().andWhere('merchant.is_active = true');
     this.applyScope(qb, scope, actor);
 
-    return qb.orderBy('merchant.name', 'ASC').take(200).getMany();
+    if (query.search) {
+      qb.andWhere('(merchant.name ILIKE :search OR merchant.shop_name ILIKE :search)', {
+        search: likePattern(query.search),
+      });
+    }
+
+    const [rows, total] = await qb
+      .orderBy('merchant.name', 'ASC')
+      .addOrderBy('merchant.id', 'ASC')
+      .skip(query.skip)
+      .take(query.take)
+      .getManyAndCount();
+
+    return new PaginatedResult(rows, total, query.page, query.limit);
   }
 
   /** Whether a given id is a merchant the transfer engine may hand a machine to. */

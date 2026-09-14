@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, Length, Matches } from 'class-validator';
-import { ActiveFilterQueryDto } from 'src/common/dto/query.dto';
+import { PaginatedActiveFilterQueryDto } from 'src/common/dto/pagination.dto';
 
 export class CreateBranchDto {
   @ApiProperty({ example: 'ALX', maxLength: 30 })
@@ -56,7 +56,7 @@ export class UpdateBranchDto {
   phone?: string;
 }
 
-export class QueryBranchesDto extends ActiveFilterQueryDto {
+export class QueryBranchesDto extends PaginatedActiveFilterQueryDto {
   @ApiPropertyOptional({ description: 'Match against code or name.' })
   @IsOptional()
   @IsString()

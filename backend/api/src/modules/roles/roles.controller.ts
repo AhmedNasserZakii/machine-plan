@@ -28,7 +28,10 @@ export class RolesController {
 
   @Get('roles')
   @Permissions(Perm.USERS_READ)
-  @ApiOperation({ summary: 'List roles with their permission codes' })
+  @ApiOperation({
+    summary: 'List roles with their permission codes',
+    description: 'Fixed catalogue of system and custom roles, bounded by code. Not paginated.',
+  })
   @ApiQuery({ name: 'raw_translations', required: false, type: Boolean })
   @ApiResponse({ status: 200, type: [RoleResponse] })
   async findAll(
@@ -101,7 +104,10 @@ export class RolesController {
 
   @Get('permissions')
   @Permissions(Perm.ROLES_MANAGE)
-  @ApiOperation({ summary: 'The permission catalogue, grouped and localized for a checkbox tree' })
+  @ApiOperation({
+    summary: 'The permission catalogue, grouped and localized for a checkbox tree',
+    description: 'Fixed catalogue defined in code. Not paginated.',
+  })
   @ApiResponse({ status: 200, type: [PermissionGroupResponse] })
   async listPermissions(@ReqLocale() locale: Locale): Promise<PermissionGroupResponse[]> {
     return toPermissionGroups(await this.roles.listPermissions(), locale);

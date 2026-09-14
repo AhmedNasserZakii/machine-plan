@@ -13,6 +13,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { ActiveFilterQueryDto } from 'src/common/dto/query.dto';
+import { PaginatedActiveFilterQueryDto } from 'src/common/dto/pagination.dto';
 import {
   NameDescriptionTranslationsDto,
   PartialNameDescriptionTranslationsDto,
@@ -77,7 +78,7 @@ export class MoveFinanceCategoryDto {
   newParentId?: string | null;
 }
 
-export class QueryFinanceCategoriesDto extends ActiveFilterQueryDto {
+export class QueryFinanceCategoriesDto extends PaginatedActiveFilterQueryDto {
   @ApiPropertyOptional({ enum: FINANCE_KINDS })
   @IsOptional()
   @IsIn(FINANCE_KINDS)

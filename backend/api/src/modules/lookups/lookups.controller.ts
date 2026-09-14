@@ -47,7 +47,12 @@ export class LookupsController {
 
   @Get('payment-methods')
   @Permissions(Perm.FINANCE_READ)
-  @ApiOperation({ summary: 'List payment methods' })
+  @ApiOperation({
+    summary: 'List payment methods',
+    description:
+      'Seeded catalogue bounded by code and capped at 100 rows. Not paginated; if the table ' +
+      'ever exceeds that ceiling it graduates to a paginated list.',
+  })
   @ApiResponse({ status: 200, type: [LookupResponse] })
   async listPaymentMethods(
     @ReqLocale() locale: Locale,
@@ -83,7 +88,12 @@ export class LookupsController {
   }
 
   @Get('violation-types')
-  @ApiOperation({ summary: 'List violation types with their default severity' })
+  @ApiOperation({
+    summary: 'List violation types with their default severity',
+    description:
+      'Seeded catalogue bounded by code and capped at 100 rows. Not paginated; if the table ' +
+      'ever exceeds that ceiling it graduates to a paginated list.',
+  })
   @ApiResponse({ status: 200, type: [ViolationTypeResponse] })
   async listViolationTypes(
     @ReqLocale() locale: Locale,
@@ -121,7 +131,12 @@ export class LookupsController {
   }
 
   @Get('maintenance-locations')
-  @ApiOperation({ summary: 'List maintenance locations' })
+  @ApiOperation({
+    summary: 'List maintenance locations',
+    description:
+      'Seeded catalogue bounded by code and capped at 100 rows. Not paginated; if the table ' +
+      'ever exceeds that ceiling it graduates to a paginated list.',
+  })
   @ApiResponse({ status: 200, type: [LookupResponse] })
   async listMaintenanceLocations(
     @ReqLocale() locale: Locale,
@@ -144,7 +159,12 @@ export class LookupsController {
   }
 
   @Get('decommission-reasons')
-  @ApiOperation({ summary: 'List decommission reasons' })
+  @ApiOperation({
+    summary: 'List decommission reasons',
+    description:
+      'Seeded catalogue bounded by code and capped at 100 rows. Not paginated; if the table ' +
+      'ever exceeds that ceiling it graduates to a paginated list.',
+  })
   @ApiResponse({ status: 200, type: [LookupResponse] })
   async listDecommissionReasons(
     @ReqLocale() locale: Locale,

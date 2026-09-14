@@ -80,6 +80,7 @@ interface MaintenanceHistoryResponse {
     chargedToFactory: number;
   };
   orders: MaintenanceOrderResponse[];
+  ordersMeta: { page: number; limit: number; total: number; hasNext: boolean };
 }
 
 interface FinanceTransactionResponse {
@@ -236,7 +237,7 @@ describe('Maintenance, replacement and the machine history reads (e2e)', () => {
       fullName: 'مندوب الصيانة',
     });
 
-    const warehouses = await ok<WarehouseResponse[]>(director.get('/warehouses'));
+    const warehouses = await ok<WarehouseResponse[]>(director.get('/warehouses?limit=100'));
     companyWarehouseId = warehouses.find((row) => row.type === WarehouseType.COMPANY_MAIN)!.id;
 
     // Nothing seeds a workshop store — the internal-workshop route has nowhere to send a machine
@@ -248,7 +249,7 @@ describe('Maintenance, replacement and the machine history reads (e2e)', () => {
       )
     ).id;
 
-    posModelId = (await ok<MachineModelResponse[]>(director.get('/machine-models'))).find(
+    posModelId = (await ok<MachineModelResponse[]>(director.get('/machine-models?limit=100'))).find(
       (model) => model.machineType.requiresSim,
     )!.id;
 
@@ -1087,6 +1088,19 @@ describe('Maintenance, replacement and the machine history reads (e2e)', () => {
         chargedToMerchant: 150,
         chargedToRepresentative: 0,
       });
+      expect(history.ordersMeta).toMatchObject({ total: 3, limit: 20 });
+
+      const paged = await ok<MaintenanceHistoryResponse>(
+        director.get(`/machines/${machine.id}/maintenance-history?limit=1`),
+      );
+      expect(paged.orders).toHaveLength(1);
+      expect(paged.totals.orders).toBe(3);
+      expect(paged.ordersMeta).toMatchObject({ total: 3, limit: 1, hasNext: true });
+      await fails(
+        director.get(`/machines/${machine.id}/maintenance-history?limit=1000`),
+        400,
+        'VALIDATION_FAILED',
+      );
 
       const summary = await ok<CostSummaryResponse>(
         director.get(`/machines/${machine.id}/cost-summary`),

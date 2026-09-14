@@ -18,7 +18,12 @@ import {
 } from 'src/common/enums/transfer.enum';
 import { AppException, ErrorDetail } from 'src/common/errors';
 import { AuthUser, BranchScope } from 'src/common/types/request.types';
-import { assertOccurredAtAllowed, nextReferenceNo, ReferencePrefix } from 'src/common/utils';
+import {
+  assertOccurredAtAllowed,
+  likePattern,
+  nextReferenceNo,
+  ReferencePrefix,
+} from 'src/common/utils';
 import { BusinessConfig } from 'src/config/business.config';
 import {
   NotificationEntityType,
@@ -47,6 +52,7 @@ import {
   RejectTransferDto,
   SignatureDto,
   TransferItemDto,
+  TransferRecipientsQueryDto,
 } from './dto/transfer.dto';
 import { Transfer } from './entities/transfer.entity';
 import { TransferItem } from './entities/transfer-item.entity';
@@ -354,18 +360,19 @@ export class TransfersService {
    * choice the server will refuse is worse than not offering it.
    */
   async recipientsFor(
-    type: TransferType,
+    query: TransferRecipientsQueryDto,
     actor: AuthUser,
     scope: BranchScope,
-  ): Promise<TransferRecipient[]> {
-    const rule = TRANSFER_RULES[type];
+  ): Promise<PaginatedResult<TransferRecipient>> {
+    const rule = TRANSFER_RULES[query.type];
+    const empty = new PaginatedResult<TransferRecipient>([], 0, query.page, query.limit);
 
     if (rule.to === PartyType.MERCHANT) {
       // Scoped by the merchants module rather than here: a representative is only ever offered the
       // shops he registered, and that rule belongs where the merchant list is built.
-      const merchants = await this.merchants.pickable(scope, actor);
+      const page = await this.merchants.pickable(query, scope, actor);
 
-      return merchants.map((merchant) => ({
+      return page.map((merchant) => ({
         id: merchant.id,
         name: merchant.name,
         subtitle: merchant.shopName,
@@ -373,24 +380,42 @@ export class TransfersService {
     }
 
     if (rule.to === PartyType.WAREHOUSE) {
-      const warehouses = await this.dataSource.getRepository(Warehouse).find({
-        where: {
-          isActive: true,
-          // Only offer stores this transfer type may actually reach, so the picker cannot
-          // suggest a destination `resolveReceiver` will refuse.
-          ...(rule.toWarehouseTypes ? { type: In([...rule.toWarehouseTypes]) } : {}),
-        },
-        order: { name: 'ASC' },
-      });
+      const qb = this.dataSource
+        .getRepository(Warehouse)
+        .createQueryBuilder('warehouse')
+        .where('warehouse.is_active = true');
 
-      return warehouses.map((warehouse) => ({ id: warehouse.id, name: warehouse.name }));
+      if (rule.toWarehouseTypes) {
+        qb.andWhere('warehouse.type IN (:...types)', { types: [...rule.toWarehouseTypes] });
+      }
+      if (query.search) {
+        qb.andWhere('warehouse.name ILIKE :search', { search: likePattern(query.search) });
+      }
+
+      const [rows, total] = await qb
+        .orderBy('warehouse.name', 'ASC')
+        .addOrderBy('warehouse.id', 'ASC')
+        .skip(query.skip)
+        .take(query.take)
+        .getManyAndCount();
+
+      return new PaginatedResult(
+        rows.map((warehouse) => ({ id: warehouse.id, name: warehouse.name })),
+        total,
+        query.page,
+        query.limit,
+      );
     }
 
     if (!USER_PARTIES.includes(rule.to) || receiverIsCreator(rule)) {
       // The factory, a service centre, the scrapyard: not accounts, nothing to list. Nor is
       // there anything to list when the caller is himself the receiver.
-      return [];
+      return empty;
     }
+
+    // No branch means no counterparty: an unassigned account cannot be in the same branch as
+    // anyone, and returning everyone would only produce a 422 on submit.
+    if (rule.sameBranchRequired && !actor.branchId) return empty;
 
     // `User` has no branch relation, so the name is joined in raw. It is what tells two
     // same-named supervisors apart in the picker, which is the whole reason it is here.
@@ -402,24 +427,33 @@ export class TransfersService {
       .addSelect('branch.name', 'branchName')
       .where('user.is_active = true')
       .andWhere('role.code = :roleCode', { roleCode: roleCodeFor(rule.to) })
-      .andWhere('user.id != :actorId', { actorId: actor.id })
-      .orderBy('user.full_name', 'ASC');
+      .andWhere('user.id != :actorId', { actorId: actor.id });
 
     if (rule.sameBranchRequired) {
-      // No branch means no counterparty: an unassigned account cannot be in the same branch as
-      // anyone, and returning everyone would only produce a 422 on submit.
-      if (!actor.branchId) return [];
-
       qb.andWhere('user.branch_id = :branchId', { branchId: actor.branchId });
     }
+    if (query.search) {
+      qb.andWhere('user.full_name ILIKE :search', { search: likePattern(query.search) });
+    }
 
-    const { entities, raw } = await qb.getRawAndEntities<{ branchName: string | null }>();
+    const total = await qb.clone().getCount();
+    const { entities, raw } = await qb
+      .orderBy('user.fullName', 'ASC')
+      .addOrderBy('user.id', 'ASC')
+      .skip(query.skip)
+      .take(query.take)
+      .getRawAndEntities<{ branchName: string | null }>();
 
-    return entities.map((user, index) => ({
-      id: user.id,
-      name: user.fullName,
-      subtitle: raw[index]?.branchName ?? null,
-    }));
+    return new PaginatedResult(
+      entities.map((user, index) => ({
+        id: user.id,
+        name: user.fullName,
+        subtitle: raw[index]?.branchName ?? null,
+      })),
+      total,
+      query.page,
+      query.limit,
+    );
   }
 
   /**

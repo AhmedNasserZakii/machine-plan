@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsString, IsUUID, Length } from 'class-validator';
-import { ActiveFilterQueryDto } from 'src/common/dto/query.dto';
+import { PaginatedActiveFilterQueryDto } from 'src/common/dto/pagination.dto';
 import { WarehouseType } from 'src/common/enums/operations.enum';
 
 export class CreateWarehouseDto {
@@ -22,7 +22,7 @@ export class CreateWarehouseDto {
   branchId?: string;
 }
 
-export class QueryWarehousesDto extends ActiveFilterQueryDto {
+export class QueryWarehousesDto extends PaginatedActiveFilterQueryDto {
   @ApiPropertyOptional({ enum: WarehouseType })
   @IsOptional()
   @IsEnum(WarehouseType)

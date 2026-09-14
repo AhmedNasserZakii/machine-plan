@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, Permissions } from 'src/common/decorators';
+import { PaginatedResult } from 'src/common/dto/paginated-result';
 import { Perm } from 'src/modules/roles/permissions.catalogue';
 import { CreateSupplierDto, QuerySuppliersDto } from './dto/supplier.dto';
 import { SupplierResponse } from './dto/responses/supplier.response';
@@ -21,9 +22,9 @@ export class SuppliersController {
   @Permissions(Perm.FINANCE_READ)
   @ApiOperation({ summary: 'List suppliers' })
   @ApiResponse({ status: 200, type: [SupplierResponse] })
-  async findAll(@Query() query: QuerySuppliersDto): Promise<SupplierResponse[]> {
-    const rows = await this.suppliers.findAll(query);
-    return rows.map(toSupplierResponse);
+  async findAll(@Query() query: QuerySuppliersDto): Promise<PaginatedResult<SupplierResponse>> {
+    const page = await this.suppliers.findAll(query);
+    return page.map(toSupplierResponse);
   }
 
   @Post()

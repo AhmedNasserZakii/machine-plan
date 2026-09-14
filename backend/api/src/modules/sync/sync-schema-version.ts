@@ -6,6 +6,6 @@
  * local table whose columns no longer match.
  *
  * **Bump this whenever a synced collection gains, loses or renames a field** — not when a row
- * changes. Version 1 is the shape this phase shipped.
+ * changes. Version 2 added `truncated` on bootstrap and `hasMore` on delta.
  */
-export const SYNC_SCHEMA_VERSION = 1;
+export const SYNC_SCHEMA_VERSION = 2;

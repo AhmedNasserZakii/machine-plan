@@ -124,13 +124,13 @@ export class FinanceReportsService {
   /**
    * Every active budget with what it has consumed (`17`).
    *
-   * Delegates to `BudgetsService.status`, which is the same computation the finance screens and
+   * Delegates to `BudgetsService.statusAll`, which is the same computation the finance screens and
    * the budget alerts use. A second implementation here would eventually disagree with them
    * about the same budget, and the report is the one people would believe.
    */
   async budgetPerformance(context: ReportContext): Promise<ReportResult> {
-    const result = await this.budgets.status(
-      { branchId: context.branchId ?? undefined, locale: context.locale },
+    const result = await this.budgets.statusAll(
+      { branchId: context.branchId ?? undefined },
       context.scope,
       context.locale,
     );

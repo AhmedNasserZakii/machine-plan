@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { Locale } from 'src/common/constants/locales';
+import { decodeCursor, encodeCursor } from 'src/common/dto/cursor.util';
 import { CursorResult, PaginatedResult } from 'src/common/dto/paginated-result';
 import { MachineStatus, TERMINAL_MACHINE_STATUSES } from 'src/common/enums/machine-status.enum';
 import { ResponsibleParty } from 'src/common/enums/operations.enum';
@@ -144,7 +145,7 @@ export class MachineInsightsService {
       `${TIMELINE_SQL}
        ORDER BY at DESC, ref_id DESC
        LIMIT $4`,
-      [machine.id, cursor?.at ?? null, cursor?.refId ?? null, query.limit + 1],
+      [machine.id, cursor?.occurredAt ?? null, cursor?.id ?? null, query.limit + 1],
     );
 
     const page = rows.slice(0, query.limit);
@@ -532,18 +533,4 @@ function withCriteria<T>(
 ): PaginatedResult<T> {
   Object.assign(page.meta as unknown as Record<string, unknown>, { criteria });
   return page;
-}
-
-function encodeCursor(at: Date, refId: string): string {
-  return Buffer.from(`${at.toISOString()}|${refId}`).toString('base64url');
-}
-
-/** A malformed cursor reads as "start from the top" rather than failing the request. */
-function decodeCursor(cursor?: string): { at: string; refId: string } | null {
-  if (!cursor) return null;
-
-  const [at, refId] = Buffer.from(cursor, 'base64url').toString('utf8').split('|');
-  if (!at || !refId || Number.isNaN(Date.parse(at))) return null;
-
-  return { at, refId };
 }

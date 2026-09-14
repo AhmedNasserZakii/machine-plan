@@ -18,7 +18,7 @@ import { PaginatedResult } from 'src/common/dto/paginated-result';
 import { AuthUser, BranchScope } from 'src/common/types/request.types';
 import { Perm } from 'src/modules/roles/permissions.catalogue';
 import { CreateUserDto } from './dto/create-user.dto';
-import { QueryUsersDto } from './dto/query-users.dto';
+import { QueryUserCustodyDto, QueryUsersDto } from './dto/query-users.dto';
 import { ResetPasswordDto, SetUserPermissionsDto, UpdateUserDto } from './dto/update-user.dto';
 import {
   ResetPasswordResponse,
@@ -76,10 +76,11 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'NOT_FOUND — also returned for an out-of-scope user' })
   custodyForUser(
     @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: QueryUserCustodyDto,
     @Scope() scope: BranchScope,
     @ReqLocale() locale: Locale,
   ): Promise<UserCustodyResponse> {
-    return this.custody.findForUser(id, scope.unrestricted ? null : scope.branchId, locale);
+    return this.custody.findForUser(id, scope.unrestricted ? null : scope.branchId, locale, query);
   }
 
   @Post()

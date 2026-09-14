@@ -94,7 +94,8 @@ export class TransfersController {
     summary: 'Which hand-offs this caller may start',
     description:
       'The rules map lives on the server. A director and a supervisor both hold transfers.create ' +
-      'but may start different types, so the client asks rather than keeping its own copy.',
+      'but may start different types, so the client asks rather than keeping its own copy. ' +
+      'Fixed catalogue bounded by code. Not paginated.',
   })
   @ApiResponse({ status: 200, type: [CreatableTransferTypeResponse] })
   creatableTypes(@CurrentUser() user: AuthUser): CreatableTransferTypeResponse[] {
@@ -117,10 +118,10 @@ export class TransfersController {
     @Query() query: TransferRecipientsQueryDto,
     @CurrentUser() user: AuthUser,
     @Scope() scope: BranchScope,
-  ): Promise<TransferRecipientResponse[]> {
-    const recipients = await this.transfers.recipientsFor(query.type, user, scope);
+  ): Promise<PaginatedResult<TransferRecipientResponse>> {
+    const page = await this.transfers.recipientsFor(query, user, scope);
 
-    return recipients.map((recipient) => ({
+    return page.map((recipient) => ({
       id: recipient.id,
       name: recipient.name,
       subtitle: recipient.subtitle ?? null,

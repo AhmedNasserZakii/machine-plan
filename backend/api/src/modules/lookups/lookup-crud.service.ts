@@ -1,6 +1,7 @@
 import { DeepPartial, Repository, SelectQueryBuilder } from 'typeorm';
 import { ErrorCode } from 'src/common/constants/error-codes';
 import { DEFAULT_LOCALE, Locale, SUPPORTED_LOCALES } from 'src/common/constants/locales';
+import { MAX_LIMIT } from 'src/common/dto/pagination.dto';
 import { TranslationsMap } from 'src/common/dto/translations.dto';
 import { LookupEntity } from 'src/common/entities/lookup.entity';
 import { AppException } from 'src/common/errors';
@@ -100,7 +101,13 @@ export abstract class LookupCrudService<
     }
 
     // sort_order drives picker order; code breaks ties so the list is stable across requests.
-    return qb.orderBy(`${this.alias}.sort_order`, 'ASC').addOrderBy(`${this.alias}.code`, 'ASC');
+    // The take is a ceiling, not pagination: these tables are seeded and admin-edited. If one
+    // ever legitimately exceeds MAX_LIMIT rows it graduates to a paginated list endpoint.
+    return qb
+      .orderBy(`${this.alias}.sortOrder`, 'ASC')
+      .addOrderBy(`${this.alias}.code`, 'ASC')
+      .addOrderBy(`${this.alias}.id`, 'ASC')
+      .take(MAX_LIMIT);
   }
 
   /** Loads every locale, for admin screens using `?raw_translations=true`. */

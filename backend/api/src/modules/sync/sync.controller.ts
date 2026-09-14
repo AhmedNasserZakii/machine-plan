@@ -43,7 +43,8 @@ export class SyncController {
     summary: 'Everything the app needs to work offline, for a first launch',
     description:
       'Localized to the request locale. Unpaginated by design: this is the whole local ' +
-      'database the device is about to build, and it is scoped rather than paged.',
+      'database the device is about to build, and it is scoped rather than paged. ' +
+      '`truncated` is set when myMachines or myMerchants hit the 500-row ceiling.',
   })
   @ApiResponse({ status: 200, type: SyncBootstrapResponse })
   bootstrap(
@@ -66,7 +67,7 @@ export class SyncController {
     @CurrentUser() user: AuthUser,
     @ReqLocale() locale: Locale,
   ): Promise<SyncDeltaResponse> {
-    return this.sync.delta(new Date(query.since), user, locale);
+    return this.sync.delta(new Date(query.since), user, locale, query.limit);
   }
 
   // 200, not 201: the batch itself creates nothing. What it reports is per operation, and the

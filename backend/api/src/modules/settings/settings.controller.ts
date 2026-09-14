@@ -19,7 +19,10 @@ export class SettingsController {
 
   @Get()
   @Permissions(Perm.SETTINGS_MANAGE)
-  @ApiOperation({ summary: 'List every tunable setting with its effective value' })
+  @ApiOperation({
+    summary: 'List every tunable setting with its effective value',
+    description: 'Fixed catalogue of settings keys, bounded by code. Not paginated.',
+  })
   @ApiResponse({ status: 200, type: [SettingResponse] })
   findAll(): Promise<SettingResponse[]> {
     return this.settings.findAll();

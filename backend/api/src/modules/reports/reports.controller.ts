@@ -45,7 +45,10 @@ export class ReportsController {
   ) {}
 
   @Get()
-  @ApiOperation({ summary: 'The report catalogue, flagged with what this caller may run' })
+  @ApiOperation({
+    summary: 'The report catalogue, flagged with what this caller may run',
+    description: 'Fixed catalogue defined in code. Not paginated.',
+  })
   @ApiResponse({ status: 200, type: [ReportCatalogueEntryResponse] })
   catalogue(
     @CurrentUser() user: AuthUser,

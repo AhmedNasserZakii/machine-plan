@@ -89,6 +89,8 @@ export class MerchantTimelineEntryResponse {
   kind: string;
 
   @ApiProperty() occurredAt: string;
+  @ApiProperty({ description: 'Stable id of this feed row; used as the keyset tiebreaker.' })
+  refId: string;
   @ApiProperty({ nullable: true }) referenceNo: string | null;
   @ApiProperty({ nullable: true }) machineSerial: string | null;
   @ApiProperty({ nullable: true }) amount: number | null;

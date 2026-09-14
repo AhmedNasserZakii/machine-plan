@@ -127,12 +127,7 @@ interface BudgetStatusEntry {
   status: BudgetStatus;
   pace: { expectedSpendByNow: number; overPaceBy: number; projectedTotal: number };
   lastAlertLevel: string | null;
-}
-
-interface BudgetStatusListResponse {
   asOf: string;
-  budgets: BudgetStatusEntry[];
-  summary: { total: number; ok: number; warning: number; exceeded: number };
 }
 
 interface SupplierResponse {
@@ -291,13 +286,21 @@ describe('Finance (e2e)', () => {
 
   describe('the category tree', () => {
     it('seeds the four protected categories other modules post against', async () => {
-      const all = await ok<CategoryResponse[]>(director.get('/finance/categories'));
+      const all = await ok<CategoryResponse[]>(director.get('/finance/categories?limit=100'));
       const system = new Map(all.filter((row) => row.isSystem).map((row) => [row.code, row]));
 
       expect(system.get(SystemCategoryCode.MAINTENANCE)?.kind).toBe(FinanceKind.EXPENSE);
       expect(system.get(SystemCategoryCode.MACHINE_PURCHASE)?.kind).toBe(FinanceKind.EXPENSE);
       expect(system.get(SystemCategoryCode.VIOLATION_CHARGES)?.kind).toBe(FinanceKind.INCOME);
       expect(system.get(SystemCategoryCode.MERCHANT_SUBSCRIPTIONS)?.kind).toBe(FinanceKind.INCOME);
+
+      const { items, meta } = await okPage<CategoryResponse>(
+        director.get('/finance/categories?limit=2'),
+      );
+      expect(items.length).toBeLessThanOrEqual(2);
+      expect(meta.limit).toBe(2);
+      expect(meta.total).toBeGreaterThan(0);
+      await fails(director.get('/finance/categories?limit=1000'), 400, 'VALIDATION_FAILED');
     });
 
     it('nests to arbitrary depth and returns the whole tree in one call', async () => {
@@ -332,7 +335,7 @@ describe('Finance (e2e)', () => {
     });
 
     it('refuses to delete a system category', async () => {
-      const all = await ok<CategoryResponse[]>(director.get('/finance/categories'));
+      const all = await ok<CategoryResponse[]>(director.get('/finance/categories?limit=100'));
       const maintenance = all.find((row) => row.code === SystemCategoryCode.MAINTENANCE)!;
 
       await fails(
@@ -1219,6 +1222,11 @@ describe('Finance (e2e)', () => {
       expect(created.isActive).toBe(true);
 
       const found = await ok<SupplierResponse[]>(director.get('/suppliers?search=الغيار'));
+      expect(found.some((row) => row.name.includes('الغيار'))).toBe(true);
+
+      const { meta } = await okPage<SupplierResponse>(director.get('/suppliers?limit=1'));
+      expect(meta.limit).toBe(1);
+      await fails(director.get('/suppliers?limit=1000'), 400, 'VALIDATION_FAILED');
       expect(found.map((row) => row.id)).toContain(created.id);
     });
 
@@ -1342,10 +1350,10 @@ describe('Finance (e2e)', () => {
       return book(director, { amount, categoryId, transactionDate: '2026-01-15' });
     }
 
-    function statusOf(budget: BudgetResponse): Promise<BudgetStatusEntry> {
-      return ok<BudgetStatusListResponse>(
-        director.get('/finance/budgets/status?asOf=2026-01-15'),
-      ).then((list) => list.budgets.find((entry) => entry.id === budget.id)!);
+    function statusOf(budget: BudgetResponse, asOf = '2026-01-15'): Promise<BudgetStatusEntry> {
+      return okPage<BudgetStatusEntry>(
+        director.get(`/finance/budgets/status?asOf=${asOf}&limit=100`),
+      ).then(({ items }) => items.find((entry) => entry.id === budget.id)!);
     }
 
     it('refuses a budget on an income category', async () => {
@@ -1424,9 +1432,7 @@ describe('Finance (e2e)', () => {
 
       expect((await statusOf(rolled)).spent).toBe(4000);
 
-      const directStatus = await ok<BudgetStatusListResponse>(
-        director.get('/finance/budgets/status?asOf=2026-03-15'),
-      ).then((list) => list.budgets.find((entry) => entry.id === direct.id)!);
+      const directStatus = await statusOf(direct, '2026-03-15');
 
       // Only what was booked on the node itself, even though a descendant spent more.
       expect(directStatus.spent).toBe(1000);
@@ -1442,9 +1448,7 @@ describe('Finance (e2e)', () => {
         transactionDate: '2026-01-07',
       });
 
-      const status = await ok<BudgetStatusListResponse>(
-        director.get('/finance/budgets/status?asOf=2026-01-07'),
-      ).then((list) => list.budgets.find((entry) => entry.id === budget.id)!);
+      const status = await statusOf(budget, '2026-01-07');
 
       expect(status.period).toMatchObject({ daysElapsed: 7, daysTotal: 31 });
       expect(status.spent).toBe(27400);
@@ -1627,16 +1631,26 @@ describe('Finance (e2e)', () => {
       );
     });
 
-    it('summarises the status list by level', async () => {
-      const list = await ok<BudgetStatusListResponse>(
-        director.get('/finance/budgets/status?asOf=2026-01-15'),
+    it('pages the budget list and rejects an oversized limit', async () => {
+      const { items, meta } = await okPage<BudgetResponse>(
+        director.get('/finance/budgets?limit=1'),
+      );
+      expect(items.length).toBeLessThanOrEqual(1);
+      expect(meta.limit).toBe(1);
+      expect(meta.total).toBeGreaterThan(0);
+      await fails(director.get('/finance/budgets?limit=1000'), 400, 'VALIDATION_FAILED');
+    });
+
+    it('pages the status list and stamps asOf on each item', async () => {
+      const { items, meta } = await okPage<BudgetStatusEntry>(
+        director.get('/finance/budgets/status?asOf=2026-01-15&limit=2'),
       );
 
-      expect(list.asOf).toBe('2026-01-15');
-      expect(list.summary.total).toBe(list.budgets.length);
-      expect(list.summary.ok + list.summary.warning + list.summary.exceeded).toBe(
-        list.budgets.length,
-      );
+      expect(items.length).toBeLessThanOrEqual(2);
+      expect(meta.limit).toBe(2);
+      expect(meta.total).toBeGreaterThan(0);
+      expect(items.every((entry) => entry.asOf === '2026-01-15')).toBe(true);
+      await fails(director.get('/finance/budgets/status?limit=1000'), 400, 'VALIDATION_FAILED');
     });
   });
 

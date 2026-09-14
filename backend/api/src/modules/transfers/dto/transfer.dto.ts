@@ -11,6 +11,7 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Length,
   MaxLength,
   ValidateNested,
 } from 'class-validator';
@@ -221,10 +222,16 @@ export class CancelTransferDto {
 const toArray = ({ value }: { value: unknown }): unknown =>
   value === undefined ? undefined : Array.isArray(value) ? value : [value];
 
-export class TransferRecipientsQueryDto {
+export class TransferRecipientsQueryDto extends PaginationDto {
   @ApiProperty({ enum: TRANSFER_TYPES, description: 'The hand-off the caller is about to create' })
   @IsEnum(TransferType)
   type: TransferType;
+
+  @ApiPropertyOptional({ description: 'Partial match on the recipient name.' })
+  @IsOptional()
+  @IsString()
+  @Length(1, 150)
+  search?: string;
 }
 
 export class QueryTransfersDto extends PaginationDto {

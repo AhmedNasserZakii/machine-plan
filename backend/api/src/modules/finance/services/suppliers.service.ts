@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { PaginatedResult } from 'src/common/dto/paginated-result';
 import { likePattern } from 'src/common/utils';
 import { CreateSupplierDto, QuerySuppliersDto } from '../dto/supplier.dto';
 import { Supplier } from '../entities/supplier.entity';
@@ -13,7 +14,7 @@ import { Supplier } from '../entities/supplier.entity';
 export class SuppliersService {
   constructor(@InjectRepository(Supplier) private readonly suppliers: Repository<Supplier>) {}
 
-  async findAll(query: QuerySuppliersDto): Promise<Supplier[]> {
+  async findAll(query: QuerySuppliersDto): Promise<PaginatedResult<Supplier>> {
     const qb = this.suppliers.createQueryBuilder('supplier');
 
     if (!query.includeInactive) qb.andWhere('supplier.is_active = true');
@@ -23,7 +24,14 @@ export class SuppliersService {
       });
     }
 
-    return qb.orderBy('supplier.name', 'ASC').getMany();
+    const [rows, total] = await qb
+      .orderBy('supplier.name', 'ASC')
+      .addOrderBy('supplier.id', 'ASC')
+      .skip(query.skip)
+      .take(query.take)
+      .getManyAndCount();
+
+    return new PaginatedResult(rows, total, query.page, query.limit);
   }
 
   async create(dto: CreateSupplierDto, actorId: string): Promise<Supplier> {

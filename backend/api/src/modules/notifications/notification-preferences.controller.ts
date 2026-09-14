@@ -12,7 +12,10 @@ export class NotificationPreferencesController {
   constructor(private readonly preferences: NotificationPreferencesService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Every template with the caller’s current channel choices' })
+  @ApiOperation({
+    summary: 'Every template with the caller’s current channel choices',
+    description: 'Fixed catalogue of notification templates, bounded by code. Not paginated.',
+  })
   @ApiResponse({ status: 200, type: NotificationPreferencesResponse })
   list(@CurrentUser('id') userId: string): Promise<NotificationPreferencesResponse> {
     return this.preferences.list(userId);

@@ -67,7 +67,7 @@ describe('Machines (e2e)', () => {
     ({ app, server } = await createTestApp());
     director = await loginAsDirector(server);
 
-    const models = await ok<MachineModelResponse[]>(director.get('/machine-models'));
+    const models = await ok<MachineModelResponse[]>(director.get('/machine-models?limit=100'));
     posModelId = models.find((model) => model.machineType.requiresSim)!.id;
 
     pinPadModelId = await createPinPadModel();

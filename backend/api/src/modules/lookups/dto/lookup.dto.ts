@@ -13,6 +13,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { ActiveFilterQueryDto, toBoolean } from 'src/common/dto/query.dto';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 import {
   NameDescriptionTranslationsDto,
   NameTranslationsDto,
@@ -153,7 +154,22 @@ export class QueryLookupDto extends ActiveFilterQueryDto {
   rawTranslations?: boolean;
 }
 
-export class QueryMachineModelsDto extends QueryLookupDto {
+export class QueryMachineModelsDto extends PaginationDto {
+  @ApiPropertyOptional({ default: false, description: 'Include deactivated rows.' })
+  @IsOptional()
+  @Transform(toBoolean)
+  @IsBoolean()
+  includeInactive?: boolean;
+
+  @ApiPropertyOptional({
+    default: false,
+    description: 'Return the full per-locale map instead of a resolved string (admin screens).',
+  })
+  @IsOptional()
+  @Transform(toBoolean)
+  @IsBoolean()
+  rawTranslations?: boolean;
+
   @ApiPropertyOptional({ format: 'uuid', description: 'Limit to the models of one machine type.' })
   @IsOptional()
   @IsUUID()

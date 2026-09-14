@@ -399,6 +399,7 @@
     },
     "/api/v1/roles": {
       "get": {
+        "description": "Fixed catalogue of system and custom roles, bounded by code. Not paginated.",
         "operationId": "findAll",
         "parameters": [
           {
@@ -682,6 +683,7 @@
     },
     "/api/v1/permissions": {
       "get": {
+        "description": "Fixed catalogue defined in code. Not paginated.",
         "operationId": "listPermissions",
         "parameters": [
           {
@@ -1055,6 +1057,53 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "locale",
+            "required": false,
+            "in": "query",
+            "description": "Overrides Accept-Language. Unsupported values fall back to the default locale.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ar",
+                "en"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortDir",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
             }
           },
           {
@@ -1770,6 +1819,40 @@
             }
           },
           {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortDir",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
             "name": "includeInactive",
             "required": false,
             "in": "query",
@@ -2166,6 +2249,40 @@
             }
           },
           {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortDir",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
             "name": "includeInactive",
             "required": false,
             "in": "query",
@@ -2344,6 +2461,7 @@
     },
     "/api/v1/machine-types": {
       "get": {
+        "description": "Seeded catalogue bounded by code and capped at 100 rows. Not paginated; if the table ever exceeds that ceiling it graduates to a paginated list.",
         "operationId": "listTypes",
         "parameters": [
           {
@@ -2551,6 +2669,40 @@
             }
           },
           {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortDir",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
             "name": "includeInactive",
             "required": false,
             "in": "query",
@@ -2736,6 +2888,7 @@
     },
     "/api/v1/payment-methods": {
       "get": {
+        "description": "Seeded catalogue bounded by code and capped at 100 rows. Not paginated; if the table ever exceeds that ceiling it graduates to a paginated list.",
         "operationId": "listPaymentMethods",
         "parameters": [
           {
@@ -2924,6 +3077,7 @@
     },
     "/api/v1/violation-types": {
       "get": {
+        "description": "Seeded catalogue bounded by code and capped at 100 rows. Not paginated; if the table ever exceeds that ceiling it graduates to a paginated list.",
         "operationId": "listViolationTypes",
         "parameters": [
           {
@@ -3112,6 +3266,7 @@
     },
     "/api/v1/maintenance-locations": {
       "get": {
+        "description": "Seeded catalogue bounded by code and capped at 100 rows. Not paginated; if the table ever exceeds that ceiling it graduates to a paginated list.",
         "operationId": "listMaintenanceLocations",
         "parameters": [
           {
@@ -3240,6 +3395,7 @@
     },
     "/api/v1/decommission-reasons": {
       "get": {
+        "description": "Seeded catalogue bounded by code and capped at 100 rows. Not paginated; if the table ever exceeds that ceiling it graduates to a paginated list.",
         "operationId": "listDecommissionReasons",
         "parameters": [
           {
@@ -4246,6 +4402,7 @@
     },
     "/api/v1/settings": {
       "get": {
+        "description": "Fixed catalogue of settings keys, bounded by code. Not paginated.",
         "operationId": "findAll",
         "parameters": [
           {
@@ -4421,6 +4578,40 @@
             }
           },
           {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortDir",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
             "name": "includeInactive",
             "required": false,
             "in": "query",
@@ -4559,6 +4750,7 @@
     },
     "/api/v1/finance/categories/tree": {
       "get": {
+        "description": "A tree whose shape is the payload. Not paginated; bound it with `maxDepth` instead.",
         "operationId": "tree",
         "parameters": [
           {
@@ -5887,6 +6079,40 @@
             }
           },
           {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortDir",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
             "name": "categoryId",
             "required": false,
             "in": "query",
@@ -6038,6 +6264,40 @@
             }
           },
           {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortDir",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
             "name": "asOf",
             "required": false,
             "in": "query",
@@ -6077,7 +6337,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BudgetStatusListResponse"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BudgetStatusResponse"
+                  }
                 }
               }
             }
@@ -6257,6 +6520,40 @@
               "enum": [
                 "ar",
                 "en"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortDir",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
               ]
             }
           },
@@ -6655,6 +6952,7 @@
     },
     "/api/v1/notification-preferences": {
       "get": {
+        "description": "Fixed catalogue of notification templates, bounded by code. Not paginated.",
         "operationId": "list",
         "parameters": [
           {
@@ -7055,6 +7353,64 @@
         "operationId": "pickable",
         "parameters": [
           {
+            "name": "locale",
+            "required": false,
+            "in": "query",
+            "description": "Overrides Accept-Language. Unsupported values fall back to the default locale.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ar",
+                "en"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortDir",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Matches name or shop name.",
+            "schema": {
+              "minLength": 1,
+              "maxLength": 150,
+              "type": "string"
+            }
+          },
+          {
             "name": "Accept-Language",
             "in": "header",
             "required": false,
@@ -7268,6 +7624,53 @@
             }
           },
           {
+            "name": "locale",
+            "required": false,
+            "in": "query",
+            "description": "Overrides Accept-Language. Unsupported values fall back to the default locale.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ar",
+                "en"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortDir",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
             "name": "Accept-Language",
             "in": "header",
             "required": false,
@@ -7321,18 +7724,36 @@
             }
           },
           {
+            "name": "locale",
+            "required": false,
+            "in": "query",
+            "description": "Overrides Accept-Language. Unsupported values fall back to the default locale.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ar",
+                "en"
+              ]
+            }
+          },
+          {
             "name": "limit",
             "required": false,
             "in": "query",
             "schema": {
               "minimum": 1,
-              "maximum": 200,
-              "default": 50,
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/Object"
-                }
-              ]
+              "maximum": 100,
+              "default": 30,
+              "type": "number"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "The `nextCursor` from the previous page.",
+            "schema": {
+              "type": "string"
             }
           },
           {
@@ -7386,6 +7807,53 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "locale",
+            "required": false,
+            "in": "query",
+            "description": "Overrides Accept-Language. Unsupported values fall back to the default locale.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ar",
+                "en"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortDir",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
             }
           },
           {
@@ -9113,7 +9581,7 @@
     },
     "/api/v1/transfers/creatable-types": {
       "get": {
-        "description": "The rules map lives on the server. A director and a supervisor both hold transfers.create but may start different types, so the client asks rather than keeping its own copy.",
+        "description": "The rules map lives on the server. A director and a supervisor both hold transfers.create but may start different types, so the client asks rather than keeping its own copy. Fixed catalogue bounded by code. Not paginated.",
         "operationId": "creatableTypes",
         "parameters": [
           {
@@ -9163,6 +9631,53 @@
         "operationId": "recipients",
         "parameters": [
           {
+            "name": "locale",
+            "required": false,
+            "in": "query",
+            "description": "Overrides Accept-Language. Unsupported values fall back to the default locale.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ar",
+                "en"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortDir",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
             "name": "type",
             "required": true,
             "in": "query",
@@ -9185,6 +9700,17 @@
                 "SERVICE_CENTER_TO_COMPANY",
                 "COMPANY_TO_SCRAP"
               ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Partial match on the recipient name.",
+            "schema": {
+              "minLength": 1,
+              "maxLength": 150,
+              "type": "string"
             }
           },
           {
@@ -10323,6 +10849,53 @@
             }
           },
           {
+            "name": "locale",
+            "required": false,
+            "in": "query",
+            "description": "Overrides Accept-Language. Unsupported values fall back to the default locale.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ar",
+                "en"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortDir",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
             "name": "Accept-Language",
             "in": "header",
             "required": false,
@@ -10792,7 +11365,7 @@
     },
     "/api/v1/sync/bootstrap": {
       "get": {
-        "description": "Localized to the request locale. Unpaginated by design: this is the whole local database the device is about to build, and it is scoped rather than paged.",
+        "description": "Localized to the request locale. Unpaginated by design: this is the whole local database the device is about to build, and it is scoped rather than paged. `truncated` is set when myMachines or myMerchants hit the 500-row ceiling.",
         "operationId": "bootstrap",
         "parameters": [
           {
@@ -10846,6 +11419,18 @@
             "schema": {
               "example": "2026-09-07T12:00:00.000Z",
               "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Cap per collection. When any collection hits the cap, `hasMore` is true.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 500,
+              "default": 200,
+              "type": "number"
             }
           },
           {
@@ -10941,6 +11526,7 @@
     },
     "/api/v1/reports": {
       "get": {
+        "description": "Fixed catalogue defined in code. Not paginated.",
         "operationId": "catalogue",
         "parameters": [
           {
@@ -14729,6 +15315,33 @@
           "heldSince"
         ]
       },
+      "PaginationMeta": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "number"
+          },
+          "limit": {
+            "type": "number"
+          },
+          "total": {
+            "type": "number"
+          },
+          "totalPages": {
+            "type": "number"
+          },
+          "hasNext": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "page",
+          "limit",
+          "total",
+          "totalPages",
+          "hasNext"
+        ]
+      },
       "UserCustodyResponse": {
         "type": "object",
         "properties": {
@@ -14743,12 +15356,16 @@
             "items": {
               "$ref": "#/components/schemas/UserCustodyMachineResponse"
             }
+          },
+          "machinesMeta": {
+            "$ref": "#/components/schemas/PaginationMeta"
           }
         },
         "required": [
           "user",
           "summary",
-          "machines"
+          "machines",
+          "machinesMeta"
         ]
       },
       "CreateUserDto": {
@@ -17854,6 +18471,11 @@
           "lastAlertLevel": {
             "type": "object",
             "nullable": true
+          },
+          "asOf": {
+            "type": "string",
+            "example": "2026-09-07",
+            "description": "The day the pace was measured against."
           }
         },
         "required": [
@@ -17867,53 +18489,8 @@
           "usedPercent",
           "status",
           "pace",
-          "lastAlertLevel"
-        ]
-      },
-      "BudgetStatusSummaryResponse": {
-        "type": "object",
-        "properties": {
-          "total": {
-            "type": "number"
-          },
-          "ok": {
-            "type": "number"
-          },
-          "warning": {
-            "type": "number"
-          },
-          "exceeded": {
-            "type": "number"
-          }
-        },
-        "required": [
-          "total",
-          "ok",
-          "warning",
-          "exceeded"
-        ]
-      },
-      "BudgetStatusListResponse": {
-        "type": "object",
-        "properties": {
-          "asOf": {
-            "type": "string",
-            "example": "2026-09-07"
-          },
-          "budgets": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/BudgetStatusResponse"
-            }
-          },
-          "summary": {
-            "$ref": "#/components/schemas/BudgetStatusSummaryResponse"
-          }
-        },
-        "required": [
-          "asOf",
-          "budgets",
-          "summary"
+          "lastAlertLevel",
+          "asOf"
         ]
       },
       "CreateBudgetDto": {
@@ -18623,10 +19200,6 @@
           "createdAt"
         ]
       },
-      "Object": {
-        "type": "object",
-        "properties": {}
-      },
       "MerchantTimelineEntryResponse": {
         "type": "object",
         "properties": {
@@ -18640,6 +19213,10 @@
           },
           "occurredAt": {
             "type": "string"
+          },
+          "refId": {
+            "type": "string",
+            "description": "Stable id of this feed row; used as the keyset tiebreaker."
           },
           "referenceNo": {
             "type": "object",
@@ -18661,6 +19238,7 @@
         "required": [
           "kind",
           "occurredAt",
+          "refId",
           "referenceNo",
           "machineSerial",
           "amount",
@@ -20733,13 +21311,17 @@
             "items": {
               "$ref": "#/components/schemas/MaintenanceOrderListItemResponse"
             }
+          },
+          "ordersMeta": {
+            "$ref": "#/components/schemas/PaginationMeta"
           }
         },
         "required": [
           "machineId",
           "serial",
           "totals",
-          "orders"
+          "orders",
+          "ordersMeta"
         ]
       },
       "MachineReplacedResponse": {
@@ -21058,6 +21640,21 @@
           "branches"
         ]
       },
+      "SyncTruncatedResponse": {
+        "type": "object",
+        "properties": {
+          "myMachines": {
+            "type": "boolean"
+          },
+          "myMerchants": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "myMachines",
+          "myMerchants"
+        ]
+      },
       "SyncBootstrapResponse": {
         "type": "object",
         "properties": {
@@ -21101,6 +21698,9 @@
             "items": {
               "type": "string"
             }
+          },
+          "truncated": {
+            "$ref": "#/components/schemas/SyncTruncatedResponse"
           }
         },
         "required": [
@@ -21110,7 +21710,8 @@
           "myMachines",
           "myMerchants",
           "pendingTransfers",
-          "permissions"
+          "permissions",
+          "truncated"
         ]
       },
       "SyncDeletedResponse": {
@@ -21188,12 +21789,19 @@
               "type": "string"
             }
           },
+          "truncated": {
+            "$ref": "#/components/schemas/SyncTruncatedResponse"
+          },
           "deleted": {
             "$ref": "#/components/schemas/SyncDeletedResponse"
           },
           "nextSince": {
             "type": "string",
             "description": "The cursor for the next call. Always the server’s timestamp."
+          },
+          "hasMore": {
+            "type": "boolean",
+            "description": "True when a collection was capped at `limit`. Loop with `nextSince` until this is false."
           }
         },
         "required": [
@@ -21204,8 +21812,10 @@
           "myMerchants",
           "pendingTransfers",
           "permissions",
+          "truncated",
           "deleted",
-          "nextSince"
+          "nextSince",
+          "hasMore"
         ]
       },
       "SyncOperationDto": {

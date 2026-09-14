@@ -1,7 +1,7 @@
 import type { App } from 'supertest/types';
 import { INestApplication } from '@nestjs/common';
 import { SystemRole } from 'src/modules/roles/entities/role.entity';
-import { Api, fails, hasFieldError, ok } from './utils/api-client';
+import { Api, fails, hasFieldError, ok, okPage } from './utils/api-client';
 import { loginAsDirector, provisionUser, roleIdByCode, uniqueCode } from './utils/fixtures';
 import { createTestApp } from './utils/test-app';
 
@@ -191,7 +191,7 @@ describe('Lookups and localization (e2e)', () => {
 
   describe('machine models', () => {
     it('carries the parent type and its SIM requirement', async () => {
-      const models = await ok<MachineModelResponse[]>(director.get('/machine-models'));
+      const models = await ok<MachineModelResponse[]>(director.get('/machine-models?limit=100'));
       const smart = models.find((model) => model.code === 'PAX_A920');
 
       expect(smart?.machineType.code).toBe('SMART_POS');
@@ -204,10 +204,19 @@ describe('Lookups and localization (e2e)', () => {
       const pinPad = types.find((type) => type.code === 'PIN_PAD') as MachineTypeResponse;
 
       const filtered = await ok<MachineModelResponse[]>(
-        director.get(`/machine-models?machineTypeId=${pinPad.id}`),
+        director.get(`/machine-models?machineTypeId=${pinPad.id}&limit=100`),
       );
 
       expect(filtered.every((model) => model.machineType.id === pinPad.id)).toBe(true);
+    });
+
+    it('pages the model list and rejects an oversized limit', async () => {
+      const { items, meta } = await okPage<MachineModelResponse>(
+        director.get('/machine-models?limit=1'),
+      );
+      expect(items).toHaveLength(1);
+      expect(meta.total).toBeGreaterThan(1);
+      await fails(director.get('/machine-models?limit=1000'), 400, 'VALIDATION_FAILED');
     });
 
     it('creates a model under a type', async () => {

@@ -12,7 +12,8 @@ import {
   Min,
 } from 'class-validator';
 import { MAX_MONEY_AMOUNT } from 'src/common/constants/money';
-import { LocalizedQueryDto, toBoolean } from 'src/common/dto/query.dto';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { toBoolean } from 'src/common/dto/query.dto';
 import { BUDGET_PERIOD_TYPES, BudgetPeriodType } from 'src/common/enums/finance.enum';
 import { DEFAULT_ALERT_THRESHOLD_PERCENT } from '../budget-rules';
 
@@ -100,7 +101,7 @@ export class UpdateBudgetDto {
   isActive?: boolean;
 }
 
-export class QueryBudgetsDto extends LocalizedQueryDto {
+export class QueryBudgetsDto extends PaginationDto {
   @ApiPropertyOptional({ format: 'uuid' })
   @IsOptional()
   @IsUUID()
@@ -123,7 +124,7 @@ export class QueryBudgetsDto extends LocalizedQueryDto {
   includeInactive?: boolean;
 }
 
-export class BudgetStatusQueryDto extends LocalizedQueryDto {
+export class BudgetStatusQueryDto extends PaginationDto {
   @ApiPropertyOptional({
     example: '2026-09-07',
     description: 'The day the pace is measured against. Defaults to today.',

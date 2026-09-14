@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, Length } from 'class-validator';
-import { ActiveFilterQueryDto } from 'src/common/dto/query.dto';
+import { PaginatedActiveFilterQueryDto } from 'src/common/dto/pagination.dto';
 
 export class CreateSupplierDto {
   @ApiProperty({ maxLength: 150 })
@@ -21,7 +21,7 @@ export class CreateSupplierDto {
   notes?: string;
 }
 
-export class QuerySuppliersDto extends ActiveFilterQueryDto {
+export class QuerySuppliersDto extends PaginatedActiveFilterQueryDto {
   @ApiPropertyOptional({ description: 'Partial match on name and phone.' })
   @IsOptional()
   @IsString()
