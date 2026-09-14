@@ -3,10 +3,13 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:machinery/core/network_services/api_service_failure.dart';
 import 'package:machinery/core/permissions/permission_service.dart';
+import 'package:machinery/core/services/push/push_notification_service.dart';
 import 'package:machinery/core/services/sync/sync_coordinator.dart';
 import 'package:machinery/feature/auth/data/logic/auth/auth_state.dart';
 import 'package:machinery/feature/auth/domain/entities/auth_profile_entity.dart';
 import 'package:machinery/feature/auth/domain/repos/auth_repo.dart';
+import 'package:machinery/feature/notifications/data/logic/notification_badge/notification_badge_cubit.dart';
+import 'package:machinery/feature/notifications/domain/repos/notifications_repo.dart';
 
 /// The one singleton cubit in the app: session state is global.
 ///
@@ -18,11 +21,17 @@ class AuthCubit extends Cubit<AuthState> {
     required this.authRepo,
     required this.permissionService,
     required this.syncCoordinator,
+    required this.pushNotificationService,
+    required this.notificationsRepo,
+    required this.notificationBadgeCubit,
   }) : super(const AuthInitial());
 
   final AuthRepo authRepo;
   final PermissionService permissionService;
   final SyncCoordinator syncCoordinator;
+  final PushNotificationService pushNotificationService;
+  final NotificationsRepo notificationsRepo;
+  final NotificationBadgeCubit notificationBadgeCubit;
 
   /// Splash flow. A network error here must not lock a representative out —
   /// it falls back to the cached profile and lets them in.
@@ -75,6 +84,7 @@ class AuthCubit extends Cubit<AuthState> {
         // often no connection at all, in which case this is a harmless no-op
         // (`flush` checks connectivity itself before doing anything).
         unawaited(syncCoordinator.flush());
+        _onSessionReady();
       },
       (profile) async {
         await permissionService.update(profile.permissions);
@@ -82,6 +92,7 @@ class AuthCubit extends Cubit<AuthState> {
           emit(Authenticated(profile: profile));
         }
         unawaited(syncCoordinator.flush());
+        _onSessionReady();
       },
     );
   }
@@ -95,6 +106,14 @@ class AuthCubit extends Cubit<AuthState> {
     // The device has no local data yet — this is what turns into the very
     // first bootstrap (`SyncCoordinator.flush`, no cursor stored → bootstrap).
     unawaited(syncCoordinator.flush());
+    _onSessionReady();
+  }
+
+  void _onSessionReady() {
+    unawaited(
+      pushNotificationService.registerTokenWithBackend(notificationsRepo),
+    );
+    unawaited(notificationBadgeCubit.refresh());
   }
 
   /// Silent refresh on app resume. The Director can grant finance access while
@@ -141,6 +160,10 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<ServerFailure?> logout() async {
+    // Unregister before clearing the session so DELETE still carries a token.
+    await pushNotificationService.unregisterDevice(notificationsRepo);
+    notificationBadgeCubit.clear();
+
     final result = await authRepo.logout();
 
     await permissionService.clear();

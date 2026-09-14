@@ -83,6 +83,12 @@ import 'package:machinery/feature/violations/presentation/pages/violation_create
 import 'package:machinery/feature/violations/presentation/pages/violation_detail_screen.dart';
 import 'package:machinery/feature/violations/presentation/pages/violation_summary_screen.dart';
 import 'package:machinery/feature/violations/presentation/pages/violations_list_screen.dart';
+import 'package:machinery/feature/merchants/data/logic/merchants_list/merchants_list_cubit.dart';
+import 'package:machinery/feature/merchants/presentation/pages/merchants_list_screen.dart';
+import 'package:machinery/feature/notifications/data/logic/notification_preferences/notification_preferences_cubit.dart';
+import 'package:machinery/feature/notifications/data/logic/notifications_list/notifications_list_cubit.dart';
+import 'package:machinery/feature/notifications/presentation/pages/notification_preferences_screen.dart';
+import 'package:machinery/feature/notifications/presentation/pages/notifications_list_screen.dart';
 
 /// Every navigation goes through here, so route-scoped Cubits are injected in
 /// one place instead of being created inside page widgets.
@@ -138,6 +144,47 @@ abstract class AppRoute {
       context,
       MaterialPageRoute<void>(builder: (_) => const MainScaffold()),
       (route) => false,
+    );
+  }
+
+  static Future<void> goToNotificationsList({required BuildContext context}) {
+    return Navigator.push<void>(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => BlocProvider<NotificationsListCubit>(
+          create: (_) => getIt<NotificationsListCubit>(),
+          child: const NotificationsListScreen(),
+        ),
+      ),
+    );
+  }
+
+  static Future<void> goToNotificationPreferences({
+    required BuildContext context,
+  }) {
+    return Navigator.push<void>(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => BlocProvider<NotificationPreferencesCubit>(
+          create: (_) => getIt<NotificationPreferencesCubit>(),
+          child: const NotificationPreferencesScreen(),
+        ),
+      ),
+    );
+  }
+
+  static Future<void> goToMerchantsList({required BuildContext context}) {
+    return Navigator.push<void>(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => PermissionBoundary(
+          permission: P.merchantsRead,
+          child: BlocProvider<MerchantsListCubit>(
+            create: (_) => getIt<MerchantsListCubit>(),
+            child: const MerchantsListScreen(),
+          ),
+        ),
+      ),
     );
   }
 

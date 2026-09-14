@@ -167,6 +167,18 @@ abstract class LocalStorage {
     local?.remove(StorageKeys.pendingDeepLink);
   }
 
+  // ── Push permission ──────────────────────────────────────────────────────
+  //
+  // Asked contextually after first useful use — never cold on launch.
+
+  static Future<void> setPushPermissionPrompted({required bool value}) async {
+    await local?.setBool(StorageKeys.pushPermissionPrompted, value);
+  }
+
+  static bool getPushPermissionPrompted() {
+    return local?.getBool(StorageKeys.pushPermissionPrompted) ?? false;
+  }
+
   // ── Session teardown ─────────────────────────────────────────────────────
   //
   // Deliberately keeps the sync queue and the saved locale.

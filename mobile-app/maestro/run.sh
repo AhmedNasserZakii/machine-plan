@@ -91,13 +91,20 @@ fi
 
 if [ "${SKIP_BUILD:-0}" != "1" ]; then
   echo "==> building debug APK against ${API_BASE_URL} (flavor=${FLAVOR})"
-  flutter build apk --debug \
+  # --split-per-abi: a universal debug APK bundles every ABI's native libs
+  # and can be 2-3x the size a single emulator/device actually needs, which
+  # matters on a storage-constrained AVD shared with other projects.
+  flutter build apk --debug --split-per-abi \
     --flavor "$FLAVOR" \
     --dart-define=APP_ENV=development \
     --dart-define=APP_VERSION=1.0.0 \
     --dart-define=API_BASE_URL="$API_BASE_URL" \
     --dart-define=DISABLE_DEVICE_PREVIEW=true
-  apk="build/app/outputs/flutter-apk/app-${FLAVOR}-debug.apk"
+  target_abi="$("$adb" shell getprop ro.product.cpu.abi | tr -d '\r')"
+  apk="build/app/outputs/flutter-apk/app-${target_abi}-${FLAVOR}-debug.apk"
+  if [ ! -f "$apk" ]; then
+    apk="build/app/outputs/flutter-apk/app-${FLAVOR}-debug.apk"
+  fi
   if [ ! -f "$apk" ]; then
     apk="build/app/outputs/flutter-apk/app-debug.apk"
   fi

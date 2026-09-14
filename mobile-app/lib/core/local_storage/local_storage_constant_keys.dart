@@ -12,6 +12,7 @@ abstract class StorageKeys {
   static const String lastSyncedAt = 'lastSyncedAt';
   static const String schemaVersion = 'schemaVersion';
   static const String pendingDeepLink = 'pendingDeepLink';
+  static const String pushPermissionPrompted = 'pushPermissionPrompted';
   static const String pendingFinanceTransactions = 'pendingFinanceTransactions';
   static const String recentFinanceCategoryIds = 'recentFinanceCategoryIds';
   static const String financeExpenseCategories = 'financeExpenseCategories';

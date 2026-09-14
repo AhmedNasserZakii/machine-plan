@@ -11,6 +11,7 @@ class MoreTile extends StatelessWidget {
     required this.onTap,
     super.key,
     this.trailingLabel,
+    this.badgeCount = 0,
     this.isDestructive = false,
     this.identifier,
   });
@@ -21,6 +22,9 @@ class MoreTile extends StatelessWidget {
 
   /// Right-hand value, e.g. the current language or a pending count.
   final String? trailingLabel;
+
+  /// Unread / pending count shown on the leading icon. Zero hides the badge.
+  final int badgeCount;
   final bool isDestructive;
   final String? identifier;
 
@@ -29,6 +33,14 @@ class MoreTile extends StatelessWidget {
     final Color accent = isDestructive
         ? AppColors.dangerColor
         : AppColors.textPrimaryColor;
+
+    final Widget leading = badgeCount > 0
+        ? Badge(
+            backgroundColor: AppColors.badgeColor,
+            label: Text(badgeCount > 99 ? '99+' : '$badgeCount'),
+            child: Icon(icon, size: 22, color: accent),
+          )
+        : Icon(icon, size: 22, color: accent);
 
     final Widget tile = ClickedWidget(
       onTap: onTap,
@@ -39,7 +51,7 @@ class MoreTile extends StatelessWidget {
         ),
         child: Row(
           children: <Widget>[
-            Icon(icon, size: 22, color: accent),
+            leading,
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Text(

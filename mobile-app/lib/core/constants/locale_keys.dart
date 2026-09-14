@@ -1227,4 +1227,81 @@ class LocaleKeys {
   static const String decommissionRepairsShort = 'decommission_repairs_short';
   static const String decommissionAgeShort = 'decommission_age_short';
   static const String decommissionChainCount = 'decommission_chain_count';
+
+  // ── Notifications ────────────────────────────────────────────────────────
+  static const String notificationsEmptyTitle = 'notifications_empty_title';
+  static const String notificationsEmptySubtitle =
+      'notifications_empty_subtitle';
+  static const String notificationsMarkAllRead = 'notifications_mark_all_read';
+  static const String notificationPreferencesTitle =
+      'notification_preferences_title';
+  static const String notificationsChannelPush = 'notifications_channel_push';
+  static const String notificationsChannelInApp =
+      'notifications_channel_in_app';
+  static const String notificationsInAppLockedHint =
+      'notifications_in_app_locked_hint';
+  static const String notificationsQuietHoursTitle =
+      'notifications_quiet_hours_title';
+  static const String notificationsQuietHoursBody =
+      'notifications_quiet_hours_body';
+  static const String notificationsQuietHoursExceptions =
+      'notifications_quiet_hours_exceptions';
+  static const String notificationsPermissionTitle =
+      'notifications_permission_title';
+  static const String notificationsPermissionBody =
+      'notifications_permission_body';
+  static const String notificationsPermissionAllow =
+      'notifications_permission_allow';
+  static const String notificationsPermissionNotNow =
+      'notifications_permission_not_now';
+  static const String notificationsDeepLinkUnavailable =
+      'notifications_deep_link_unavailable';
+  static const String notificationsGroupToday = 'notifications_group_today';
+  static const String notificationsGroupYesterday =
+      'notifications_group_yesterday';
+  static const String notificationsGroupThisWeek =
+      'notifications_group_this_week';
+  static const String notificationsGroupOlder = 'notifications_group_older';
+  static const String notificationTemplateTransferPending =
+      'notification_template_transfer_pending';
+  static const String notificationTemplateTransferConfirmed =
+      'notification_template_transfer_confirmed';
+  static const String notificationTemplateTransferRejected =
+      'notification_template_transfer_rejected';
+  static const String notificationTemplateTransferReminder =
+      'notification_template_transfer_reminder';
+  static const String notificationTemplateTransferStuck =
+      'notification_template_transfer_stuck';
+  static const String notificationTemplateViolationCreated =
+      'notification_template_violation_created';
+  static const String notificationTemplateViolationCharged =
+      'notification_template_violation_charged';
+  static const String notificationTemplateMaintenanceOpened =
+      'notification_template_maintenance_opened';
+  static const String notificationTemplateMaintenanceReturned =
+      'notification_template_maintenance_returned';
+  static const String notificationTemplateMachineReplaced =
+      'notification_template_machine_replaced';
+  static const String notificationTemplateWarrantyExpiring =
+      'notification_template_warranty_expiring';
+  static const String notificationTemplateWarrantyExpired =
+      'notification_template_warranty_expired';
+  static const String notificationTemplateBudgetWarning =
+      'notification_template_budget_warning';
+  static const String notificationTemplateBudgetExceeded =
+      'notification_template_budget_exceeded';
+  static const String notificationTemplateSubscriptionDue =
+      'notification_template_subscription_due';
+  static const String notificationTemplateSubscriptionOverdue =
+      'notification_template_subscription_overdue';
+  static const String notificationTemplateMachineIdle =
+      'notification_template_machine_idle';
+  static const String notificationTemplateDecommissionCandidate =
+      'notification_template_decommission_candidate';
+  static const String notificationTemplateMachineDecommissioned =
+      'notification_template_machine_decommissioned';
+  static const String notificationTemplateDigest =
+      'notification_template_digest';
+  static const String notificationTemplateUnknown =
+      'notification_template_unknown';
 }

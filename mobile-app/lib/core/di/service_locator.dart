@@ -91,6 +91,12 @@ import 'package:machinery/feature/violations/data/logic/violations_list/violatio
 import 'package:machinery/feature/violations/domain/entities/violation_entity.dart';
 import 'package:machinery/feature/violations/domain/repos/violations_repo.dart';
 import 'package:machinery/feature/violations/domain/repos/violations_repo_impl.dart';
+import 'package:machinery/core/services/push/push_notification_service.dart';
+import 'package:machinery/feature/notifications/data/logic/notification_badge/notification_badge_cubit.dart';
+import 'package:machinery/feature/notifications/data/logic/notification_preferences/notification_preferences_cubit.dart';
+import 'package:machinery/feature/notifications/data/logic/notifications_list/notifications_list_cubit.dart';
+import 'package:machinery/feature/notifications/domain/repos/notifications_repo.dart';
+import 'package:machinery/feature/notifications/domain/repos/notifications_repo_impl.dart';
 
 final GetIt getIt = GetIt.instance;
 
@@ -185,6 +191,25 @@ void setupServiceLocator(AppDatabase appDatabase) {
     () => LookupsRepo(apiService: getIt()),
   );
 
+  // ── Notifications ────────────────────────────────────────────────────────
+  // Registered before AuthCubit so login/logout can register devices and
+  // refresh the badge without a circular getIt lookup at construction time.
+  getIt.registerLazySingleton<NotificationsRepo>(
+    () => NotificationsRepoImpl(apiService: getIt(), networkInfo: getIt()),
+  );
+  getIt.registerLazySingleton<PushNotificationService>(
+    PushNotificationService.new,
+  );
+  getIt.registerLazySingleton<NotificationBadgeCubit>(
+    () => NotificationBadgeCubit(notificationsRepo: getIt()),
+  );
+  getIt.registerFactory<NotificationsListCubit>(
+    () => NotificationsListCubit(notificationsRepo: getIt()),
+  );
+  getIt.registerFactory<NotificationPreferencesCubit>(
+    () => NotificationPreferencesCubit(notificationsRepo: getIt()),
+  );
+
   // ── Auth ─────────────────────────────────────────────────────────────────
   getIt.registerLazySingleton<AuthRepo>(
     () => AuthRepoImpl(networkInfo: getIt()),
@@ -196,6 +221,9 @@ void setupServiceLocator(AppDatabase appDatabase) {
       authRepo: getIt(),
       permissionService: getIt(),
       syncCoordinator: getIt(),
+      pushNotificationService: getIt(),
+      notificationsRepo: getIt(),
+      notificationBadgeCubit: getIt(),
     ),
   );
 

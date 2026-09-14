@@ -5,6 +5,8 @@
     <uses-permission android:name="android.permission.CAMERA"/>
     <!-- Biometric login and hand-off confirmation. -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
+    <!-- Android 13+ notification permission for FCM / local banners. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <!-- The app is usable without a camera; scanning falls back to manual
          serial entry. -->
@@ -34,6 +36,13 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <!-- Push / in-app deep links: machinery://transfers/… etc. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="machinery"/>
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

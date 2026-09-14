@@ -17,6 +17,7 @@ import 'package:machinery/feature/more/data/logic/logout/logout_state.dart';
 import 'package:machinery/feature/more/presentation/widgets/more_profile_header.dart';
 import 'package:machinery/feature/more/presentation/widgets/more_section.dart';
 import 'package:machinery/feature/more/presentation/widgets/more_tile.dart';
+import 'package:machinery/feature/notifications/data/logic/notification_badge/notification_badge_cubit.dart';
 import 'package:machinery/feature/splash/presentation/widgets/language_bottom_sheet.dart';
 import 'package:machinery/feature/violations/domain/params/violations_query_params.dart';
 
@@ -68,18 +69,6 @@ class _MoreView extends StatelessWidget {
     }
 
     await logoutCubit.logout();
-  }
-
-  void _openNotReady(
-    BuildContext context, {
-    required String titleKey,
-    required IconData icon,
-  }) {
-    AppRoute.goToFeatureNotReadyScreen(
-      context: context,
-      titleKey: titleKey,
-      icon: icon,
-    );
   }
 
   @override
@@ -177,10 +166,12 @@ class _MoreView extends StatelessWidget {
                         identifier: 'more_notifications_tile',
                         icon: Icons.notifications_none_rounded,
                         label: LocaleKeys.notifications.tr(),
-                        onTap: () => _openNotReady(
-                          context,
-                          titleKey: LocaleKeys.notifications,
-                          icon: Icons.notifications_none_rounded,
+                        badgeCount: context
+                            .watch<NotificationBadgeCubit>()
+                            .state
+                            .unread,
+                        onTap: () => AppRoute.goToNotificationsList(
+                          context: context,
                         ),
                       ),
                     ],

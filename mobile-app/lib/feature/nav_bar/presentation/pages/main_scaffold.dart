@@ -6,6 +6,7 @@ import 'package:machinery/core/shared_widgets/sync_summary_bar.dart';
 import 'package:machinery/feature/nav_bar/presentation/helpers/nav_tabs_builder.dart';
 import 'package:machinery/feature/nav_bar/presentation/models/nav_tab.dart';
 import 'package:machinery/feature/nav_bar/presentation/widgets/app_bottom_nav_bar.dart';
+import 'package:machinery/feature/notifications/presentation/helpers/notification_deep_link_router.dart';
 
 class MainScaffold extends StatefulWidget {
   const MainScaffold({super.key});
@@ -17,6 +18,17 @@ class MainScaffold extends StatefulWidget {
 class _MainScaffoldState extends State<MainScaffold> {
   final PermissionService _permissionService = getIt<PermissionService>();
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      NotificationDeepLinkRouter.consumePendingDeepLink(context);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

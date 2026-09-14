@@ -72,6 +72,25 @@
 	<string>التطبيق بيستخدم الصور عشان ترفع صور حالة الماكينة والفواتير.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>التطبيق بيستخدم البصمة أو Face ID عشان تدخل بسرعة وتأكّد استلام الماكينات.</string>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>التطبيق بيبعتلك إشعارات لما تيجي تسليمة محتاجة توقيعك أو تنبيه تشغيلي مهم.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.machinery.deeplink</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>machinery</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>ar</string>

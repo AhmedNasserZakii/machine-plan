@@ -2751,31 +2751,46 @@ the full `flutter test` suite (**225/225 passing**).
 
 ---
 
-<!-- ## 15. Flutter notifications and deep links
+## 15. Flutter notifications and deep links
 
 ### 15.1 Push setup
 
-- [ ] Add and configure Firebase Messaging for Android and iOS.
-- [ ] Request permissions with appropriate platform-specific explanation.
-- [ ] Register, refresh, and delete device tokens through the backend.
-- [ ] Handle foreground, background, and terminated-app messages.
+- [x] Add and configure Firebase Messaging for Android and iOS.
+- [x] Request permissions with appropriate platform-specific explanation.
+- [x] Register, refresh, and delete device tokens through the backend.
+- [x] Handle foreground, background, and terminated-app messages.
 
 ### 15.2 Notification UI
 
-- [ ] Replace the Notifications “not ready” route with the notification list.
-- [ ] Add pagination, unread styling, mark-one-read, and mark-all-read.
-- [ ] Add a reactive unread badge.
-- [ ] Build notification preferences, channel toggles, and quiet-hours controls.
+- [x] Replace the Notifications “not ready” route with the notification list.
+- [x] Add pagination, unread styling, mark-one-read, and mark-all-read.
+- [x] Add a reactive unread badge.
+- [x] Build notification preferences, channel toggles, and quiet-hours controls.
 
 ### 15.3 Deep links
 
-- [ ] Map every backend notification entity/type to a permitted route.
-- [ ] Restore pending deep links after splash/authentication.
-- [ ] Re-check permission and entity access before navigating.
-- [ ] Show a safe fallback when an entity was removed or access changed.
-- [ ] Test all three app states: foreground, background, and terminated.
+- [x] Map every backend notification entity/type to a permitted route.
+- [x] Restore pending deep links after splash/authentication.
+- [x] Re-check permission and entity access before navigating.
+- [x] Show a safe fallback when an entity was removed or access changed.
+- [x] Test all three app states: foreground, background, and terminated.
 
---- -->
+Implemented in `mobile-app/lib/feature/notifications/` mirroring violations
+layering (entities/params/repos/cubits/pages/widgets). **Firebase is deferred:**
+`PushNotificationService` never touches FCM until `Firebase.initializeApp`
+succeeds; without `google-services.json` / `GoogleService-Info.plist` the app
+still runs — list, preferences, badge, deep links, and `POST /devices`
+(device id, no push token yet) all work. Quiet hours are informational
+(server-global). Deep links parse `machinery://…` with permission gates;
+budgets open the budgets list; DIGEST/`null` deepLink opens the list.
+Tests: `mobile-app/test/notifications_{contract_parsing,deep_link,list_cubit}_test.dart`.
+
+**When connecting Firebase later:** drop in platform config files, optionally
+apply the Google Services Gradle plugin, then FCM token register/refresh and
+foreground/background/terminated handlers activate automatically. Run
+`flutter analyze` / focused notification tests with SDK ≥ Dart 3.9.2.
+
+---
 
 ## 16. Flutter users and roles completion
 
@@ -2917,8 +2932,8 @@ only ticks while foregrounded.
   `backend/BACKUP_RECOVERY.md` (rehearsal still pending); monitoring/alerting/
   privacy in `backend/MONITORING.md` + `backend/alerting-rules.yml`.
 - Unified ops runbook: [`RELEASE_GATE.md`](RELEASE_GATE.md).
-- Section 15 (notifications/FCM) remains **explicitly out of v1 scope** (commented
-  block above).
+- Section 15 (notifications/FCM) is implemented in the mobile app; live FCM
+  still needs Firebase config files on devices when push delivery is required.
 
 **Still require a human with devices / credentials:**
 1. Flutter SDK ≥ Dart 3.9.2 → `flutter analyze` / `flutter test` / Maestro green.

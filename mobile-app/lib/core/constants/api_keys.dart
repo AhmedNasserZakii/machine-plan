@@ -328,6 +328,24 @@ class ApiKeys {
   static const String readAt = 'readAt';
   static const String deepLink = 'deepLink';
   static const String unreadCount = 'unreadCount';
+  static const String templateCode = 'templateCode';
+  static const String entityType = 'entityType';
+  static const String entityId = 'entityId';
+  static const String locale = 'locale';
+  static const String pushStatus = 'pushStatus';
+  static const String pushSkipReason = 'pushSkipReason';
+  static const String unread = 'unread';
+  static const String unreadOnly = 'unreadOnly';
+  static const String preferences = 'preferences';
+  static const String push = 'push';
+  static const String inApp = 'inApp';
+  static const String inAppLocked = 'inAppLocked';
+  static const String registered = 'registered';
+  static const String removed = 'removed';
+  static const String notificationId = 'notificationId';
+  static const String ids = 'ids';
+  static const String updated = 'updated';
+  // `platform` and `deviceModel` already declared under Auth.
 
   // ── Media ────────────────────────────────────────────────────────────────
   static const String uploadUrl = 'uploadUrl';

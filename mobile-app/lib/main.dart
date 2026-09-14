@@ -11,6 +11,7 @@ import 'package:machinery/core/local_storage/local_storage.dart';
 import 'package:machinery/core/network_services/idempotency_interceptor.dart';
 import 'package:machinery/core/services/locale_service.dart';
 import 'package:machinery/core/services/observability/crash_reporter.dart';
+import 'package:machinery/core/services/push/push_notification_service.dart';
 import 'package:machinery/core/services/sync/sync_coordinator.dart';
 import 'package:machinery/my_app.dart';
 import 'package:path_provider/path_provider.dart';
@@ -31,6 +32,8 @@ Future<void> main() async {
   final AppDatabase appDatabase = await AppDatabase.open();
   setupServiceLocator(appDatabase);
   await _ensureDeviceId();
+  // Firebase may be absent (no google-services.json) — service degrades.
+  await getIt<PushNotificationService>().initialize();
   _installCrashHandlers();
 
   final SyncCoordinator syncCoordinator = getIt<SyncCoordinator>();

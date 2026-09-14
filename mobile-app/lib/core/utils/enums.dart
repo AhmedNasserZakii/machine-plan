@@ -311,3 +311,84 @@ enum ViolationTrend {
     );
   }
 }
+
+/// Backend notification catalogue codes. Unknown future values degrade to
+/// [unknown] so the list still renders.
+enum NotificationTemplateCode {
+  transferPending('TRANSFER_PENDING'),
+  transferConfirmed('TRANSFER_CONFIRMED'),
+  transferRejected('TRANSFER_REJECTED'),
+  transferReminder('TRANSFER_REMINDER'),
+  transferStuck('TRANSFER_STUCK'),
+  violationCreated('VIOLATION_CREATED'),
+  violationCharged('VIOLATION_CHARGED'),
+  maintenanceOpened('MAINTENANCE_OPENED'),
+  maintenanceReturned('MAINTENANCE_RETURNED'),
+  machineReplaced('MACHINE_REPLACED'),
+  warrantyExpiring('WARRANTY_EXPIRING'),
+  warrantyExpired('WARRANTY_EXPIRED'),
+  budgetWarning('BUDGET_WARNING'),
+  budgetExceeded('BUDGET_EXCEEDED'),
+  subscriptionDue('SUBSCRIPTION_DUE'),
+  subscriptionOverdue('SUBSCRIPTION_OVERDUE'),
+  machineIdle('MACHINE_IDLE'),
+  decommissionCandidate('DECOMMISSION_CANDIDATE'),
+  machineDecommissioned('MACHINE_DECOMMISSIONED'),
+  digest('DIGEST'),
+  unknown('UNKNOWN');
+
+  const NotificationTemplateCode(this.value);
+
+  final String value;
+
+  static NotificationTemplateCode fromJson(String? raw) {
+    return NotificationTemplateCode.values.firstWhere(
+      (code) => code.value == raw,
+      orElse: () => NotificationTemplateCode.unknown,
+    );
+  }
+}
+
+/// What a notification points at. Wire values are lowercase kebab-case.
+enum NotificationEntityType {
+  transfer('transfer'),
+  violation('violation'),
+  maintenanceOrder('maintenance-order'),
+  machine('machine'),
+  budget('budget'),
+  subscription('subscription'),
+  unknown('unknown');
+
+  const NotificationEntityType(this.value);
+
+  final String value;
+
+  static NotificationEntityType fromJson(String? raw) {
+    if (raw == null || raw.isEmpty) {
+      return NotificationEntityType.unknown;
+    }
+    return NotificationEntityType.values.firstWhere(
+      (type) => type.value == raw,
+      orElse: () => NotificationEntityType.unknown,
+    );
+  }
+}
+
+/// `POST /devices` platform field.
+enum DevicePlatform {
+  android('ANDROID'),
+  ios('IOS'),
+  web('WEB'),
+  unknown('UNKNOWN');
+
+  const DevicePlatform(this.value);
+
+  final String value;
+
+  static DevicePlatform fromJson(String? raw) {
+    return DevicePlatform.values.firstWhere(
+      (platform) => platform.value == raw,
+      orElse: () => DevicePlatform.unknown,
+    );
+  }
+}

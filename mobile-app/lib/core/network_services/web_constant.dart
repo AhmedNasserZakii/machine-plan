@@ -208,10 +208,13 @@ abstract class WebConstant {
 
   // ── Notifications ────────────────────────────────────────────────────────
   static const String notifications = 'notifications';
-  static const String notificationPreferences = 'notifications/preferences';
-  static const String pushSubscriptions = 'push-subscriptions';
+  static const String notificationsUnreadCount = 'notifications/unread-count';
+  static const String notificationsReadAll = 'notifications/read-all';
+  static const String notificationPreferences = 'notification-preferences';
+  static const String devices = 'devices';
 
   static String notificationRead(String id) => '$notifications/$id/read';
+  static String device(String deviceId) => '$devices/$deviceId';
 
   // ── Users, roles & branches ──────────────────────────────────────────────
   static const String users = 'users';

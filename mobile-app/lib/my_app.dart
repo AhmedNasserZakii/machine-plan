@@ -7,11 +7,14 @@ import 'package:machinery/core/di/service_locator.dart';
 import 'package:machinery/core/network_services/unauthorized_session_handler.dart';
 import 'package:machinery/core/network_services/upgrade_required_handler.dart';
 import 'package:machinery/core/services/observability/app_analytics.dart';
+import 'package:machinery/core/services/push/push_notification_service.dart';
 import 'package:machinery/core/shared_widgets/app_confirm_dialog.dart';
 import 'package:machinery/core/shared_widgets/upgrade_required_screen.dart';
 import 'package:machinery/core/theme/styles/app_theme.dart';
 import 'package:machinery/core/utils/app_route.dart';
 import 'package:machinery/feature/auth/data/logic/auth/auth_cubit.dart';
+import 'package:machinery/feature/notifications/data/logic/notification_badge/notification_badge_cubit.dart';
+import 'package:machinery/feature/notifications/presentation/helpers/notification_deep_link_router.dart';
 import 'package:machinery/feature/splash/presentation/pages/splash_screen.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -25,6 +28,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   final AuthCubit _authCubit = getIt<AuthCubit>();
+  final NotificationBadgeCubit _badgeCubit = getIt<NotificationBadgeCubit>();
 
   @override
   void initState() {
@@ -32,6 +36,13 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     UnauthorizedSessionHandler.register(_onSessionExpired);
     UpgradeRequiredHandler.register(_onUpgradeRequired);
+    getIt<PushNotificationService>().onNotificationOpened = () {
+      final BuildContext? ctx = navigatorKey.currentContext;
+      if (ctx == null || !ctx.mounted) {
+        return;
+      }
+      NotificationDeepLinkRouter.consumePendingDeepLink(ctx);
+    };
   }
 
   @override
@@ -48,6 +59,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     // grants finance access and the bottom bar has to grow to match.
     if (state == AppLifecycleState.resumed) {
       _authCubit.refreshProfile();
+      _badgeCubit.refresh();
     }
   }
 
@@ -81,7 +93,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     getIt<AppAnalytics>().track(
       AnalyticsEvents.upgradeRequiredShown,
       properties: <String, Object?>{
-        if (minVersion != null) 'min_version': minVersion,
+        'min_version': ?minVersion,
       },
     );
     final navigator = navigatorKey.currentState;
@@ -99,8 +111,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<AuthCubit>.value(
-      value: _authCubit,
+    return MultiBlocProvider(
+      providers: <BlocProvider<dynamic>>[
+        BlocProvider<AuthCubit>.value(value: _authCubit),
+        BlocProvider<NotificationBadgeCubit>.value(value: _badgeCubit),
+      ],
       child: MaterialApp(
         // `.tr()` resolves at build time and does not register a dependency on
         // the locale, and a pushed route caches its page widget — so without
