@@ -13,7 +13,13 @@ abstract class LocalStorage {
 
   static Future<void> init() async {
     local = await SharedPreferences.getInstance();
-    flutterSecureStorage = const FlutterSecureStorage();
+    // `resetOnError: true` (package default) permanently erases every token
+    // whenever Android KeyStore throws a transient decrypt error — which is
+    // exactly how a cold start ends on the login screen with a "fresh" install
+    // look. Keep the tokens; a later 401 + failed refresh is what clears them.
+    flutterSecureStorage = const FlutterSecureStorage(
+      aOptions: AndroidOptions(resetOnError: false),
+    );
   }
 
   // ── Tokens ───────────────────────────────────────────────────────────────

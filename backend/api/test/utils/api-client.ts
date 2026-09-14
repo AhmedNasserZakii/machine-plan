@@ -21,6 +21,8 @@ export interface PageMeta {
   total: number;
   totalPages: number;
   hasNext: boolean;
+  /** Present on keyset endpoints only. */
+  nextCursor?: string | null;
 }
 
 /**

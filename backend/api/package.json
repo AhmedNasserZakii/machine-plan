@@ -33,7 +33,10 @@
     "migration:show": "npm run typeorm -- migration:show",
     "seed": "ts-node -r tsconfig-paths/register src/database/seeds/run-seeds.ts",
     "seed:dev": "npm run seed -- --dev",
+    "seed:pagination": "npm run seed -- --dev --pagination",
+    "test:e2e:pagination": "./scripts/run-e2e.sh test/pagination.e2e-spec.ts",
     "db:setup:dev": "npm run migration:run && npm run seed:dev",
+    "db:setup:pagination": "npm run migration:run && npm run seed:pagination",
     "check:openapi": "ts-node -r tsconfig-paths/register scripts/check-openapi-drift.ts",
     "docs:generate": "ts-node -r tsconfig-paths/register scripts/check-openapi-drift.ts --write",
     "check:migrations": "./scripts/check-migrations.sh"

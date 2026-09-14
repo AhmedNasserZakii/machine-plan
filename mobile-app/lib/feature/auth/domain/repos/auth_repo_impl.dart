@@ -217,7 +217,14 @@ class AuthRepoImpl implements AuthRepo {
 
   @override
   Future<bool> hasStoredSession() async {
-    return (await LocalStorage.getAccessToken()).trim().isNotEmpty;
+    // Either token is enough to attempt restore: an expired access token still
+    // pairs with a refresh token, and the interceptor refreshes on the first
+    // authenticated call (splash's /auth/me).
+    final String access = (await LocalStorage.getAccessToken()).trim();
+    if (access.isNotEmpty) {
+      return true;
+    }
+    return (await LocalStorage.getRefreshToken()).trim().isNotEmpty;
   }
 
   @override

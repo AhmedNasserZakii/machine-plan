@@ -58,18 +58,18 @@ class AuthCubit extends Cubit<AuthState> {
     await result.fold(
       (failure) async {
         // The token interceptor already tried a refresh. A 401 here means the
-        // session is genuinely gone.
+        // session is genuinely gone — only then do we drop tokens and land on
+        // login. Transient / offline failures keep a cached session.
         if (failure.isUnauthorized) {
-          await authRepo.clearSession();
-          await permissionService.clear();
-          if (!isClosed) {
-            emit(Unauthenticated(reason: failure.errorMessage));
-          }
+          await expireSession(reason: failure.errorMessage);
           return;
         }
 
         final AuthProfileEntity? cached = authRepo.readCachedProfile();
         if (cached == null) {
+          // Tokens exist but we have nothing to render with and it is not a
+          // hard 401 — stay unauthenticated for this launch without wiping
+          // tokens, so the next open can retry.
           if (!isClosed) {
             emit(Unauthenticated(reason: failure.errorMessage));
           }
@@ -95,6 +95,17 @@ class AuthCubit extends Cubit<AuthState> {
         _onSessionReady();
       },
     );
+  }
+
+  /// Hard session death (refresh failed with 401). Clears tokens so the next
+  /// cold start does not bounce through the same failure again.
+  Future<void> expireSession({String? reason}) async {
+    notificationBadgeCubit.clear();
+    await authRepo.clearSession();
+    await permissionService.clear();
+    if (!isClosed) {
+      emit(Unauthenticated(reason: reason));
+    }
   }
 
   /// Called by `LoginCubit` once the repository has stored the tokens.

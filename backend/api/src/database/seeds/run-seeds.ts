@@ -5,6 +5,7 @@ import { seedFinance } from './seed-finance';
 import { seedIdentity } from './seed-identity';
 import { seedNotifications } from './seed-notifications';
 import { seedOrganization } from './seed-organization';
+import { seedPagination } from './seed-pagination';
 import { SeedLogger } from './seed-logger';
 
 /**
@@ -13,16 +14,23 @@ import { SeedLogger } from './seed-logger';
  *
  * `npm run seed:dev` adds branches and fixed-password accounts on top. Those are gated on
  * `NODE_ENV` so a known password can never reach production.
+ *
+ * `npm run seed:pagination` (or `--pagination` with `--dev`) adds ~55 rows per list so
+ * default `limit=20` paging and Flutter `fetchAll` walks are forced past one page.
  */
 async function run(): Promise<void> {
   const log = new SeedLogger();
   const withDevData = process.argv.includes('--dev');
+  const withPagination = process.argv.includes('--pagination');
 
   // Allowlisted, not blocklisted. Blocking only `production` means an unset, misspelled or
   // newly-added NODE_ENV (`staging`, `prod`, `Production`) silently gets fixed-password
   // accounts — and the one environment where that matters is the one most likely to be
   // configured differently from the developer's laptop.
-  if (withDevData && !['development', 'test'].includes(process.env.NODE_ENV ?? '')) {
+  if (
+    (withDevData || withPagination) &&
+    !['development', 'test'].includes(process.env.NODE_ENV ?? '')
+  ) {
     throw new Error(
       `Refusing to seed development accounts with NODE_ENV=${process.env.NODE_ENV ?? '(unset)'}; ` +
         'expected development or test',
@@ -44,9 +52,14 @@ async function run(): Promise<void> {
     log.section('Notifications (event templates in ar + en)');
     await seedNotifications(dataSource, log);
 
-    if (withDevData) {
+    if (withDevData || withPagination) {
       log.section('Development data (branches, one account per role)');
       await seedDev(dataSource, log);
+    }
+
+    if (withPagination) {
+      log.section('Pagination stress data (~55 rows per list)');
+      await seedPagination(dataSource, log);
     }
 
     log.done('Seeding complete');

@@ -13,6 +13,7 @@ import 'package:machinery/core/shared_widgets/upgrade_required_screen.dart';
 import 'package:machinery/core/theme/styles/app_theme.dart';
 import 'package:machinery/core/utils/app_route.dart';
 import 'package:machinery/feature/auth/data/logic/auth/auth_cubit.dart';
+import 'package:machinery/feature/auth/data/logic/auth/auth_state.dart';
 import 'package:machinery/feature/notifications/data/logic/notification_badge/notification_badge_cubit.dart';
 import 'package:machinery/feature/notifications/presentation/helpers/notification_deep_link_router.dart';
 import 'package:machinery/feature/splash/presentation/pages/splash_screen.dart';
@@ -66,6 +67,17 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   /// A session that cannot be refreshed gets a blocking dialog, never a
   /// snackbar. The sync queue deliberately survives this.
   Future<void> _onSessionExpired(String message) async {
+    // Splash owns cold-start routing: while it is still resolving /auth/me,
+    // the interceptor's 401 must not open a second "session expired" dialog
+    // on top of the splash → login hand-off.
+    final AuthState authState = _authCubit.state;
+    if (authState is AuthChecking || authState is AuthInitial) {
+      await _authCubit.expireSession(reason: message);
+      return;
+    }
+
+    await _authCubit.expireSession(reason: message);
+
     final BuildContext? context = navigatorKey.currentContext;
     if (context == null || !context.mounted) {
       return;

@@ -37,6 +37,14 @@ function applyTestEnv(): void {
   process.env.NODE_ENV = 'test';
   process.env.DB_NAME = TEST_DB_NAME;
   process.env.DB_LOGGING = 'false';
+  // Local peer-auth Postgres often has an empty DB_PASSWORD in `.env`, but Nest's
+  // env validator rejects empty strings. A non-empty placeholder is enough for the
+  // driver when the server does not require a password.
+  if (!process.env.DB_PASSWORD) {
+    process.env.DB_PASSWORD = 'local';
+  }
+  // Pagination stress seeds create dozens of rows in beforeAll; give each write room.
+  process.env.REQUEST_TIMEOUT_MS = process.env.REQUEST_TIMEOUT_MS ?? '120000';
   // Each spec file boots its own app. At the production pool size, six of them plus a
   // locally running dev API can exhaust Postgres `max_connections` and the run stalls.
   process.env.DB_POOL_SIZE = '5';
