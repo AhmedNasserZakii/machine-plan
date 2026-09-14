@@ -32,24 +32,46 @@ tags:
 # will collide with.
 - tapOn:
     id: "merchants_add_button"
+- extendedWaitUntil:
+    visible:
+      id: "merchant_form_shop_name"
+    timeout: 15000
 - tapOn:
     id: "merchant_form_shop_name"
 - inputText: ${output.shop}
+- hideKeyboard
 - tapOn:
     id: "merchant_form_name"
 - inputText: "صاحب المحل الأول"
+- hideKeyboard
 - tapOn:
     id: "merchant_form_phone"
 - inputText: ${output.phone}
+- hideKeyboard
 - tapOn:
     id: "merchant_form_address"
 - inputText: "شارع الجمهورية، المنصورة"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "merchant_form_national_id"
+    direction: DOWN
+    timeout: 10000
 - tapOn:
     id: "merchant_form_national_id"
 - inputText: ${output.nationalId}
 - hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "merchant_form_submit"
+    direction: DOWN
+    timeout: 10000
 - tapOn:
     id: "merchant_form_submit"
+- extendedWaitUntil:
+    visible:
+      id: "merchants_add_button"
+    timeout: 30000
 - extendedWaitUntil:
     visible: "(?s).*${output.shop}.*"
     timeout: 20000
@@ -64,15 +86,24 @@ tags:
 - tapOn:
     id: "merchant_form_shop_name"
 - inputText: "محل آخر ${output.suffix}"
+- hideKeyboard
 - tapOn:
     id: "merchant_form_name"
 - inputText: "صاحب المحل الثاني"
+- hideKeyboard
 - tapOn:
     id: "merchant_form_phone"
 - inputText: ${output.phone}
+- hideKeyboard
 - tapOn:
     id: "merchant_form_address"
 - inputText: "شارع آخر، المنصورة"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "merchant_form_national_id"
+    direction: DOWN
+    timeout: 10000
 - tapOn:
     id: "merchant_form_national_id"
 - inputText: ${output.nationalId}

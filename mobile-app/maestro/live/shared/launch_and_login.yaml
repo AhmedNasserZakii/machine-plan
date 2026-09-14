@@ -9,8 +9,14 @@ name: Cold-start against the live API and sign in as the director
 - launchApp:
     clearKeychain: true
 
-- assertVisible:
-    id: "login_phone_field"
+# Physical devices (esp. Samsung) can briefly report no transport right after
+# a cold start / clearState. Wait for the form, then give connectivity a beat
+# before submitting so the first-login offline guard does not false-negative.
+- extendedWaitUntil:
+    visible:
+      id: "login_phone_field"
+    timeout: 30000
+- waitForAnimationToEnd
 - tapOn:
     id: "login_phone_field"
 - inputText: ${PHONE}
@@ -21,7 +27,13 @@ name: Cold-start against the live API and sign in as the director
 - tapOn:
     id: "login_submit_button"
 
+# Fresh installs on a biometric device offer enrollment after a successful
+# login. Dismiss it so the home tab assertion is not blocked by the sheet.
+- tapOn:
+    text: "مش دلوقتي"
+    optional: true
+
 # The director lands straight on the home tab; no forced password change.
 - extendedWaitUntil:
     visible: "الرئيسية"
-    timeout: 25000
+    timeout: 40000

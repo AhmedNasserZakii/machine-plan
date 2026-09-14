@@ -28,43 +28,59 @@ tags:
     timeout: 15000
 - tapOn:
     id: "merchants_add_button"
+- extendedWaitUntil:
+    visible:
+      id: "merchant_form_shop_name"
+    timeout: 15000
 
+# Hide the keyboard after every field — on a physical phone the IME covers the
+# lower inputs and Maestro will tap / type into a collapsed field.
 - tapOn:
     id: "merchant_form_shop_name"
 - inputText: ${output.shop}
+- hideKeyboard
 - tapOn:
     id: "merchant_form_name"
 - inputText: "أحمد صاحب المحل"
+- hideKeyboard
 - tapOn:
     id: "merchant_form_phone"
 - inputText: ${output.phone}
+- hideKeyboard
 - tapOn:
     id: "merchant_form_address"
 - inputText: "شارع الجمهورية، المنصورة"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "merchant_form_national_id"
+    direction: DOWN
+    timeout: 10000
 - tapOn:
     id: "merchant_form_national_id"
 - inputText: ${output.nationalId}
 - hideKeyboard
-
+- scrollUntilVisible:
+    element:
+      id: "merchant_form_submit"
+    direction: DOWN
+    timeout: 10000
 - tapOn:
     id: "merchant_form_submit"
 
-# Back on the list, the row the server just created is rendered from the
-# server's own response rather than from what was typed.
+# Wait for the list chrome, not just the shop name — the form still shows the
+# typed shop value for a beat after submit, which would false-pass the next step.
+- extendedWaitUntil:
+    visible:
+      id: "merchants_add_button"
+    timeout: 30000
 - extendedWaitUntil:
     visible: "(?s).*${output.shop}.*"
     timeout: 20000
 
-# Leaving the tab disposes the list and coming back refetches it, so seeing the
-# row again is the part a mock cannot prove: it is in Postgres, not in a cubit.
-- tapOn: "(?s).*الرئيسية.*"
-- tapOn: "(?s).*التجار.*"
-- extendedWaitUntil:
-    visible: "(?s).*${output.shop}.*"
-    timeout: 20000
-
-# The detail screen reads it back through GET /merchants/:id, which returns the
-# fuller record — national ID, registrar and notes the list row leaves out.
+# On this physical device Material 3 only exposes the *selected* bottom-nav
+# label to accessibility, so leaving via Home/More is unreliable. Opening the
+# detail screen forces GET /merchants/:id — that is the persistence proof.
 - tapOn: "(?s).*${output.shop}.*"
 - extendedWaitUntil:
     visible: "(?s).*أحمد صاحب المحل.*"
