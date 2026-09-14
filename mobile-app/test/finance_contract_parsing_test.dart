@@ -90,5 +90,30 @@ void main() {
       expect(draft.toJson(forUpdate: true).containsKey('kind'), isFalse);
       expect(draft.toJson(forUpdate: true).containsKey('branchId'), isFalse);
     });
+
+    test('parses paged budget status as an array with per-item asOf', () {
+      final BudgetStatusList list = budgetStatusListFromJson(<dynamic>[
+        <String, dynamic>{
+          'id': 'b1',
+          'category': <String, dynamic>{'id': 'c1', 'name': 'Maintenance'},
+          'amount': 30000,
+          'spent': 27400,
+          'remaining': 2600,
+          'usedPercent': 91.3,
+          'status': 'WARNING',
+          'period': <String, dynamic>{'elapsedPercent': 23.3},
+          'pace': <String, dynamic>{
+            'projectedTotal': 117428,
+            'overPaceBy': 20410,
+          },
+          'asOf': '2026-09-07',
+        },
+      ]);
+      expect(list.budgets, hasLength(1));
+      expect(list.warningCount, 1);
+      expect(list.asOf.year, 2026);
+      expect(list.asOf.month, 9);
+      expect(list.asOf.day, 7);
+    });
   });
 }

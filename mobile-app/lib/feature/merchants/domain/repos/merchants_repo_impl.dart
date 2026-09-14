@@ -10,6 +10,7 @@ import 'package:machinery/core/local_db/daos/cached_merchants_dao.dart';
 import 'package:machinery/core/network_services/api_service.dart';
 import 'package:machinery/core/network_services/api_service_failure.dart';
 import 'package:machinery/core/network_services/models/pagination_meta_model.dart';
+import 'package:machinery/core/network_services/paginated_fetch.dart';
 import 'package:machinery/core/network_services/web_constant.dart';
 import 'package:machinery/core/resources/debug_print.dart';
 import 'package:machinery/core/services/sync/sync_coordinator.dart';
@@ -18,7 +19,6 @@ import 'package:machinery/core/services/sync/sync_queue_item.dart';
 import 'package:machinery/core/services/sync/sync_queue_service.dart';
 import 'package:machinery/core/utils/enums.dart';
 import 'package:machinery/feature/machines/data/models/machine_response_model.dart';
-import 'package:machinery/feature/machines/domain/entities/machine_entity.dart';
 import 'package:machinery/feature/merchants/data/models/merchant_response_model.dart';
 import 'package:machinery/feature/merchants/domain/entities/merchant_entity.dart';
 import 'package:machinery/feature/merchants/domain/params/merchant_form_params.dart';
@@ -131,56 +131,82 @@ class MerchantsRepoImpl implements MerchantsRepo {
   }
 
   @override
-  Future<Either<ServerFailure, List<MachineEntity>>> fetchMerchantMachines({
+  Future<Either<ServerFailure, MerchantMachinesPage>> fetchMerchantMachines({
     required String id,
+    int page = 1,
   }) {
     return _guard('fetchMerchantMachines', () async {
       final Response<dynamic> response = await apiService.client().get<dynamic>(
         WebConstant.merchantMachines(id),
+        queryParameters: <String, dynamic>{
+          ApiKeys.page: page,
+          ApiKeys.limit: 20,
+        },
       );
 
-      return _list(_body(response.data)[ApiKeys.data])
-          .map(
-            (Map<String, dynamic> json) =>
-                MachineResponseModel.fromJson(json).toEntity(),
-          )
-          .toList(growable: false);
+      final Map<String, dynamic> body = _body(response.data);
+      return MerchantMachinesPage(
+        machines: _list(body[ApiKeys.data])
+            .map(
+              (Map<String, dynamic> json) =>
+                  MachineResponseModel.fromJson(json).toEntity(),
+            )
+            .toList(growable: false),
+        meta: _metaOf(body),
+      );
     });
   }
 
   @override
-  Future<Either<ServerFailure, List<SubscriptionEntity>>> fetchSubscriptions({
+  Future<Either<ServerFailure, MerchantSubscriptionsPage>> fetchSubscriptions({
     required String id,
+    int page = 1,
   }) {
     return _guard('fetchSubscriptions', () async {
       final Response<dynamic> response = await apiService.client().get<dynamic>(
         WebConstant.merchantSubscriptions(id),
+        queryParameters: <String, dynamic>{
+          ApiKeys.page: page,
+          ApiKeys.limit: 20,
+        },
       );
 
-      return _list(_body(response.data)[ApiKeys.data])
-          .map(
-            (Map<String, dynamic> json) =>
-                SubscriptionResponseModel.fromJson(json).toEntity(),
-          )
-          .toList(growable: false);
+      final Map<String, dynamic> body = _body(response.data);
+      return MerchantSubscriptionsPage(
+        subscriptions: _list(body[ApiKeys.data])
+            .map(
+              (Map<String, dynamic> json) =>
+                  SubscriptionResponseModel.fromJson(json).toEntity(),
+            )
+            .toList(growable: false),
+        meta: _metaOf(body),
+      );
     });
   }
 
   @override
-  Future<Either<ServerFailure, List<MerchantTimelineEntry>>> fetchTimeline({
+  Future<Either<ServerFailure, MerchantTimelinePage>> fetchTimeline({
     required String id,
+    String? cursor,
   }) {
     return _guard('fetchTimeline', () async {
       final Response<dynamic> response = await apiService.client().get<dynamic>(
         WebConstant.merchantTimeline(id),
+        queryParameters: <String, dynamic>{
+          if (cursor != null && cursor.isNotEmpty) ApiKeys.cursor: cursor,
+        },
       );
 
-      return _list(_body(response.data)[ApiKeys.data])
-          .map(
-            (Map<String, dynamic> json) =>
-                MerchantTimelineEntryModel.fromJson(json).toEntity(),
-          )
-          .toList(growable: false);
+      final Map<String, dynamic> body = _body(response.data);
+      return MerchantTimelinePage(
+        entries: _list(body[ApiKeys.data])
+            .map(
+              (Map<String, dynamic> json) =>
+                  MerchantTimelineEntryModel.fromJson(json).toEntity(),
+            )
+            .toList(growable: false),
+        meta: _metaOf(body),
+      );
     });
   }
 
@@ -410,11 +436,12 @@ class MerchantsRepoImpl implements MerchantsRepo {
   @override
   Future<Either<ServerFailure, List<BranchEntity>>> fetchBranches() {
     return _guard('fetchBranches', () async {
-      final Response<dynamic> response = await apiService.client().get<dynamic>(
-        WebConstant.branches,
+      final List<Map<String, dynamic>> rows = await PaginatedFetch.all(
+        client: apiService.client(),
+        path: WebConstant.branches,
       );
 
-      return _list(_body(response.data)[ApiKeys.data])
+      return rows
           .map(
             (Map<String, dynamic> json) =>
                 BranchModel.fromJson(json).toEntity(),
@@ -436,6 +463,12 @@ class MerchantsRepoImpl implements MerchantsRepo {
       }
 
       return Right(await run());
+    } on PaginatedFetchCapException catch (error, stackTrace) {
+      printDebug(
+        message: 'merchants repo $label page cap: $error',
+        stackTrace: stackTrace,
+      );
+      return Left(ServerFailure(LocaleKeys.paginationListTooLarge.tr()));
     } on DioException catch (error, stackTrace) {
       printDebug(
         message: 'merchants repo $label dio exception: ${error.message}',

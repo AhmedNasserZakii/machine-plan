@@ -17,6 +17,15 @@ class MerchantDetailLoaded extends MerchantDetailState {
     required this.detail,
     this.isLoadingRelated = false,
     this.actionInProgress = false,
+    this.machinesHasNext = false,
+    this.machinesPage = 1,
+    this.isLoadingMoreMachines = false,
+    this.subscriptionsHasNext = false,
+    this.subscriptionsPage = 1,
+    this.isLoadingMoreSubscriptions = false,
+    this.timelineHasNext = false,
+    this.timelineCursor,
+    this.isLoadingMoreTimeline = false,
   });
 
   final MerchantDetail detail;
@@ -29,15 +38,51 @@ class MerchantDetailLoaded extends MerchantDetailState {
   /// Blocks a second tap on collect or deactivate while the first is in flight.
   final bool actionInProgress;
 
+  final bool machinesHasNext;
+  final int machinesPage;
+  final bool isLoadingMoreMachines;
+
+  final bool subscriptionsHasNext;
+  final int subscriptionsPage;
+  final bool isLoadingMoreSubscriptions;
+
+  final bool timelineHasNext;
+  final String? timelineCursor;
+  final bool isLoadingMoreTimeline;
+
   MerchantDetailLoaded copyWith({
     MerchantDetail? detail,
     bool? isLoadingRelated,
     bool? actionInProgress,
+    bool? machinesHasNext,
+    int? machinesPage,
+    bool? isLoadingMoreMachines,
+    bool? subscriptionsHasNext,
+    int? subscriptionsPage,
+    bool? isLoadingMoreSubscriptions,
+    bool? timelineHasNext,
+    String? timelineCursor,
+    bool clearTimelineCursor = false,
+    bool? isLoadingMoreTimeline,
   }) {
     return MerchantDetailLoaded(
       detail: detail ?? this.detail,
       isLoadingRelated: isLoadingRelated ?? this.isLoadingRelated,
       actionInProgress: actionInProgress ?? this.actionInProgress,
+      machinesHasNext: machinesHasNext ?? this.machinesHasNext,
+      machinesPage: machinesPage ?? this.machinesPage,
+      isLoadingMoreMachines:
+          isLoadingMoreMachines ?? this.isLoadingMoreMachines,
+      subscriptionsHasNext: subscriptionsHasNext ?? this.subscriptionsHasNext,
+      subscriptionsPage: subscriptionsPage ?? this.subscriptionsPage,
+      isLoadingMoreSubscriptions:
+          isLoadingMoreSubscriptions ?? this.isLoadingMoreSubscriptions,
+      timelineHasNext: timelineHasNext ?? this.timelineHasNext,
+      timelineCursor: clearTimelineCursor
+          ? timelineCursor
+          : (timelineCursor ?? this.timelineCursor),
+      isLoadingMoreTimeline:
+          isLoadingMoreTimeline ?? this.isLoadingMoreTimeline,
     );
   }
 
@@ -46,6 +91,15 @@ class MerchantDetailLoaded extends MerchantDetailState {
     detail,
     isLoadingRelated,
     actionInProgress,
+    machinesHasNext,
+    machinesPage,
+    isLoadingMoreMachines,
+    subscriptionsHasNext,
+    subscriptionsPage,
+    isLoadingMoreSubscriptions,
+    timelineHasNext,
+    timelineCursor,
+    isLoadingMoreTimeline,
   ];
 }
 

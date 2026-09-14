@@ -75,9 +75,10 @@ abstract class MachinesRepo {
   });
 
   /// Every repair this machine has had, with the totals (`8.1`). Read-only:
-  /// opening, closing and costing an order belongs to `11`.
+  /// opening, closing and costing an order belongs to `11`. [page] pages the
+  /// orders list; totals stay over the whole history.
   Future<Either<ServerFailure, MachineMaintenanceHistory>>
-  fetchMaintenanceHistory({required String machineId});
+  fetchMaintenanceHistory({required String machineId, int page = 1});
 
   Future<Either<ServerFailure, List<MachineTypeEntity>>> fetchMachineTypes();
 

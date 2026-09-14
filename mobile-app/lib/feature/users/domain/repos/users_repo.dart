@@ -32,6 +32,7 @@ abstract class UsersRepo {
 
   Future<Either<ServerFailure, UserCustodyEntity>> fetchUserCustody({
     required String id,
+    int page = 1,
   });
 
   Future<Either<ServerFailure, UserEntity>> createUser({

@@ -40,6 +40,8 @@ void main() {
       expect(result.pendingTransfers.single['id'], 'tr1');
       expect(result.permissions, <String>['transfers.create', 'merchants.read']);
       expect(result.nextSince, isNull);
+      expect(result.hasMore, isFalse);
+      expect(result.truncatedMyMachines, isFalse);
       expect(result.deletedMachineIds, isEmpty);
     });
 
@@ -64,6 +66,38 @@ void main() {
       expect(result.deletedMerchantIds, isEmpty);
       expect(result.deletedTransferIds, <String>['tr-old-1', 'tr-old-2']);
       expect(result.nextSince, '2026-09-08T13:00:00.000Z');
+    });
+
+    test('parses truncated bootstrap flags and delta hasMore', () {
+      final SyncPullResult truncated = SyncApi.parsePull(<String, dynamic>{
+        'serverTime': '2026-09-08T12:00:00.000Z',
+        'schemaVersion': 2,
+        'lookups': <String, dynamic>{},
+        'myMachines': <dynamic>[],
+        'myMerchants': <dynamic>[],
+        'pendingTransfers': <dynamic>[],
+        'permissions': <dynamic>[],
+        'truncated': <String, dynamic>{
+          'myMachines': true,
+          'myMerchants': false,
+        },
+      });
+      expect(truncated.truncatedMyMachines, isTrue);
+      expect(truncated.truncatedMyMerchants, isFalse);
+
+      final SyncPullResult more = SyncApi.parsePull(<String, dynamic>{
+        'serverTime': '2026-09-08T13:00:00.000Z',
+        'schemaVersion': 2,
+        'lookups': <String, dynamic>{},
+        'myMachines': <dynamic>[],
+        'myMerchants': <dynamic>[],
+        'pendingTransfers': <dynamic>[],
+        'permissions': <dynamic>[],
+        'nextSince': '2026-09-08T12:30:00.000Z',
+        'hasMore': true,
+      });
+      expect(more.hasMore, isTrue);
+      expect(more.nextSince, '2026-09-08T12:30:00.000Z');
     });
 
     test('a malformed payload degrades to empty collections rather than throwing', () {

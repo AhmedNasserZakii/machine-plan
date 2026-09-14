@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:machinery/core/network_services/models/pagination_meta_model.dart';
 
 /// Mirrors the backend's `MaintenanceStatus` (`common/enums/operations.enum.ts`).
 /// No `MaintenanceRepo` exists yet (`11`), so this lives here rather than in a
@@ -143,13 +144,34 @@ class MachineMaintenanceHistory extends Equatable {
     required this.serial,
     required this.totals,
     required this.orders,
+    this.ordersMeta = PaginationMetaModel.empty,
   });
 
   final String machineId;
   final String serial;
   final MaintenanceHistoryTotals totals;
   final List<MaintenanceOrderSummary> orders;
+  final PaginationMetaModel ordersMeta;
+
+  MachineMaintenanceHistory copyWith({
+    List<MaintenanceOrderSummary>? orders,
+    PaginationMetaModel? ordersMeta,
+  }) {
+    return MachineMaintenanceHistory(
+      machineId: machineId,
+      serial: serial,
+      totals: totals,
+      orders: orders ?? this.orders,
+      ordersMeta: ordersMeta ?? this.ordersMeta,
+    );
+  }
 
   @override
-  List<Object?> get props => <Object?>[machineId, serial, totals, orders];
+  List<Object?> get props => <Object?>[
+    machineId,
+    serial,
+    totals,
+    orders,
+    ordersMeta,
+  ];
 }

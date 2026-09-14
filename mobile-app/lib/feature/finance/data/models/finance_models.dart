@@ -152,10 +152,25 @@ FinanceBudgetStatus financeBudgetStatusFromJson(Map<String, dynamic> json) {
   );
 }
 
-BudgetStatusList budgetStatusListFromJson(Map<String, dynamic> json) =>
-    BudgetStatusList(
-      asOf: _date(json['asOf']),
-      budgets: _maps(
-        json['budgets'],
-      ).map(financeBudgetStatusFromJson).toList(growable: false),
+/// `GET /finance/budgets/status` now returns a paged array; each item carries
+/// its own `asOf`. The old `{ asOf, budgets, summary }` envelope is still
+/// accepted so a cached payload from before the change does not crash.
+BudgetStatusList budgetStatusListFromJson(Object? raw) {
+  if (raw is List) {
+    final List<Map<String, dynamic>> rows = raw
+        .whereType<Map<String, dynamic>>()
+        .toList(growable: false);
+    return BudgetStatusList(
+      asOf: rows.isEmpty ? DateTime.now() : _date(rows.first['asOf']),
+      budgets: rows.map(financeBudgetStatusFromJson).toList(growable: false),
     );
+  }
+
+  final Map<String, dynamic> json = _map(raw);
+  return BudgetStatusList(
+    asOf: _date(json['asOf']),
+    budgets: _maps(
+      json['budgets'],
+    ).map(financeBudgetStatusFromJson).toList(growable: false),
+  );
+}

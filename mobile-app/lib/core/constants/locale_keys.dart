@@ -31,6 +31,7 @@ class LocaleKeys {
   static const String internetConnectionLostSubtitle =
       'internet_connection_lost_subtitle';
   static const String anErrorOccurred = 'an_error_occurred';
+  static const String paginationListTooLarge = 'pagination_list_too_large';
   static const String oopsThereWasAnError = 'oops_there_was_an_error';
   static const String internalServerError = 'internal_server_error';
   static const String yourRequestNotFound = 'your_request_not_found';

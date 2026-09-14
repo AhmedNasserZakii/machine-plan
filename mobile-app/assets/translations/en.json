@@ -17,6 +17,7 @@
   "no_internet_connection": "No internet connection",
   "internet_connection_lost_subtitle": "Check your network and try again",
   "an_error_occurred": "Something went wrong",
+  "pagination_list_too_large": "This list is too large to load at once. Please try again or narrow the search.",
   "oops_there_was_an_error": "Oops, there was an error",
   "internal_server_error": "Server error",
   "your_request_not_found": "Not found",

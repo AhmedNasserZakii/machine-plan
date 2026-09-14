@@ -12,6 +12,7 @@ import 'package:machinery/core/local_storage/local_storage.dart';
 import 'package:machinery/core/local_storage/local_storage_constant_keys.dart';
 import 'package:machinery/core/network_services/api_service.dart';
 import 'package:machinery/core/network_services/api_service_failure.dart';
+import 'package:machinery/core/network_services/models/pagination_meta_model.dart';
 import 'package:machinery/core/network_services/web_constant.dart';
 import 'package:machinery/core/resources/debug_print.dart';
 import 'package:machinery/feature/reports/data/models/report_models.dart';
@@ -53,8 +54,12 @@ class ReportsRepoImpl implements ReportsRepo {
       _path(report, filters),
       queryParameters: filters.toQuery(page: page),
     );
+    final Map<String, dynamic> body = _map(response.data);
     final result = reportResultFromJson(_map(_rawData(response.data)));
-    return ReportPage(result: result, hasNext: page * 20 < result.rowCount);
+    final PaginationMetaModel meta = PaginationMetaModel.fromJson(
+      _map(body['meta']),
+    );
+    return ReportPage(result: result, hasNext: meta.hasNext);
   });
 
   @override

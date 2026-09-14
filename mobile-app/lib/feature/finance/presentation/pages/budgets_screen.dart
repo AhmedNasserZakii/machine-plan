@@ -1,7 +1,9 @@
+import 'package:dartz/dartz.dart' hide State;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/di/service_locator.dart';
+import 'package:machinery/core/network_services/api_service_failure.dart';
 import 'package:machinery/core/permissions/permission_keys.dart';
 import 'package:machinery/core/permissions/permission_service.dart';
 import 'package:machinery/core/shared_widgets/app_confirm_dialog.dart';
@@ -10,6 +12,7 @@ import 'package:machinery/core/shared_widgets/app_error_view.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
 import 'package:machinery/core/shared_widgets/error_toast.dart';
 import 'package:machinery/core/shared_widgets/ltr_text.dart';
+import 'package:machinery/core/shared_widgets/paginated_list_view.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/feature/finance/domain/entities/finance_entities.dart';
 import 'package:machinery/feature/finance/domain/params/finance_params.dart';
@@ -26,10 +29,15 @@ class BudgetsScreen extends StatefulWidget {
 
 class _BudgetsScreenState extends State<BudgetsScreen> {
   final FinanceRepo _repo = getIt<FinanceRepo>();
-  List<FinanceBudget>? _budgets;
-  BudgetStatusList? _status;
+  List<FinanceBudget> _budgets = const <FinanceBudget>[];
+  List<FinanceBudgetStatus> _status = const <FinanceBudgetStatus>[];
   String? _error;
+  bool _loading = true;
+  bool _loadingMore = false;
+  int _page = 1;
+  bool _hasNext = false;
   bool get _manage => getIt<PermissionService>().has(P.financeBudgetsManage);
+
   @override
   void initState() {
     super.initState();
@@ -37,26 +45,71 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
   }
 
   Future<void> _load() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
     final results = await (
-      _repo.budgets(widget.query),
       _repo.budgetStatus(widget.query),
+      _repo.budgets(widget.query, page: 1),
     ).wait;
     if (!mounted) return;
-    final failure = results.$1.fold(
-      (f) => f,
-      (_) => results.$2.fold((f) => f, (_) => null),
+    _apply(
+      statusResult: results.$1,
+      budgetsResult: results.$2,
+      page: 1,
+      replace: true,
     );
+  }
+
+  Future<void> _loadMore() async {
+    if (_loadingMore || !_hasNext) return;
+    setState(() => _loadingMore = true);
+    final Either<ServerFailure, FinanceBudgetsPage> result =
+        await _repo.budgets(widget.query, page: _page + 1);
+    if (!mounted) return;
+    _apply(budgetsResult: result, page: _page + 1, replace: false);
+  }
+
+  void _apply({
+    required Either<ServerFailure, FinanceBudgetsPage> budgetsResult,
+    required int page,
+    required bool replace,
+    Either<ServerFailure, BudgetStatusList>? statusResult,
+  }) {
+    final ServerFailure? failure = budgetsResult.fold((f) => f, (_) => null) ??
+        statusResult?.fold((f) => f, (_) => null);
     if (failure != null) {
-      setState(() => _error = failure.errorMessage);
-    } else {
       setState(() {
-        _budgets = results.$1.getOrElse(() => const []);
-        _status = results.$2.getOrElse(
-          () => BudgetStatusList(asOf: DateTime.now(), budgets: const []),
-        );
-        _error = null;
+        _error = failure.errorMessage;
+        _loading = false;
+        _loadingMore = false;
       });
+      return;
     }
+
+    final FinanceBudgetsPage budgetsPage = budgetsResult.getOrElse(
+      () => throw StateError('budgets'),
+    );
+
+    setState(() {
+      _budgets = replace
+          ? budgetsPage.items
+          : <FinanceBudget>[..._budgets, ...budgetsPage.items];
+      if (statusResult != null) {
+        _status = statusResult
+            .getOrElse(
+              () => BudgetStatusList(asOf: DateTime.now(), budgets: const []),
+            )
+            .budgets;
+      }
+      _page = page;
+      _hasNext = budgetsPage.meta.hasNext;
+      _error = null;
+      _loading = false;
+      _loadingMore = false;
+    });
   }
 
   Future<void> _form([FinanceBudget? budget]) async {
@@ -99,45 +152,46 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
         : null,
     body: _error != null
         ? AppErrorView(message: _error!, onRetry: _load)
-        : _budgets == null || _status == null
+        : _loading
         ? const AppLoadingIndicator()
-        : _budgets!.isEmpty && _status!.budgets.isEmpty
+        : _budgets.isEmpty && _status.isEmpty
         ? AppEmptyState(
             icon: Icons.speed_outlined,
             title: LocaleKeys.financeNoBudgets.tr(),
             subtitle: LocaleKeys.financeNoBudgetsSubtitle.tr(),
           )
-        : RefreshIndicator(
+        : PaginatedListView<FinanceBudget>(
+            items: _budgets,
+            hasNext: _hasNext,
+            isLoadingMore: _loadingMore,
             onRefresh: _load,
-            child: ListView(
-              padding: const EdgeInsetsDirectional.all(AppSpacing.md),
-              children: <Widget>[
-                ..._status!.budgets.map((b) => BudgetStatusCard(budget: b)),
-                if (_status!.budgets.isNotEmpty && _budgets!.isNotEmpty)
-                  const SizedBox(height: AppSpacing.sm),
-                if (_status!.budgets.isNotEmpty && _budgets!.isNotEmpty)
-                  const Divider(),
-                ..._budgets!.map(
-                  (b) => Card(
-                    child: ListTile(
-                      onTap: _manage ? () => _form(b) : null,
-                      title: Text(
-                        b.category.path.isEmpty
-                            ? b.category.name
-                            : b.category.path,
-                      ),
-                      subtitle: LtrText(_budgetSubtitle(b)),
-                      trailing: _manage
-                          ? IconButton(
-                              onPressed: () => _delete(b),
-                              icon: const Icon(Icons.delete_outline),
-                            )
-                          : LtrText(formatMoney(context, b.amount)),
-                    ),
+            onLoadMore: _loadMore,
+            header: _status.isEmpty
+                ? null
+                : Column(
+                    children: <Widget>[
+                      ..._status.map((b) => BudgetStatusCard(budget: b)),
+                      if (_budgets.isNotEmpty) ...<Widget>[
+                        const SizedBox(height: AppSpacing.sm),
+                        const Divider(),
+                        const SizedBox(height: AppSpacing.sm),
+                      ],
+                    ],
                   ),
+            itemBuilder: (context, b, _) => Card(
+              child: ListTile(
+                onTap: _manage ? () => _form(b) : null,
+                title: Text(
+                  b.category.path.isEmpty ? b.category.name : b.category.path,
                 ),
-                const SizedBox(height: 72),
-              ],
+                subtitle: LtrText(_budgetSubtitle(b)),
+                trailing: _manage
+                    ? IconButton(
+                        onPressed: () => _delete(b),
+                        icon: const Icon(Icons.delete_outline),
+                      )
+                    : LtrText(formatMoney(context, b.amount)),
+              ),
             ),
           ),
   );

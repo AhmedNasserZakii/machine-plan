@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:machinery/core/network_services/models/pagination_meta_model.dart';
 
 class UserCustodySummary extends Equatable {
   const UserCustodySummary({
@@ -54,11 +55,16 @@ class UserCustodyMachine extends Equatable {
 }
 
 class UserCustodyEntity extends Equatable {
-  const UserCustodyEntity({required this.summary, required this.machines});
+  const UserCustodyEntity({
+    required this.summary,
+    required this.machines,
+    this.machinesMeta = PaginationMetaModel.empty,
+  });
 
   final UserCustodySummary summary;
   final List<UserCustodyMachine> machines;
+  final PaginationMetaModel machinesMeta;
 
   @override
-  List<Object?> get props => <Object?>[summary, machines];
+  List<Object?> get props => <Object?>[summary, machines, machinesMeta];
 }

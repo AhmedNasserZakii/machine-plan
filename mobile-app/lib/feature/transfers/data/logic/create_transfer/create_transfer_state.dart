@@ -49,7 +49,12 @@ class CreateTransferState extends Equatable {
     this.isLoadingTypes = true,
     this.selected,
     this.recipients = const <TransferRecipient>[],
+    this.recipientsHasNext = false,
+    this.recipientsPage = 1,
+    this.recipientsSearch,
+    this.isLoadingMoreRecipients = false,
     this.recipientId,
+    this.selectedRecipient,
     this.merchantId,
     this.merchantName,
     this.items = const <DraftItem>[],
@@ -77,7 +82,12 @@ class CreateTransferState extends Equatable {
 
   final List<TransferRecipient> recipients;
   final bool isLoadingRecipients;
+  final bool recipientsHasNext;
+  final int recipientsPage;
+  final String? recipientsSearch;
+  final bool isLoadingMoreRecipients;
   final String? recipientId;
+  final TransferRecipient? selectedRecipient;
 
   /// A merchant has no account, so the id is typed rather than picked until the
   /// merchants module lands.
@@ -114,13 +124,16 @@ class CreateTransferState extends Equatable {
   /// lives nowhere but this state and a user/warehouse's lives in [recipients].
   String? get recipientDisplayName => switch (selected?.receiverKind) {
     ReceiverKind.merchant => merchantName ?? merchantId,
-    ReceiverKind.user || ReceiverKind.warehouse => recipients
-        .cast<TransferRecipient?>()
-        .firstWhere(
-          (TransferRecipient? r) => r?.id == recipientId,
-          orElse: () => null,
-        )
-        ?.name,
+    ReceiverKind.user || ReceiverKind.warehouse =>
+      selectedRecipient?.id == recipientId
+          ? selectedRecipient?.name
+          : recipients
+                .cast<TransferRecipient?>()
+                .firstWhere(
+                  (TransferRecipient? r) => r?.id == recipientId,
+                  orElse: () => selectedRecipient,
+                )
+                ?.name,
     _ => null,
   };
 
@@ -155,7 +168,12 @@ class CreateTransferState extends Equatable {
     bool? isLoadingTypes,
     CreatableTransferType? selected,
     List<TransferRecipient>? recipients,
+    bool? recipientsHasNext,
+    int? recipientsPage,
+    String? recipientsSearch,
+    bool? isLoadingMoreRecipients,
     String? recipientId,
+    TransferRecipient? selectedRecipient,
     String? merchantId,
     String? merchantName,
     List<DraftItem>? items,
@@ -169,6 +187,7 @@ class CreateTransferState extends Equatable {
     bool clearError = false,
     bool clearRecipient = false,
     bool resetMerchantName = false,
+    bool resetRecipientsSearch = false,
   }) {
     return CreateTransferState(
       clientUuid: clientUuid,
@@ -177,14 +196,24 @@ class CreateTransferState extends Equatable {
       isLoadingTypes: isLoadingTypes ?? this.isLoadingTypes,
       selected: selected ?? this.selected,
       recipients: recipients ?? this.recipients,
+      recipientsHasNext: recipientsHasNext ?? this.recipientsHasNext,
+      recipientsPage: recipientsPage ?? this.recipientsPage,
+      recipientsSearch: resetRecipientsSearch
+          ? recipientsSearch
+          : (recipientsSearch ?? this.recipientsSearch),
+      isLoadingMoreRecipients:
+          isLoadingMoreRecipients ?? this.isLoadingMoreRecipients,
+      isLoadingRecipients: isLoadingRecipients ?? this.isLoadingRecipients,
       recipientId: clearRecipient ? null : (recipientId ?? this.recipientId),
+      selectedRecipient: clearRecipient
+          ? null
+          : (selectedRecipient ?? this.selectedRecipient),
       merchantId: clearRecipient ? null : (merchantId ?? this.merchantId),
       merchantName: (clearRecipient || resetMerchantName)
           ? merchantName
           : (merchantName ?? this.merchantName),
       items: items ?? this.items,
       notes: notes ?? this.notes,
-      isLoadingRecipients: isLoadingRecipients ?? this.isLoadingRecipients,
       isValidating: isValidating ?? this.isValidating,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       validationProblems: validationProblems ?? this.validationProblems,
@@ -201,7 +230,12 @@ class CreateTransferState extends Equatable {
     isLoadingTypes,
     selected,
     recipients,
+    recipientsHasNext,
+    recipientsPage,
+    recipientsSearch,
+    isLoadingMoreRecipients,
     recipientId,
+    selectedRecipient,
     merchantId,
     merchantName,
     items,

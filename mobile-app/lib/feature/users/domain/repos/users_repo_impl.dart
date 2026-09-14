@@ -7,6 +7,7 @@ import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/network_services/api_service.dart';
 import 'package:machinery/core/network_services/api_service_failure.dart';
 import 'package:machinery/core/network_services/models/pagination_meta_model.dart';
+import 'package:machinery/core/network_services/paginated_fetch.dart';
 import 'package:machinery/core/network_services/web_constant.dart';
 import 'package:machinery/core/resources/debug_print.dart';
 import 'package:machinery/feature/users/data/models/branch_model.dart';
@@ -70,10 +71,15 @@ class UsersRepoImpl implements UsersRepo {
   @override
   Future<Either<ServerFailure, UserCustodyEntity>> fetchUserCustody({
     required String id,
+    int page = 1,
   }) =>
       _guard('fetchUserCustody', () async {
         final response = await apiService.client().get<dynamic>(
               WebConstant.userCustody(id),
+              queryParameters: <String, dynamic>{
+                ApiKeys.page: page,
+                ApiKeys.limit: 20,
+              },
             );
         return userCustodyFromJson(_data(response.data));
       });
@@ -243,11 +249,12 @@ class UsersRepoImpl implements UsersRepo {
   @override
   Future<Either<ServerFailure, List<BranchEntity>>> fetchBranches() {
     return _guard('fetchBranches', () async {
-      final Response<dynamic> response = await apiService.client().get<dynamic>(
-            WebConstant.branches,
-          );
+      final List<Map<String, dynamic>> rows = await PaginatedFetch.all(
+        client: apiService.client(),
+        path: WebConstant.branches,
+      );
 
-      return _list(_body(response.data)[ApiKeys.data])
+      return rows
           .map(
             (Map<String, dynamic> json) =>
                 BranchModel.fromJson(json).toEntity(),
@@ -269,6 +276,12 @@ class UsersRepoImpl implements UsersRepo {
       }
 
       return Right(await run());
+    } on PaginatedFetchCapException catch (error, stackTrace) {
+      printDebug(
+        message: 'users repo $label page cap: $error',
+        stackTrace: stackTrace,
+      );
+      return Left(ServerFailure(LocaleKeys.paginationListTooLarge.tr()));
     } on DioException catch (error, stackTrace) {
       printDebug(
         message: 'users repo $label dio exception: ${error.message}',

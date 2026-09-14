@@ -10,6 +10,12 @@ class FinanceTransactionsPage {
   final PaginationMetaModel meta;
 }
 
+class FinanceBudgetsPage {
+  const FinanceBudgetsPage({required this.items, required this.meta});
+  final List<FinanceBudget> items;
+  final PaginationMetaModel meta;
+}
+
 abstract class FinanceRepo {
   Future<Either<ServerFailure, FinanceSummary>> summary(FinanceQuery query);
   Future<Either<ServerFailure, BudgetStatusList>> budgetStatus(
@@ -53,9 +59,10 @@ abstract class FinanceRepo {
     FinanceKind kind, {
     String? rootCategoryId,
   });
-  Future<Either<ServerFailure, List<FinanceBudget>>> budgets(
-    FinanceQuery query,
-  );
+  Future<Either<ServerFailure, FinanceBudgetsPage>> budgets(
+    FinanceQuery query, {
+    int page = 1,
+  });
   Future<Either<ServerFailure, FinanceBudget>> createBudget(BudgetDraft draft);
   Future<Either<ServerFailure, FinanceBudget>> updateBudget(
     String id,

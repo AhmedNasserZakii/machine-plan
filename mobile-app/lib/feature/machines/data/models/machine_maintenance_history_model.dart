@@ -1,4 +1,5 @@
 import 'package:machinery/core/constants/api_keys.dart';
+import 'package:machinery/core/network_services/models/pagination_meta_model.dart';
 import 'package:machinery/feature/machines/domain/entities/machine_maintenance_history.dart';
 
 /// `GET /machines/:id/maintenance-history`.
@@ -32,6 +33,11 @@ class MachineMaintenanceHistoryModel {
             .whereType<Map<String, dynamic>>()
             .map(_orderFromJson)
             .toList(growable: false),
+        ordersMeta: json[ApiKeys.ordersMeta] is Map<String, dynamic>
+            ? PaginationMetaModel.fromJson(
+                json[ApiKeys.ordersMeta] as Map<String, dynamic>,
+              )
+            : PaginationMetaModel.empty,
       ),
     );
   }

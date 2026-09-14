@@ -26,6 +26,12 @@ class ApiKeys {
   static const String totalPages = 'totalPages';
   static const String hasNext = 'hasNext';
   static const String nextCursor = 'nextCursor';
+  static const String hasMore = 'hasMore';
+  static const String truncated = 'truncated';
+  static const String ordersMeta = 'ordersMeta';
+  static const String machinesMeta = 'machinesMeta';
+  static const String myMachines = 'myMachines';
+  static const String myMerchants = 'myMerchants';
 
   /// The `nextCursor` from the previous keyset page, sent back as a query param.
   static const String cursor = 'cursor';

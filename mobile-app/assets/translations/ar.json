@@ -17,6 +17,7 @@
   "no_internet_connection": "مافيش اتصال بالإنترنت",
   "internet_connection_lost_subtitle": "اتأكد من الشبكة وجرّب تاني",
   "an_error_occurred": "حصل خطأ",
+  "pagination_list_too_large": "القائمة أكبر من أن تتحمل مرة واحدة. جرّب تاني أو ضيّق البحث.",
   "oops_there_was_an_error": "للأسف حصل خطأ",
   "internal_server_error": "في مشكلة في السيرفر",
   "your_request_not_found": "الطلب مش موجود",

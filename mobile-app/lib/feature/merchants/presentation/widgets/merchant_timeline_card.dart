@@ -4,6 +4,7 @@ import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/helper/formatters.dart';
 import 'package:machinery/core/shared_widgets/detail_card.dart';
 import 'package:machinery/core/shared_widgets/ltr_text.dart';
+import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/core/theme/styles/app_text_styles.dart';
@@ -14,22 +15,47 @@ import 'package:machinery/feature/merchants/presentation/helpers/merchant_labels
 /// Everything that ever happened with this merchant, newest first: machines in,
 /// machines back, plans started, money taken.
 class MerchantTimelineCard extends StatelessWidget {
-  const MerchantTimelineCard({required this.entries, super.key});
+  const MerchantTimelineCard({
+    required this.entries,
+    super.key,
+    this.hasNext = false,
+    this.isLoadingMore = false,
+    this.onLoadMore,
+  });
 
   final List<MerchantTimelineEntry> entries;
+  final bool hasNext;
+  final bool isLoadingMore;
+  final VoidCallback? onLoadMore;
 
   @override
   Widget build(BuildContext context) {
     return DetailCard(
       title: LocaleKeys.merchantTimelineCard.tr(),
       icon: Icons.history_rounded,
-      children: entries.isEmpty
-          ? <Widget>[DetailNote(LocaleKeys.merchantTimelineEmpty.tr())]
-          : entries
-                .map(
-                  (MerchantTimelineEntry entry) => _TimelineRow(entry: entry),
-                )
-                .toList(growable: false),
+      children: <Widget>[
+        if (entries.isEmpty)
+          DetailNote(LocaleKeys.merchantTimelineEmpty.tr())
+        else
+          ...entries.map(
+            (MerchantTimelineEntry entry) => _TimelineRow(entry: entry),
+          ),
+        if (hasNext || isLoadingMore)
+          Align(
+            alignment: AlignmentDirectional.center,
+            child: isLoadingMore
+                ? const Padding(
+                    padding: EdgeInsetsDirectional.symmetric(
+                      vertical: AppSpacing.sm,
+                    ),
+                    child: AppLoadingIndicator(size: 28),
+                  )
+                : IconButton(
+                    onPressed: onLoadMore,
+                    icon: const Icon(Icons.expand_more_rounded),
+                  ),
+          ),
+      ],
     );
   }
 }

@@ -160,9 +160,16 @@ void main() {
       "model": "X1",
       "status": "WITH_MERCHANT",
       "heldSince": "2026-09-01T10:00:00.000Z",
-      "merchant": { "id": "shop-1", "shopName": "محل النور" }
+        "merchant": { "id": "shop-1", "shopName": "محل النور" }
     }
-  ]
+  ],
+  "machinesMeta": {
+    "page": 1,
+    "limit": 20,
+    "total": 4,
+    "totalPages": 1,
+    "hasNext": false
+  }
 }
 '''),
     );
@@ -170,6 +177,7 @@ void main() {
     expect(custody.summary.totalMachines, 4);
     expect(custody.machines.single.merchantName, 'محل النور');
     expect(custody.machines.single.serial, 'SN-1');
+    expect(custody.machinesMeta.hasNext, isFalse);
   });
 
   test('branch-scoped roles are the ones the form asks a branch for', () {

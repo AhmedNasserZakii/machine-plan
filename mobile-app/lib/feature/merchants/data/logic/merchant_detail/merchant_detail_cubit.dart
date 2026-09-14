@@ -115,9 +115,154 @@ class MerchantDetailCubit extends Cubit<MerchantDetailState> {
     );
   }
 
+  Future<void> loadMoreMachines() async {
+    final MerchantDetailState current = state;
+    if (current is! MerchantDetailLoaded ||
+        current.isLoadingMoreMachines ||
+        !current.machinesHasNext) {
+      return;
+    }
+
+    emit(current.copyWith(isLoadingMoreMachines: true));
+
+    final result = await merchantsRepo.fetchMerchantMachines(
+      id: merchantId,
+      page: current.machinesPage + 1,
+    );
+
+    if (isClosed) {
+      return;
+    }
+
+    result.fold(
+      (ServerFailure _) =>
+          emit(current.copyWith(isLoadingMoreMachines: false)),
+      (MerchantMachinesPage page) {
+        final MerchantDetailState latest = state;
+        if (latest is! MerchantDetailLoaded) {
+          return;
+        }
+        emit(
+          latest.copyWith(
+            detail: latest.detail.copyWith(
+              machines: <MachineEntity>[
+                ...latest.detail.machines,
+                ...page.machines,
+              ],
+            ),
+            machinesPage: current.machinesPage + 1,
+            machinesHasNext: page.meta.hasNext,
+            isLoadingMoreMachines: false,
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> loadMoreSubscriptions() async {
+    final MerchantDetailState current = state;
+    if (current is! MerchantDetailLoaded ||
+        current.isLoadingMoreSubscriptions ||
+        !current.subscriptionsHasNext) {
+      return;
+    }
+
+    emit(current.copyWith(isLoadingMoreSubscriptions: true));
+
+    final result = await merchantsRepo.fetchSubscriptions(
+      id: merchantId,
+      page: current.subscriptionsPage + 1,
+    );
+
+    if (isClosed) {
+      return;
+    }
+
+    result.fold(
+      (ServerFailure _) =>
+          emit(current.copyWith(isLoadingMoreSubscriptions: false)),
+      (MerchantSubscriptionsPage page) {
+        final MerchantDetailState latest = state;
+        if (latest is! MerchantDetailLoaded) {
+          return;
+        }
+        emit(
+          latest.copyWith(
+            detail: latest.detail.copyWith(
+              subscriptions: <SubscriptionEntity>[
+                ...latest.detail.subscriptions,
+                ...page.subscriptions,
+              ],
+            ),
+            subscriptionsPage: current.subscriptionsPage + 1,
+            subscriptionsHasNext: page.meta.hasNext,
+            isLoadingMoreSubscriptions: false,
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> loadMoreTimeline() async {
+    final MerchantDetailState current = state;
+    if (current is! MerchantDetailLoaded ||
+        current.isLoadingMoreTimeline ||
+        !current.timelineHasNext) {
+      return;
+    }
+
+    emit(current.copyWith(isLoadingMoreTimeline: true));
+
+    final result = await merchantsRepo.fetchTimeline(
+      id: merchantId,
+      cursor: current.timelineCursor,
+    );
+
+    if (isClosed) {
+      return;
+    }
+
+    result.fold(
+      (ServerFailure _) =>
+          emit(current.copyWith(isLoadingMoreTimeline: false)),
+      (MerchantTimelinePage page) {
+        final MerchantDetailState latest = state;
+        if (latest is! MerchantDetailLoaded) {
+          return;
+        }
+        emit(
+          latest.copyWith(
+            detail: latest.detail.copyWith(
+              timeline: <MerchantTimelineEntry>[
+                ...latest.detail.timeline,
+                ...page.entries,
+              ],
+            ),
+            timelineHasNext: page.meta.hasNext,
+            timelineCursor: page.meta.nextCursor,
+            clearTimelineCursor: true,
+            isLoadingMoreTimeline: false,
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> loadRemainingMachines() async {
+    int safety = 0;
+    while (safety < 10) {
+      final MerchantDetailState current = state;
+      if (current is! MerchantDetailLoaded || !current.machinesHasNext) {
+        return;
+      }
+      await loadMoreMachines();
+      safety++;
+    }
+  }
+
   /// Every action runs the same way: guard against a double tap, run, then
   /// reload so the totals, the next due date and the timeline all agree with
-  /// what the server now holds.
+  /// what the server now holds. Related lists reload from page 1.
   Future<void> _act<T>(
     MerchantActionOutcome outcome,
     Future<Either<ServerFailure, T>> Function() run,
@@ -155,9 +300,9 @@ class MerchantDetailCubit extends Cubit<MerchantDetailState> {
 
   Future<void> _loadRelated() async {
     final (
-      Either<ServerFailure, List<MachineEntity>> machines,
-      Either<ServerFailure, List<SubscriptionEntity>> subscriptions,
-      Either<ServerFailure, List<MerchantTimelineEntry>> timeline,
+      Either<ServerFailure, MerchantMachinesPage> machines,
+      Either<ServerFailure, MerchantSubscriptionsPage> subscriptions,
+      Either<ServerFailure, MerchantTimelinePage> timeline,
     ) = await (
       merchantsRepo.fetchMerchantMachines(id: merchantId),
       merchantsRepo.fetchSubscriptions(id: merchantId),
@@ -173,17 +318,31 @@ class MerchantDetailCubit extends Cubit<MerchantDetailState> {
       return;
     }
 
+    final MerchantMachinesPage? machinesPage = machines.toOption().toNullable();
+    final MerchantSubscriptionsPage? subscriptionsPage =
+        subscriptions.toOption().toNullable();
+    final MerchantTimelinePage? timelinePage = timeline.toOption().toNullable();
+
     // These three are supporting detail, not the point of the screen: one that
     // fails simply leaves its card empty.
     emit(
       current.copyWith(
         detail: current.detail.copyWith(
-          machines: machines.getOrElse(() => current.detail.machines),
-          subscriptions: subscriptions.getOrElse(
-            () => current.detail.subscriptions,
-          ),
-          timeline: timeline.getOrElse(() => current.detail.timeline),
+          machines: machinesPage?.machines ?? current.detail.machines,
+          subscriptions:
+              subscriptionsPage?.subscriptions ?? current.detail.subscriptions,
+          timeline: timelinePage?.entries ?? current.detail.timeline,
         ),
+        machinesHasNext: machinesPage?.meta.hasNext ?? false,
+        machinesPage: 1,
+        isLoadingMoreMachines: false,
+        subscriptionsHasNext: subscriptionsPage?.meta.hasNext ?? false,
+        subscriptionsPage: 1,
+        isLoadingMoreSubscriptions: false,
+        timelineHasNext: timelinePage?.meta.hasNext ?? false,
+        timelineCursor: timelinePage?.meta.nextCursor,
+        clearTimelineCursor: true,
+        isLoadingMoreTimeline: false,
         isLoadingRelated: false,
       ),
     );

@@ -13,12 +13,29 @@ class MachineMaintenanceHistoryLoading extends MachineMaintenanceHistoryState {
 }
 
 class MachineMaintenanceHistoryLoaded extends MachineMaintenanceHistoryState {
-  const MachineMaintenanceHistoryLoaded({required this.history});
+  const MachineMaintenanceHistoryLoaded({
+    required this.history,
+    this.isLoadingMore = false,
+  });
 
   final MachineMaintenanceHistory history;
+  final bool isLoadingMore;
+
+  bool get hasNext => history.ordersMeta.hasNext;
+  int get page => history.ordersMeta.page;
+
+  MachineMaintenanceHistoryLoaded copyWith({
+    MachineMaintenanceHistory? history,
+    bool? isLoadingMore,
+  }) {
+    return MachineMaintenanceHistoryLoaded(
+      history: history ?? this.history,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+    );
+  }
 
   @override
-  List<Object?> get props => <Object?>[history];
+  List<Object?> get props => <Object?>[history, isLoadingMore];
 }
 
 class MachineMaintenanceHistoryFailure extends MachineMaintenanceHistoryState {

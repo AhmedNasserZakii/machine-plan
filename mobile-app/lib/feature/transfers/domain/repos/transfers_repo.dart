@@ -16,6 +16,16 @@ class TransfersPage {
   final PaginationMetaModel meta;
 }
 
+class TransferRecipientsPage {
+  const TransferRecipientsPage({
+    required this.recipients,
+    required this.meta,
+  });
+
+  final List<TransferRecipient> recipients;
+  final PaginationMetaModel meta;
+}
+
 /// What a dry run reports back, so the create wizard can stop a hand-off before
 /// the representative has collected a signature for it.
 class TransferValidation {
@@ -87,8 +97,10 @@ abstract class TransfersRepo {
   /// dispatch, warehouses for a return, nobody at all for a scrapping. The
   /// server applies the same-branch rule, so a supervisor is never offered
   /// another branch's representative only to be refused on submit.
-  Future<Either<ServerFailure, List<TransferRecipient>>> fetchRecipients({
+  Future<Either<ServerFailure, TransferRecipientsPage>> fetchRecipients({
     required TransferType type,
+    int page = 1,
+    String? search,
   });
 }
 

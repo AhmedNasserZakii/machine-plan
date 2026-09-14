@@ -1,8 +1,11 @@
+import 'package:machinery/core/constants/api_keys.dart';
+import 'package:machinery/core/network_services/models/pagination_meta_model.dart';
 import 'package:machinery/feature/users/domain/entities/user_custody_entity.dart';
 
 UserCustodyEntity userCustodyFromJson(Map<String, dynamic> json) {
   final summary = _map(json['summary']);
   final rows = json['machines'] is List ? json['machines'] as List : const [];
+  final meta = json[ApiKeys.machinesMeta];
   return UserCustodyEntity(
     summary: UserCustodySummary(
       totalMachines: _int(summary['totalMachines']),
@@ -23,6 +26,9 @@ UserCustodyEntity userCustodyFromJson(Map<String, dynamic> json) {
         merchantName: merchant['shopName']?.toString(),
       );
     }).toList(growable: false),
+    machinesMeta: meta is Map<String, dynamic>
+        ? PaginationMetaModel.fromJson(meta)
+        : PaginationMetaModel.empty,
   );
 }
 

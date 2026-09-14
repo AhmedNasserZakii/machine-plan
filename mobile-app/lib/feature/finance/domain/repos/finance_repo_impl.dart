@@ -4,10 +4,12 @@ import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:machinery/core/connection/network_info.dart';
+import 'package:machinery/core/constants/api_keys.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/network_services/api_service.dart';
 import 'package:machinery/core/network_services/api_service_failure.dart';
 import 'package:machinery/core/network_services/models/pagination_meta_model.dart';
+import 'package:machinery/core/network_services/paginated_fetch.dart';
 import 'package:machinery/core/network_services/web_constant.dart';
 import 'package:machinery/core/resources/debug_print.dart';
 import 'package:machinery/core/services/sync/finance_sync_queue.dart';
@@ -49,11 +51,10 @@ class FinanceRepoImpl implements FinanceRepo {
   ) => _guard(
     'budgetStatus',
     () async => budgetStatusListFromJson(
-      _data(
-        (await apiService.client().get<dynamic>(
-          WebConstant.financeBudgetsStatus,
-          queryParameters: query.toQuery(),
-        )).data,
+      await PaginatedFetch.all(
+        client: apiService.client(),
+        path: WebConstant.financeBudgetsStatus,
+        extraQuery: _budgetStatusQuery(query),
       ),
     ),
   );
@@ -312,19 +313,27 @@ class FinanceRepoImpl implements FinanceRepo {
   );
 
   @override
-  Future<Either<ServerFailure, List<FinanceBudget>>> budgets(
-    FinanceQuery query,
-  ) => _guard(
-    'budgets',
-    () async => _list(
-      _rawData(
-        (await apiService.client().get<dynamic>(
-          WebConstant.financeBudgets,
-          queryParameters: query.toQuery(),
-        )).data,
-      ),
-    ).map(financeBudgetFromJson).toList(growable: false),
-  );
+  Future<Either<ServerFailure, FinanceBudgetsPage>> budgets(
+    FinanceQuery query, {
+    int page = 1,
+  }) => _guard('budgets', () async {
+    final Map<String, dynamic> body = _body(
+      (await apiService.client().get<dynamic>(
+        WebConstant.financeBudgets,
+        queryParameters: <String, dynamic>{
+          ApiKeys.page: page,
+          ApiKeys.limit: 20,
+          ..._budgetListQuery(query),
+        },
+      )).data,
+    );
+    return FinanceBudgetsPage(
+      items: _list(
+        body['data'],
+      ).map(financeBudgetFromJson).toList(growable: false),
+      meta: PaginationMetaModel.fromJson(_map(body['meta'])),
+    );
+  });
 
   @override
   Future<Either<ServerFailure, FinanceBudget>> createBudget(
@@ -382,11 +391,16 @@ class FinanceRepoImpl implements FinanceRepo {
   ) async {
     if (!await networkInfo.isConnected) return _cachedRefs(cacheKey);
     final result = await _guard('refs', () async {
-      final Object? raw = _rawData(
-        (await apiService.client().get<dynamic>(path)).data,
-      );
-      await LocalStorage.local?.setString(cacheKey, json.encode(raw));
-      return _list(raw).map(financeRefFromJson).toList(growable: false);
+      // Payment methods stay an unpaged seeded catalogue. Branches and
+      // suppliers now default to 20 rows, so the offline copy has to walk
+      // pages or it will persist a truncated list.
+      final List<Map<String, dynamic>> rows = path == WebConstant.paymentMethods
+          ? _list(
+              _rawData((await apiService.client().get<dynamic>(path)).data),
+            )
+          : await PaginatedFetch.all(client: apiService.client(), path: path);
+      await LocalStorage.local?.setString(cacheKey, json.encode(rows));
+      return rows.map(financeRefFromJson).toList(growable: false);
     }, checkConnection: false);
     return result.fold(
       (failure) =>
@@ -444,6 +458,12 @@ class FinanceRepoImpl implements FinanceRepo {
         return Left(OfflineFailure());
       }
       return Right(await run());
+    } on PaginatedFetchCapException catch (error, stackTrace) {
+      printDebug(
+        message: 'finance repo $label page cap: $error',
+        stackTrace: stackTrace,
+      );
+      return Left(ServerFailure(LocaleKeys.paginationListTooLarge.tr()));
     } on DioException catch (error, stackTrace) {
       printDebug(
         message: 'finance repo $label: ${error.message}',
@@ -468,4 +488,22 @@ class FinanceRepoImpl implements FinanceRepo {
   static List<Map<String, dynamic>> _list(Object? raw) => raw is List
       ? raw.whereType<Map<String, dynamic>>().toList(growable: false)
       : const <Map<String, dynamic>>[];
+
+  /// `GET /finance/budgets/status` only accepts `asOf` and `branchId`. Sending
+  /// the overview's `dateFrom`/`dateTo` would 400 under `forbidNonWhitelisted`.
+  static Map<String, dynamic> _budgetStatusQuery(FinanceQuery query) =>
+      <String, dynamic>{
+        if (query.branchId != null) 'branchId': query.branchId,
+        if (query.dateTo != null) 'asOf': financeDate(query.dateTo!),
+      };
+
+  /// `GET /finance/budgets` filters on `activeOn` / `branchId`, not a date range.
+  static Map<String, dynamic> _budgetListQuery(FinanceQuery query) =>
+      <String, dynamic>{
+        if (query.branchId != null) 'branchId': query.branchId,
+        if (query.dateTo != null)
+          'activeOn': financeDate(query.dateTo!)
+        else if (query.dateFrom != null)
+          'activeOn': financeDate(query.dateFrom!),
+      };
 }

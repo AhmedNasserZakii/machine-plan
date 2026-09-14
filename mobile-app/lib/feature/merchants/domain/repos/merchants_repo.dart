@@ -16,6 +16,30 @@ class MerchantsPage {
   final PaginationMetaModel meta;
 }
 
+class MerchantMachinesPage {
+  const MerchantMachinesPage({required this.machines, required this.meta});
+
+  final List<MachineEntity> machines;
+  final PaginationMetaModel meta;
+}
+
+class MerchantSubscriptionsPage {
+  const MerchantSubscriptionsPage({
+    required this.subscriptions,
+    required this.meta,
+  });
+
+  final List<SubscriptionEntity> subscriptions;
+  final PaginationMetaModel meta;
+}
+
+class MerchantTimelinePage {
+  const MerchantTimelinePage({required this.entries, required this.meta});
+
+  final List<MerchantTimelineEntry> entries;
+  final PaginationMetaModel meta;
+}
+
 abstract class MerchantsRepo {
   Future<Either<ServerFailure, MerchantsPage>> fetchMerchants({
     required MerchantsQueryParams params,
@@ -27,16 +51,19 @@ abstract class MerchantsRepo {
 
   /// What the merchant is holding right now — the list a supervisor checks
   /// before agreeing to close his record.
-  Future<Either<ServerFailure, List<MachineEntity>>> fetchMerchantMachines({
+  Future<Either<ServerFailure, MerchantMachinesPage>> fetchMerchantMachines({
     required String id,
+    int page = 1,
   });
 
-  Future<Either<ServerFailure, List<SubscriptionEntity>>> fetchSubscriptions({
+  Future<Either<ServerFailure, MerchantSubscriptionsPage>> fetchSubscriptions({
     required String id,
+    int page = 1,
   });
 
-  Future<Either<ServerFailure, List<MerchantTimelineEntry>>> fetchTimeline({
+  Future<Either<ServerFailure, MerchantTimelinePage>> fetchTimeline({
     required String id,
+    String? cursor,
   });
 
   /// Run before submitting a registration, so a repeated phone is shown to the

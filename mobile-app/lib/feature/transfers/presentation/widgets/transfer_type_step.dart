@@ -13,8 +13,8 @@ import 'package:machinery/feature/merchants/domain/entities/merchant_entity.dart
 import 'package:machinery/feature/transfers/data/logic/create_transfer/create_transfer_cubit.dart';
 import 'package:machinery/feature/transfers/data/logic/create_transfer/create_transfer_state.dart';
 import 'package:machinery/feature/transfers/domain/entities/creatable_transfer_type.dart';
-import 'package:machinery/feature/transfers/domain/repos/transfers_repo.dart';
 import 'package:machinery/feature/transfers/presentation/helpers/transfer_labels.dart';
+import 'package:machinery/feature/transfers/presentation/widgets/recipient_picker_sheet.dart';
 
 /// Step one: what kind of hand-off, and to whom.
 ///
@@ -107,18 +107,10 @@ class _RecipientPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (state.isLoadingRecipients) return const AppLoadingIndicator();
-
-    if (state.recipients.isEmpty) {
-      return _Note(
-        text: LocaleKeys.transferNoRecipients.tr(),
-        color: AppColors.warningColor,
-      );
-    }
-
     final CreateTransferCubit cubit = context.read<CreateTransferCubit>();
     final bool isWarehouse =
         state.selected!.receiverKind == ReceiverKind.warehouse;
+    final String? selectedName = state.recipientDisplayName;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -129,25 +121,23 @@ class _RecipientPicker extends StatelessWidget {
               : LocaleKeys.transferSelectRecipient.tr(),
         ),
         const SizedBox(height: AppSpacing.sm),
-        RadioGroup<String>(
-          groupValue: state.recipientId,
-          onChanged: cubit.selectRecipient,
-          child: Column(
-            children: state.recipients
-                .map(
-                  (TransferRecipient recipient) => Semantics(
-                    identifier: 'transfer_recipient_${recipient.id}',
-                    child: RadioListTile<String>(
-                      value: recipient.id,
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(recipient.name),
-                      subtitle: recipient.subtitle == null
-                          ? null
-                          : Text(recipient.subtitle!),
-                    ),
-                  ),
-                )
-                .toList(growable: false),
+        OutlinedButton(
+          onPressed: () => RecipientPickerSheet.show(
+            context: context,
+            cubit: cubit,
+            isWarehouse: isWarehouse,
+          ),
+          child: Semantics(
+            identifier: 'transfer_recipient_picker_button',
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: Text(
+                selectedName ??
+                    (isWarehouse
+                        ? LocaleKeys.transferSelectWarehouse.tr()
+                        : LocaleKeys.transferSelectRecipient.tr()),
+              ),
+            ),
           ),
         ),
       ],
@@ -287,24 +277,27 @@ class _MerchantRecipientFieldState extends State<_MerchantRecipientField> {
 }
 
 class _Note extends StatelessWidget {
-  const _Note({required this.text, this.color});
+  const _Note({required this.text});
 
   final String text;
-  final Color? color;
 
   @override
   Widget build(BuildContext context) {
-    final Color resolved = color ?? AppColors.textSecondaryColor;
-
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Icon(Icons.info_outline_rounded, size: 16, color: resolved),
+        const Icon(
+          Icons.info_outline_rounded,
+          size: 16,
+          color: AppColors.textSecondaryColor,
+        ),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Text(
             text,
-            style: Styles.s13(context).copyWith(color: resolved),
+            style: Styles.s13(
+              context,
+            ).copyWith(color: AppColors.textSecondaryColor),
           ),
         ),
       ],

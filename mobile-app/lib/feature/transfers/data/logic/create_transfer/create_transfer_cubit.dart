@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:dartz/dartz.dart';
@@ -19,6 +20,8 @@ class CreateTransferCubit extends Cubit<CreateTransferState> {
 
   final TransfersRepo transfersRepo;
   final NetworkInfo networkInfo;
+
+  Timer? _recipientsSearchTimer;
 
   Future<void> loadTypes() async {
     emit(state.copyWith(isLoadingTypes: true, clearError: true));
@@ -60,14 +63,25 @@ class CreateTransferCubit extends Cubit<CreateTransferState> {
     }
   }
 
-  Future<void> loadRecipients() async {
+  Future<void> loadRecipients({String? search, bool showLoader = true}) async {
     final CreatableTransferType? option = state.selected;
     if (option == null) return;
 
-    emit(state.copyWith(isLoadingRecipients: true, clearError: true));
+    final String? trimmed = search?.trim();
+    final String? query = (trimmed == null || trimmed.isEmpty) ? null : trimmed;
 
-    final Either<ServerFailure, List<TransferRecipient>> result =
-        await transfersRepo.fetchRecipients(type: option.type);
+    emit(
+      state.copyWith(
+        isLoadingRecipients: showLoader,
+        recipientsSearch: query,
+        recipientsPage: 1,
+        resetRecipientsSearch: true,
+        clearError: true,
+      ),
+    );
+
+    final Either<ServerFailure, TransferRecipientsPage> result =
+        await transfersRepo.fetchRecipients(type: option.type, search: query);
 
     if (isClosed) return;
 
@@ -77,16 +91,73 @@ class CreateTransferCubit extends Cubit<CreateTransferState> {
           isLoadingRecipients: false,
           errorMessage: failure.errorMessage,
         ),
-        (List<TransferRecipient> recipients) =>
-            state.copyWith(isLoadingRecipients: false, recipients: recipients),
+        (TransferRecipientsPage page) => state.copyWith(
+          isLoadingRecipients: false,
+          recipients: page.recipients,
+          recipientsHasNext: page.meta.hasNext,
+          recipientsPage: 1,
+          recipientsSearch: query,
+          resetRecipientsSearch: true,
+        ),
       ),
     );
   }
 
-  void selectRecipient(String? id) => emit(
-    id == null
-        ? state.copyWith(clearRecipient: true)
-        : state.copyWith(recipientId: id, clearError: true),
+  Future<void> loadMoreRecipients() async {
+    final CreatableTransferType? option = state.selected;
+    if (option == null ||
+        state.isLoadingMoreRecipients ||
+        !state.recipientsHasNext) {
+      return;
+    }
+
+    emit(state.copyWith(isLoadingMoreRecipients: true));
+
+    final int nextPage = state.recipientsPage + 1;
+    final Either<ServerFailure, TransferRecipientsPage> result =
+        await transfersRepo.fetchRecipients(
+      type: option.type,
+      page: nextPage,
+      search: state.recipientsSearch,
+    );
+
+    if (isClosed) return;
+
+    emit(
+      result.fold(
+        (ServerFailure _) => state.copyWith(isLoadingMoreRecipients: false),
+        (TransferRecipientsPage page) => state.copyWith(
+          isLoadingMoreRecipients: false,
+          recipients: <TransferRecipient>[
+            ...state.recipients,
+            ...page.recipients,
+          ],
+          recipientsHasNext: page.meta.hasNext,
+          recipientsPage: nextPage,
+        ),
+      ),
+    );
+  }
+
+  void searchRecipients(String term) {
+    _recipientsSearchTimer?.cancel();
+    _recipientsSearchTimer = Timer(const Duration(milliseconds: 350), () {
+      loadRecipients(search: term, showLoader: false);
+    });
+  }
+
+  @override
+  Future<void> close() {
+    _recipientsSearchTimer?.cancel();
+    return super.close();
+  }
+
+  void selectRecipient(TransferRecipient recipient) => emit(
+    state.copyWith(
+      recipientId: recipient.id,
+      selectedRecipient: recipient,
+      clearError: true,
+    ),
   );
 
   /// [name] is the shop name for a merchant picked via "تاجر جديد" — a bare

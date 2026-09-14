@@ -253,7 +253,14 @@ void main() {
       "branch": null,
       "createdAt": "2026-03-01T08:30:00.000Z"
     }
-  ]
+  ],
+  "ordersMeta": {
+    "page": 1,
+    "limit": 20,
+    "total": 2,
+    "totalPages": 1,
+    "hasNext": false
+  }
 }
 '''),
           ).toEntity();
@@ -262,6 +269,7 @@ void main() {
       expect(history.totals.orders, 2);
       expect(history.totals.totalCost, 850.5);
       expect(history.orders, hasLength(2));
+      expect(history.ordersMeta.hasNext, isFalse);
 
       final MaintenanceOrderSummary first = history.orders.first;
       expect(first.referenceNo, 'MNT-2026-000087');

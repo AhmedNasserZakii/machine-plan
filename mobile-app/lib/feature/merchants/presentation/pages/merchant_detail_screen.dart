@@ -60,9 +60,18 @@ class _MerchantDetailScreenState extends State<MerchantDetailScreen> {
   }
 
   Future<void> _addSubscription(List<MachineEntity> machines) async {
+    final MerchantDetailCubit cubit = context.read<MerchantDetailCubit>();
+    await cubit.loadRemainingMachines();
+    if (!mounted) return;
+
+    final MerchantDetailState state = cubit.state;
+    final List<MachineEntity> available = state is MerchantDetailLoaded
+        ? state.detail.machines
+        : machines;
+
     final CreateSubscriptionParams? params = await SubscriptionFormSheet.show(
       context: context,
-      machines: machines,
+      machines: available,
     );
 
     if (params == null || !mounted) {
@@ -194,18 +203,33 @@ class _MerchantDetailScreenState extends State<MerchantDetailScreen> {
           _RecordCard(merchant: merchant),
           const SizedBox(height: AppSpacing.md),
 
-          _MachinesCard(machines: detail.machines),
+          _MachinesCard(
+            machines: detail.machines,
+            hasNext: state.machinesHasNext,
+            isLoadingMore: state.isLoadingMoreMachines,
+            onLoadMore: context.read<MerchantDetailCubit>().loadMoreMachines,
+          ),
           const SizedBox(height: AppSpacing.md),
 
           _SubscriptionsCard(
             subscriptions: detail.subscriptions,
             canAdd: merchant.isActive,
+            hasNext: state.subscriptionsHasNext,
+            isLoadingMore: state.isLoadingMoreSubscriptions,
+            onLoadMore: context
+                .read<MerchantDetailCubit>()
+                .loadMoreSubscriptions,
             onAdd: () => _addSubscription(detail.machines),
             onCollect: _collect,
           ),
           const SizedBox(height: AppSpacing.md),
 
-          MerchantTimelineCard(entries: detail.timeline),
+          MerchantTimelineCard(
+            entries: detail.timeline,
+            hasNext: state.timelineHasNext,
+            isLoadingMore: state.isLoadingMoreTimeline,
+            onLoadMore: context.read<MerchantDetailCubit>().loadMoreTimeline,
+          ),
           const SizedBox(height: AppSpacing.md),
 
           if (merchant.isActive) _Actions(merchant: merchant, screen: this),
@@ -258,34 +282,45 @@ class _RecordCard extends StatelessWidget {
 }
 
 class _MachinesCard extends StatelessWidget {
-  const _MachinesCard({required this.machines});
+  const _MachinesCard({
+    required this.machines,
+    required this.hasNext,
+    required this.isLoadingMore,
+    required this.onLoadMore,
+  });
 
   final List<MachineEntity> machines;
+  final bool hasNext;
+  final bool isLoadingMore;
+  final VoidCallback onLoadMore;
 
   @override
   Widget build(BuildContext context) {
     return DetailCard(
       title: LocaleKeys.merchantMachinesCard.tr(),
       icon: Icons.point_of_sale_outlined,
-      children: machines.isEmpty
-          ? <Widget>[DetailNote(LocaleKeys.merchantMachinesEmpty.tr())]
-          : machines
-                .map(
-                  (MachineEntity machine) => Padding(
-                    padding: const EdgeInsetsDirectional.only(
-                      bottom: AppSpacing.sm,
-                    ),
-                    child: MachineCard(
-                      machine: machine,
-                      onTap: () => AppRoute.goToMachineDetail(
-                        context: context,
-                        machineId: machine.id,
-                        initial: machine,
-                      ),
-                    ),
-                  ),
-                )
-                .toList(growable: false),
+      children: <Widget>[
+        if (machines.isEmpty)
+          DetailNote(LocaleKeys.merchantMachinesEmpty.tr())
+        else
+          ...machines.map(
+            (MachineEntity machine) => Padding(
+              padding: const EdgeInsetsDirectional.only(
+                bottom: AppSpacing.sm,
+              ),
+              child: MachineCard(
+                machine: machine,
+                onTap: () => AppRoute.goToMachineDetail(
+                  context: context,
+                  machineId: machine.id,
+                  initial: machine,
+                ),
+              ),
+            ),
+          ),
+        if (hasNext || isLoadingMore)
+          _LoadMoreButton(isLoading: isLoadingMore, onPressed: onLoadMore),
+      ],
     );
   }
 }
@@ -294,12 +329,18 @@ class _SubscriptionsCard extends StatelessWidget {
   const _SubscriptionsCard({
     required this.subscriptions,
     required this.canAdd,
+    required this.hasNext,
+    required this.isLoadingMore,
+    required this.onLoadMore,
     required this.onAdd,
     required this.onCollect,
   });
 
   final List<SubscriptionEntity> subscriptions;
   final bool canAdd;
+  final bool hasNext;
+  final bool isLoadingMore;
+  final VoidCallback onLoadMore;
   final VoidCallback onAdd;
   final ValueChanged<SubscriptionEntity> onCollect;
 
@@ -321,16 +362,19 @@ class _SubscriptionsCard extends StatelessWidget {
               ),
             )
           : null,
-      children: subscriptions.isEmpty
-          ? <Widget>[DetailNote(LocaleKeys.merchantSubscriptionsEmpty.tr())]
-          : subscriptions
-                .map(
-                  (SubscriptionEntity subscription) => _CollectableTile(
-                    subscription: subscription,
-                    onCollect: () => onCollect(subscription),
-                  ),
-                )
-                .toList(growable: false),
+      children: <Widget>[
+        if (subscriptions.isEmpty)
+          DetailNote(LocaleKeys.merchantSubscriptionsEmpty.tr())
+        else
+          ...subscriptions.map(
+            (SubscriptionEntity subscription) => _CollectableTile(
+              subscription: subscription,
+              onCollect: () => onCollect(subscription),
+            ),
+          ),
+        if (hasNext || isLoadingMore)
+          _LoadMoreButton(isLoading: isLoadingMore, onPressed: onLoadMore),
+      ],
     );
   }
 }
@@ -353,6 +397,31 @@ class _CollectableTile extends StatelessWidget {
       permission: P.financeCreate,
       fallback: SubscriptionTile(subscription: subscription, onCollect: null),
       child: SubscriptionTile(subscription: subscription, onCollect: onCollect),
+    );
+  }
+}
+
+class _LoadMoreButton extends StatelessWidget {
+  const _LoadMoreButton({required this.isLoading, required this.onPressed});
+
+  final bool isLoading;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Padding(
+        padding: EdgeInsetsDirectional.symmetric(vertical: AppSpacing.sm),
+        child: AppLoadingIndicator(size: 28),
+      );
+    }
+
+    return Align(
+      alignment: AlignmentDirectional.center,
+      child: IconButton(
+        onPressed: onPressed,
+        icon: const Icon(Icons.expand_more_rounded),
+      ),
     );
   }
 }

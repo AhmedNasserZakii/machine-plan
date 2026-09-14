@@ -22,6 +22,9 @@ class SyncPullResult {
     this.deletedMerchantIds = const <String>[],
     this.deletedTransferIds = const <String>[],
     this.nextSince,
+    this.hasMore = false,
+    this.truncatedMyMachines = false,
+    this.truncatedMyMerchants = false,
   });
 
   final String serverTime;
@@ -44,6 +47,14 @@ class SyncPullResult {
   /// `null` for a bootstrap; always present on a delta — the cursor for the
   /// next call. Never the device clock (`07`).
   final String? nextSince;
+
+  /// Delta only: another chunk exists; loop with [nextSince] until this is false.
+  final bool hasMore;
+
+  /// Bootstrap only: `myMachines` / `myMerchants` hit the 500-row cap, so the
+  /// local copy is incomplete and online reads must stay the source of truth.
+  final bool truncatedMyMachines;
+  final bool truncatedMyMerchants;
 }
 
 /// The JSON keys `SyncLookupsResponse` (backend) nests its seven lists under —
@@ -131,10 +142,10 @@ class SyncApi {
     return parsePull(_data(response.data));
   }
 
-  Future<SyncPullResult> delta(String since) async {
+  Future<SyncPullResult> delta(String since, {int limit = 200}) async {
     final Response<dynamic> response = await apiService.client().get<dynamic>(
       WebConstant.syncDelta,
-      queryParameters: <String, dynamic>{'since': since},
+      queryParameters: <String, dynamic>{'since': since, 'limit': limit},
     );
     return parsePull(_data(response.data));
   }
@@ -164,6 +175,7 @@ class SyncApi {
   static SyncPullResult parsePull(Map<String, dynamic> data) {
     final Map<String, dynamic> lookupsJson = _map(data['lookups']);
     final Map<String, dynamic>? deleted = _mapOrNull(data['deleted']);
+    final Map<String, dynamic> truncated = _map(data['truncated']);
 
     return SyncPullResult(
       serverTime: data['serverTime'] as String? ?? DateTime.now().toUtc().toIso8601String(),
@@ -183,6 +195,9 @@ class SyncApi {
       deletedMerchantIds: _strings(deleted?['merchants']),
       deletedTransferIds: _strings(deleted?['transfers']),
       nextSince: data['nextSince'] as String?,
+      hasMore: data['hasMore'] as bool? ?? false,
+      truncatedMyMachines: truncated['myMachines'] as bool? ?? false,
+      truncatedMyMerchants: truncated['myMerchants'] as bool? ?? false,
     );
   }
 

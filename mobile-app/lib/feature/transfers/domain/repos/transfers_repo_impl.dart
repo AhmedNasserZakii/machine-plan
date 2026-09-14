@@ -509,25 +509,37 @@ class TransfersRepoImpl implements TransfersRepo {
   }
 
   @override
-  Future<Either<ServerFailure, List<TransferRecipient>>> fetchRecipients({
+  Future<Either<ServerFailure, TransferRecipientsPage>> fetchRecipients({
     required TransferType type,
+    int page = 1,
+    String? search,
   }) {
     return _guard('fetchRecipients', () async {
+      final String? trimmed = search?.trim();
       final Response<dynamic> response = await apiService.client().get<dynamic>(
         WebConstant.transfersRecipients,
-        queryParameters: <String, dynamic>{ApiKeys.type: type.value},
+        queryParameters: <String, dynamic>{
+          ApiKeys.type: type.value,
+          ApiKeys.page: page,
+          ApiKeys.limit: 20,
+          if (trimmed != null && trimmed.isNotEmpty) ApiKeys.search: trimmed,
+        },
       );
 
-      return _list(_body(response.data)[ApiKeys.data])
-          .map(
-            (Map<String, dynamic> json) => TransferRecipient(
-              id: json[ApiKeys.id] as String? ?? '',
-              name: json[ApiKeys.name] as String? ?? '',
-              subtitle: json[ApiKeys.subtitle] as String?,
-            ),
-          )
-          .where((TransferRecipient recipient) => recipient.id.isNotEmpty)
-          .toList(growable: false);
+      final Map<String, dynamic> body = _body(response.data);
+      return TransferRecipientsPage(
+        recipients: _list(body[ApiKeys.data])
+            .map(
+              (Map<String, dynamic> json) => TransferRecipient(
+                id: json[ApiKeys.id] as String? ?? '',
+                name: json[ApiKeys.name] as String? ?? '',
+                subtitle: json[ApiKeys.subtitle] as String?,
+              ),
+            )
+            .where((TransferRecipient recipient) => recipient.id.isNotEmpty)
+            .toList(growable: false),
+        meta: _metaOf(body),
+      );
     });
   }
 

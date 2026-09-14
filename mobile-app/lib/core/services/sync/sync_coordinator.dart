@@ -163,6 +163,17 @@ class SyncCoordinator {
 
     final SyncPullResult delta = await syncApi.delta(cursor);
     await _applyPull(delta, isBootstrap: false);
+
+    SyncPullResult chunk = delta;
+    int safety = 0;
+    while (chunk.hasMore &&
+        chunk.nextSince != null &&
+        chunk.nextSince!.isNotEmpty &&
+        safety < 25) {
+      chunk = await syncApi.delta(chunk.nextSince!);
+      await _applyPull(chunk, isBootstrap: false);
+      safety++;
+    }
   }
 
   Future<void> _runBootstrap() async {
@@ -187,6 +198,14 @@ class SyncCoordinator {
         syncedAt: result.serverTime);
     await cachedTransfersDao.upsertAll(result.pendingTransfers,
         syncedAt: result.serverTime);
+
+    if (result.truncatedMyMachines || result.truncatedMyMerchants) {
+      printDebug(
+        message:
+            'sync bootstrap truncated myMachines=${result.truncatedMyMachines} '
+            'myMerchants=${result.truncatedMyMerchants}',
+      );
+    }
 
     await cachedMachinesDao.deleteByIds(result.deletedMachineIds);
     await cachedMerchantsDao.deleteByIds(result.deletedMerchantIds);

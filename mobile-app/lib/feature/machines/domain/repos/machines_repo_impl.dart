@@ -8,6 +8,7 @@ import 'package:machinery/core/local_db/daos/cached_machines_dao.dart';
 import 'package:machinery/core/network_services/api_service.dart';
 import 'package:machinery/core/network_services/api_service_failure.dart';
 import 'package:machinery/core/network_services/models/pagination_meta_model.dart';
+import 'package:machinery/core/network_services/paginated_fetch.dart';
 import 'package:machinery/core/network_services/web_constant.dart';
 import 'package:machinery/core/resources/debug_print.dart';
 import 'package:machinery/feature/machines/data/models/machine_catalogue_model.dart';
@@ -333,10 +334,14 @@ class MachinesRepoImpl implements MachinesRepo {
 
   @override
   Future<Either<ServerFailure, MachineMaintenanceHistory>>
-  fetchMaintenanceHistory({required String machineId}) {
+  fetchMaintenanceHistory({required String machineId, int page = 1}) {
     return _guard('fetchMaintenanceHistory', () async {
       final Response<dynamic> response = await apiService.client().get<dynamic>(
         WebConstant.machineMaintenanceHistory(machineId),
+        queryParameters: <String, dynamic>{
+          ApiKeys.page: page,
+          ApiKeys.limit: 20,
+        },
       );
 
       return MachineMaintenanceHistoryModel.fromJson(
@@ -364,11 +369,12 @@ class MachinesRepoImpl implements MachinesRepo {
   @override
   Future<Either<ServerFailure, List<MachineModelEntity>>> fetchMachineModels() {
     return _guard('fetchMachineModels', () async {
-      final Response<dynamic> response = await apiService.client().get<dynamic>(
-        WebConstant.machineModels,
+      final List<Map<String, dynamic>> rows = await PaginatedFetch.all(
+        client: apiService.client(),
+        path: WebConstant.machineModels,
       );
 
-      return _list(_body(response.data)[ApiKeys.data])
+      return rows
           .map(
             (Map<String, dynamic> json) =>
                 MachineModelModel.fromJson(json).toEntity(),
@@ -380,11 +386,12 @@ class MachinesRepoImpl implements MachinesRepo {
   @override
   Future<Either<ServerFailure, List<BranchEntity>>> fetchBranches() {
     return _guard('fetchBranches', () async {
-      final Response<dynamic> response = await apiService.client().get<dynamic>(
-        WebConstant.branches,
+      final List<Map<String, dynamic>> rows = await PaginatedFetch.all(
+        client: apiService.client(),
+        path: WebConstant.branches,
       );
 
-      return _list(_body(response.data)[ApiKeys.data])
+      return rows
           .map(
             (Map<String, dynamic> json) =>
                 BranchModel.fromJson(json).toEntity(),
@@ -406,6 +413,12 @@ class MachinesRepoImpl implements MachinesRepo {
       }
 
       return Right(await run());
+    } on PaginatedFetchCapException catch (error, stackTrace) {
+      printDebug(
+        message: 'machines repo $label page cap: $error',
+        stackTrace: stackTrace,
+      );
+      return Left(ServerFailure(LocaleKeys.paginationListTooLarge.tr()));
     } on DioException catch (error, stackTrace) {
       printDebug(
         message: 'machines repo $label dio exception: ${error.message}',

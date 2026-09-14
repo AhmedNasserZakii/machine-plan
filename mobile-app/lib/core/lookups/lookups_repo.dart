@@ -6,6 +6,7 @@ import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/lookups/lookup_entity.dart';
 import 'package:machinery/core/network_services/api_service.dart';
 import 'package:machinery/core/network_services/api_service_failure.dart';
+import 'package:machinery/core/network_services/paginated_fetch.dart';
 import 'package:machinery/core/network_services/web_constant.dart';
 import 'package:machinery/core/resources/debug_print.dart';
 
@@ -22,6 +23,13 @@ class LookupsRepo {
   final ApiService apiService;
 
   final Map<String, List<LookupEntity>> _cache = <String, List<LookupEntity>>{};
+
+  /// Seeded catalogues stay a bare array (capped at 100 server-side). Suppliers
+  /// is a real offset-paginated table, so it must walk pages rather than take
+  /// the first 20.
+  static const Set<String> _pagedPaths = <String>{
+    WebConstant.financeSuppliers,
+  };
 
   Future<Either<ServerFailure, List<LookupEntity>>> paymentMethods() {
     return _fetch(WebConstant.paymentMethods, LookupEntity.fromJson);
@@ -59,17 +67,25 @@ class LookupsRepo {
     }
 
     try {
-      final Response<dynamic> response = await apiService.client().get<dynamic>(
-        path,
-      );
+      final List<Map<String, dynamic>> raw = _pagedPaths.contains(path)
+          ? await PaginatedFetch.all(client: apiService.client(), path: path)
+          : _list(
+              (await apiService.client().get<dynamic>(path)).data,
+            );
 
-      final List<LookupEntity> rows = _list(response.data)
+      final List<LookupEntity> rows = raw
           .map(parse)
           .where((LookupEntity row) => row.isActive)
           .toList(growable: false);
 
       _cache[path] = rows;
       return Right(rows);
+    } on PaginatedFetchCapException catch (error, stackTrace) {
+      printDebug(
+        message: 'lookups repo $path hit the page cap: $error',
+        stackTrace: stackTrace,
+      );
+      return Left(ServerFailure(LocaleKeys.paginationListTooLarge.tr()));
     } on DioException catch (error, stackTrace) {
       printDebug(
         message: 'lookups repo $path dio exception: ${error.message}',
@@ -85,7 +101,7 @@ class LookupsRepo {
     }
   }
 
-  /// Lookups answer with a bare array under `data`, with no paging around it.
+  /// Unpaged lookups answer with a bare array under `data`.
   static List<Map<String, dynamic>> _list(dynamic raw) {
     final dynamic body = raw is Map<String, dynamic>
         ? raw[ApiKeys.data]

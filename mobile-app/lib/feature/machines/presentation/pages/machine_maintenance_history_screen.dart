@@ -9,6 +9,7 @@ import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
 import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
 import 'package:machinery/core/shared_widgets/detail_card.dart';
 import 'package:machinery/core/shared_widgets/ltr_text.dart';
+import 'package:machinery/core/shared_widgets/paginated_list_view.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/core/theme/styles/app_text_styles.dart';
@@ -64,10 +65,8 @@ class _MachineMaintenanceHistoryScreenState
                             .read<MachineMaintenanceHistoryCubit>()
                             .load(),
                       ),
-                    MachineMaintenanceHistoryLoaded(
-                      :final MachineMaintenanceHistory history,
-                    ) =>
-                      _buildBody(context, history),
+                    final MachineMaintenanceHistoryLoaded loaded =>
+                      _buildBody(context, loaded),
                     _ => const AppLoadingIndicator(),
                   };
                 },
@@ -75,32 +74,35 @@ class _MachineMaintenanceHistoryScreenState
     );
   }
 
-  Widget _buildBody(BuildContext context, MachineMaintenanceHistory history) {
-    return RefreshIndicator(
-      onRefresh: () => context.read<MachineMaintenanceHistoryCubit>().load(),
-      child: ListView(
-        padding: const EdgeInsetsDirectional.all(AppSpacing.md),
-        children: <Widget>[
-          _TotalsCard(totals: history.totals),
-          const SizedBox(height: AppSpacing.md),
-          if (history.orders.isEmpty)
-            AppEmptyState(
-              icon: Icons.build_circle_outlined,
-              title: LocaleKeys.machineMaintenanceHistoryEmpty.tr(),
-              subtitle: '',
-            )
-          else
-            ...history.orders.map(
-              (MaintenanceOrderSummary order) => _OrderTile(
-                order: order,
-                onTap: () => AppRoute.goToMaintenanceDetail(
-                  context: context,
-                  orderId: order.id,
-                ),
-              ),
-            ),
-        ],
+  Widget _buildBody(
+    BuildContext context,
+    MachineMaintenanceHistoryLoaded state,
+  ) {
+    final MachineMaintenanceHistory history = state.history;
+    final MachineMaintenanceHistoryCubit cubit = context
+        .read<MachineMaintenanceHistoryCubit>();
+
+    return PaginatedListView<MaintenanceOrderSummary>(
+      items: history.orders,
+      hasNext: state.hasNext,
+      isLoadingMore: state.isLoadingMore,
+      onRefresh: cubit.load,
+      onLoadMore: cubit.loadMore,
+      header: _TotalsCard(totals: history.totals),
+      emptyState: AppEmptyState(
+        icon: Icons.build_circle_outlined,
+        title: LocaleKeys.machineMaintenanceHistoryEmpty.tr(),
+        subtitle: '',
       ),
+      itemBuilder: (BuildContext context, MaintenanceOrderSummary order, int _) {
+        return _OrderTile(
+          order: order,
+          onTap: () => AppRoute.goToMaintenanceDetail(
+            context: context,
+            orderId: order.id,
+          ),
+        );
+      },
     );
   }
 }
