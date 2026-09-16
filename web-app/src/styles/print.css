@@ -1,0 +1,91 @@
+@media print {
+  .no-print,
+  [data-slot='sidebar'],
+  [data-slot='topbar'],
+  [data-slot='filter-bar'],
+  [data-slot='page-actions'],
+  [data-slot='data-table-toolbar'],
+  [data-slot='data-table-selection'],
+  [data-slot='command-palette'],
+  [data-slot='exports-panel'],
+  [data-sonner-toaster] {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  body {
+    background: white !important;
+    color: black;
+  }
+
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tr {
+    break-inside: avoid;
+  }
+
+  th,
+  td {
+    border-bottom: 1px solid color-mix(in oklab, black 20%, transparent);
+    padding: 4px 6px;
+    text-align: start;
+  }
+
+  [data-slot='data-table-scroll'] {
+    overflow: visible !important;
+  }
+
+  [data-sticky],
+  thead.sticky,
+  th.sticky,
+  td.sticky {
+    position: static !important;
+  }
+
+  [data-slot='transfer-receipt'] {
+    break-inside: avoid;
+  }
+
+  [data-slot='machine-sticker'] {
+    break-inside: avoid;
+  }
+
+  .report-print [data-slot='page-header'] [data-slot='page-actions'] {
+    display: none !important;
+  }
+
+  .report-print table {
+    font-size: 11pt;
+  }
+
+  .report-print [data-slot='report-chart'] {
+    break-inside: avoid;
+    max-height: 280px;
+  }
+
+  .report-print .print-only {
+    margin-bottom: 12pt;
+  }
+}
+
+@media screen {
+  .print-only {
+    display: none !important;
+  }
+}

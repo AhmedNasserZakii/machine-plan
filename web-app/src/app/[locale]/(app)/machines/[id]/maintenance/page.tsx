@@ -1,0 +1,8 @@
+import { redirect } from '@/i18n/navigation';
+
+type Props = { params: Promise<{ id: string; locale: string }> };
+
+export default async function MachineMaintenanceRedirect({ params }: Props) {
+  const { id, locale } = await params;
+  redirect({ href: `/machines/${id}?tab=maintenance`, locale });
+}

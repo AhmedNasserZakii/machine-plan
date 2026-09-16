@@ -1,0 +1,105 @@
+/* The ONLY file in the project allowed to contain a hex colour.
+   Literal port of mobile-app/lib/core/theme/styles/app_colors.dart
+   and app_spacing.dart. If a value differs from the Dart file, Dart is right. */
+:root {
+  /* ── Brand ─────────────────────────────────────────── */
+  --color-primary: #1b4965;
+  --color-primary-light: #3e7ca6;
+  --color-secondary: #5fa8d3;
+
+  /* ── Surfaces ──────────────────────────────────────── */
+  --color-background: #f7f9fb;
+  --color-surface: #ffffff;
+  --color-surface-alt: #edf2f7;
+
+  /* ── Borders ───────────────────────────────────────── */
+  --color-border: #dde3ea;
+  --color-divider: #e8e9f1;
+
+  /* ── Text ──────────────────────────────────────────── */
+  --color-text-primary: #1a202c;
+  --color-text-secondary: #4a5568;
+  --color-text-disabled: #a0aec0;
+  --color-text-placeholder: #a0aec0;
+  --color-text-on-primary: #ffffff;
+
+  /* ── Semantic ──────────────────────────────────────── */
+  --color-success: #2f855a;
+  --color-warning: #d69e2e;
+  --color-danger: #c53030;
+  --color-info: #2b6cb0;
+  --color-neutral: #718096;
+
+  /* ── Semantic surfaces (chips, banners, badges) ────── */
+  --color-success-surface: #e6f4ec;
+  --color-warning-surface: #fdf3e1;
+  --color-danger-surface: #fce8e8;
+  --color-info-surface: #e7f0fa;
+  --color-neutral-surface: #edf2f7;
+
+  /* ── States ────────────────────────────────────────── */
+  --color-disabled-button: #e2e8f0;
+  --color-offline-banner: #4a5568;
+  --color-badge: #c53030;
+  --color-shimmer-base: #edf2f7;
+  /* Dart scrimColor = 0xcc000000 → rgb(0 0 0 / 0.80) */
+  --color-scrim: rgb(0 0 0 / 0.8);
+
+  /* ── Spacing (AppSpacing) ──────────────────────────── */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
+
+  /* ── Radius (AppRadius) ────────────────────────────── */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  /* ── Elevation — web-only; mobile uses Material elevation ── */
+  --shadow-card: 0 1px 2px rgb(26 32 44 / 0.06), 0 1px 3px rgb(26 32 44 / 0.08);
+  --shadow-popover: 0 4px 6px rgb(26 32 44 / 0.06), 0 10px 20px rgb(26 32 44 / 0.1);
+
+  /* ── Layout — web-only ─────────────────────────────── */
+  --sidebar-width: 264px;
+  --sidebar-width-collapsed: 72px;
+  --topbar-height: 64px;
+  --content-max-width: 1440px;
+
+  /* shadcn aliases onto the Dart tokens — never a second palette */
+  --background: var(--color-background);
+  --foreground: var(--color-text-primary);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-text-primary);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-text-primary);
+  --primary: var(--color-primary);
+  --primary-foreground: var(--color-text-on-primary);
+  --secondary: var(--color-secondary);
+  --secondary-foreground: var(--color-text-on-primary);
+  --muted: var(--color-surface-alt);
+  --muted-foreground: var(--color-text-secondary);
+  --accent: var(--color-surface-alt);
+  --accent-foreground: var(--color-text-primary);
+  --destructive: var(--color-danger);
+  --border: var(--color-border);
+  --input: var(--color-border);
+  --ring: var(--color-primary);
+  --radius: var(--radius-md);
+  --sidebar: var(--color-surface);
+  --sidebar-foreground: var(--color-text-primary);
+  --sidebar-primary: var(--color-primary);
+  --sidebar-primary-foreground: var(--color-text-on-primary);
+  --sidebar-accent: var(--color-surface-alt);
+  --sidebar-accent-foreground: var(--color-text-primary);
+  --sidebar-border: var(--color-border);
+  --sidebar-ring: var(--color-primary);
+  --chart-1: var(--color-primary);
+  --chart-2: var(--color-secondary);
+  --chart-3: var(--color-info);
+  --chart-4: var(--color-success);
+  --chart-5: var(--color-warning);
+}
