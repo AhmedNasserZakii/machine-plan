@@ -4,11 +4,7 @@ tags:
   - live
   - merchants
 ---
-- runFlow:
-    file: shared/launch_and_login.yaml
-    env:
-      PHONE: "01000000001"
-      PASSWORD: "Dev#12345"
+- runFlow: shared/launch_and_login.yaml
 
 # Every run writes a real row, so the identifying fields carry a run-unique
 # suffix. A national ID is unique server-side; reusing one would make the
@@ -21,7 +17,8 @@ tags:
       output.nationalId = '298010' + output.suffix;
     }
 
-- tapOn: "(?s).*التجار.*"
+- tapOn:
+    id: "nav_tab_merchants"
 - extendedWaitUntil:
     visible:
       id: "merchants_add_button"
@@ -33,24 +30,30 @@ tags:
       id: "merchant_form_shop_name"
     timeout: 15000
 
-# Hide the keyboard after every field — on a physical phone the IME covers the
-# lower inputs and Maestro will tap / type into a collapsed field.
+# Tap the next field instead of hideKeyboard — Back dismisses this form on the
+# emulator. Focusing the next input commits IME text and keeps the route.
 - tapOn:
     id: "merchant_form_shop_name"
 - inputText: ${output.shop}
-- hideKeyboard
 - tapOn:
     id: "merchant_form_name"
 - inputText: "أحمد صاحب المحل"
-- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "merchant_form_phone"
+    direction: DOWN
+    timeout: 10000
 - tapOn:
     id: "merchant_form_phone"
 - inputText: ${output.phone}
-- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "merchant_form_address"
+    direction: DOWN
+    timeout: 10000
 - tapOn:
     id: "merchant_form_address"
 - inputText: "شارع الجمهورية، المنصورة"
-- hideKeyboard
 - scrollUntilVisible:
     element:
       id: "merchant_form_national_id"
@@ -59,7 +62,6 @@ tags:
 - tapOn:
     id: "merchant_form_national_id"
 - inputText: ${output.nationalId}
-- hideKeyboard
 - scrollUntilVisible:
     element:
       id: "merchant_form_submit"

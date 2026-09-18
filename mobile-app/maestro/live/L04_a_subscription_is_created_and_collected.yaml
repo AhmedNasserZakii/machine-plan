@@ -7,11 +7,7 @@ tags:
 # Collecting is where the merchant screens meet the money. The plan is created
 # overdue on its own start date, and taking a payment has to move the due date
 # forward — otherwise every collected merchant would still read as owing.
-- runFlow:
-    file: shared/launch_and_login.yaml
-    env:
-      PHONE: "01000000001"
-      PASSWORD: "Dev#12345"
+- runFlow: shared/launch_and_login.yaml
 
 - evalScript: |
     ${
@@ -21,7 +17,8 @@ tags:
       output.nationalId = '298010' + output.suffix;
     }
 
-- tapOn: "(?s).*التجار.*"
+- tapOn:
+    id: "nav_tab_merchants"
 - extendedWaitUntil:
     visible:
       id: "merchants_add_button"
@@ -36,19 +33,25 @@ tags:
 - tapOn:
     id: "merchant_form_shop_name"
 - inputText: ${output.shop}
-- hideKeyboard
 - tapOn:
     id: "merchant_form_name"
 - inputText: "صاحب محل الاشتراك"
-- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "merchant_form_phone"
+    direction: DOWN
+    timeout: 10000
 - tapOn:
     id: "merchant_form_phone"
 - inputText: ${output.phone}
-- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "merchant_form_address"
+    direction: DOWN
+    timeout: 10000
 - tapOn:
     id: "merchant_form_address"
 - inputText: "شارع الجيش، المنصورة"
-- hideKeyboard
 - scrollUntilVisible:
     element:
       id: "merchant_form_national_id"
@@ -57,7 +60,6 @@ tags:
 - tapOn:
     id: "merchant_form_national_id"
 - inputText: ${output.nationalId}
-- hideKeyboard
 - scrollUntilVisible:
     element:
       id: "merchant_form_submit"
@@ -101,7 +103,6 @@ tags:
 - tapOn:
     id: "subscription_amount"
 - inputText: "500"
-- hideKeyboard
 - tapOn:
     id: "subscription_submit"
 
@@ -122,7 +123,6 @@ tags:
 - tapOn:
     id: "collect_amount"
 - inputText: "500"
-- hideKeyboard
 - tapOn: "(?s).*نقدي.*"
 - tapOn:
     id: "collect_submit"

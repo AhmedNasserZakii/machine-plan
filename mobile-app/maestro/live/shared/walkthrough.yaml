@@ -9,10 +9,10 @@ name: Sign in and leave the app sitting on the merchants tab
 
 - tapOn:
     id: "login_phone_field"
-- inputText: "01000000001"
+- inputText: ${PHONE}
 - tapOn:
     id: "login_password_field"
-- inputText: "Dev#12345"
+- inputText: ${PASSWORD}
 - hideKeyboard
 - tapOn:
     id: "login_submit_button"

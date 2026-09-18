@@ -6,13 +6,10 @@ tags:
 ---
 # The seeded database carries machines SN-1001 upward, so this reads real rows
 # rather than asserting an empty state.
-- runFlow:
-    file: shared/launch_and_login.yaml
-    env:
-      PHONE: "01000000001"
-      PASSWORD: "Dev#12345"
+- runFlow: shared/launch_and_login.yaml
 
-- tapOn: "(?s).*الماكينات.*"
+- tapOn:
+    id: "nav_tab_machines"
 - extendedWaitUntil:
     visible:
       id: "machines_search_field"

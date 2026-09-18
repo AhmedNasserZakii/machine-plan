@@ -7,13 +7,10 @@ tags:
 # Each scope is a separate endpoint — /transfers, /transfers/pending/incoming
 # and /transfers/pending/outgoing — so switching tabs is three round trips, not
 # one list filtered client-side.
-- runFlow:
-    file: shared/launch_and_login.yaml
-    env:
-      PHONE: "01000000001"
-      PASSWORD: "Dev#12345"
+- runFlow: shared/launch_and_login.yaml
 
-- tapOn: "(?s).*التسليمات.*"
+- tapOn:
+    id: "nav_tab_transfers"
 - extendedWaitUntil:
     visible:
       id: "transfers_add_button"

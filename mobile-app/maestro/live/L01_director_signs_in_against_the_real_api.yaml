@@ -8,13 +8,9 @@ tags:
 # is that the real two-step contract — POST /auth/login then GET /auth/me —
 # still lines up with what the app parses, which a hand-written mock cannot
 # tell you.
-- runFlow:
-    file: shared/launch_and_login.yaml
-    env:
-      PHONE: "01000000001"
-      PASSWORD: "Dev#12345"
+- runFlow: shared/launch_and_login.yaml
 
-# The seeded director holds every permission, so all four gated tabs plus More
+# The bootstrap director holds every permission, so all four gated tabs plus More
 # are present. Android appends "tab N of M" to each label.
 - assertVisible: "(?s).*الماكينات.*"
 - assertVisible: "(?s).*التسليمات.*"
@@ -24,8 +20,9 @@ tags:
 # The profile came back from the real /auth/me, not from a fixture. The header
 # merges the name and the role into one accessibility node, so this matches on
 # a substring rather than the name alone.
-- tapOn: "(?s).*المزيد.*"
-- assertVisible: "(?s).*مدير التطوير.*"
+- tapOn:
+    id: "nav_tab_more"
+- assertVisible: "(?s).*مدير النظام.*"
 
 # Every admin section the director's 48 permissions unlock is present, and the
 # violations register built in phase 5 is among them.

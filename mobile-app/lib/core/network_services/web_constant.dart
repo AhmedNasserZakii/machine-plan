@@ -1,5 +1,3 @@
-import 'dart:io' show Platform;
-
 import 'package:machinery/core/config/app_environment.dart';
 
 /// Endpoint catalogue. Repositories must never hard-code a path.
@@ -17,8 +15,8 @@ abstract class WebConstant {
     'PRODUCTION_API_BASE_URL',
   );
 
-  /// Port the local NestJS API listens on (`backend/api`, `npm run start:dev`).
-  static const String _localPort = '3000';
+  /// Deployed NestJS API. Development talks here unless `API_BASE_URL` overrides.
+  static const String _devHost = 'http://possystem.hrsystem.cloud/api/v1/';
 
   static bool get isDev => AppEnvironment.isDevelopment;
 
@@ -27,21 +25,13 @@ abstract class WebConstant {
       return _normalize(_overrideHost);
     }
     return switch (AppEnvironment.flavor) {
-      AppFlavor.development => _localHost,
+      AppFlavor.development => _normalize(_devHost),
       AppFlavor.staging => _requireHost(_stagingHost, 'STAGING_API_BASE_URL'),
       AppFlavor.production => _requireHost(
           _productionHost,
           'PRODUCTION_API_BASE_URL',
         ),
     };
-  }
-
-  /// The Android emulator is a VM, so its `localhost` is the emulator itself;
-  /// `10.0.2.2` is the alias for the host machine. The iOS simulator shares the
-  /// host network, so plain `localhost` reaches the API.
-  static String get _localHost {
-    final String address = Platform.isAndroid ? '10.0.2.2' : 'localhost';
-    return 'http://$address:$_localPort/api/v1/';
   }
 
   static String _requireHost(String value, String defineName) {

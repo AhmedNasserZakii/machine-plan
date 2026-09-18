@@ -96,13 +96,23 @@
 		<string>ar</string>
 		<string>en</string>
 	</array>
-	<!-- Lets the simulator reach the API over plain HTTP on localhost during
-	     development. Scoped to local addresses, so TLS is still enforced for
-	     every remote host. -->
+	<!-- Local NestJS and the deployed HTTP API. TLS is still enforced for
+	     every other remote host. Drop the domain exception once the API
+	     serves a valid certificate over HTTPS. -->
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>possystem.hrsystem.cloud</key>
+			<dict>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+			</dict>
+		</dict>
 	</dict>
 </dict>
 </plist>

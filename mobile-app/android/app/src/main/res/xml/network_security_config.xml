@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Cleartext is limited to the deployed HTTP API. Drop this once the host
+     serves a valid certificate over HTTPS. Debug still allows all HTTP via
+     the debug manifest's usesCleartextTraffic flag. -->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">possystem.hrsystem.cloud</domain>
+    </domain-config>
+</network-security-config>

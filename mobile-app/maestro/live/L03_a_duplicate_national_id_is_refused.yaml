@@ -8,11 +8,7 @@ tags:
 # still typing. A repeated phone only warns — two brothers can share a number —
 # but a repeated national ID is refused server-side, so the form refuses it
 # first rather than collecting a full record and then losing it.
-- runFlow:
-    file: shared/launch_and_login.yaml
-    env:
-      PHONE: "01000000001"
-      PASSWORD: "Dev#12345"
+- runFlow: shared/launch_and_login.yaml
 
 - evalScript: |
     ${
@@ -22,7 +18,8 @@ tags:
       output.nationalId = '298010' + output.suffix;
     }
 
-- tapOn: "(?s).*التجار.*"
+- tapOn:
+    id: "nav_tab_merchants"
 - extendedWaitUntil:
     visible:
       id: "merchants_add_button"
@@ -39,19 +36,25 @@ tags:
 - tapOn:
     id: "merchant_form_shop_name"
 - inputText: ${output.shop}
-- hideKeyboard
 - tapOn:
     id: "merchant_form_name"
 - inputText: "صاحب المحل الأول"
-- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "merchant_form_phone"
+    direction: DOWN
+    timeout: 10000
 - tapOn:
     id: "merchant_form_phone"
 - inputText: ${output.phone}
-- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "merchant_form_address"
+    direction: DOWN
+    timeout: 10000
 - tapOn:
     id: "merchant_form_address"
 - inputText: "شارع الجمهورية، المنصورة"
-- hideKeyboard
 - scrollUntilVisible:
     element:
       id: "merchant_form_national_id"
@@ -60,7 +63,6 @@ tags:
 - tapOn:
     id: "merchant_form_national_id"
 - inputText: ${output.nationalId}
-- hideKeyboard
 - scrollUntilVisible:
     element:
       id: "merchant_form_submit"
@@ -86,19 +88,25 @@ tags:
 - tapOn:
     id: "merchant_form_shop_name"
 - inputText: "محل آخر ${output.suffix}"
-- hideKeyboard
 - tapOn:
     id: "merchant_form_name"
 - inputText: "صاحب المحل الثاني"
-- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "merchant_form_phone"
+    direction: DOWN
+    timeout: 10000
 - tapOn:
     id: "merchant_form_phone"
 - inputText: ${output.phone}
-- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "merchant_form_address"
+    direction: DOWN
+    timeout: 10000
 - tapOn:
     id: "merchant_form_address"
 - inputText: "شارع آخر، المنصورة"
-- hideKeyboard
 - scrollUntilVisible:
     element:
       id: "merchant_form_national_id"
@@ -107,7 +115,6 @@ tags:
 - tapOn:
     id: "merchant_form_national_id"
 - inputText: ${output.nationalId}
-- hideKeyboard
 
 # The check debounces both identity fields together, so give it and the round
 # trip room. Both collisions are reported, not just the fatal one.

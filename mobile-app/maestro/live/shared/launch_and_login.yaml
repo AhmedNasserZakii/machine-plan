@@ -5,6 +5,10 @@ name: Cold-start against the live API and sign in as the director
 # mock flows do. They only reset the device, and every record they create is
 # named with a run-unique suffix so a second run does not collide with the
 # first.
+#
+# The bootstrap Director (01000000000) must change password on first login.
+# PASSWORD is whatever currently works; NEW_PASSWORD is used only when the
+# forced-change screen appears.
 - clearState
 - launchApp:
     clearKeychain: true
@@ -23,17 +27,28 @@ name: Cold-start against the live API and sign in as the director
 - tapOn:
     id: "login_password_field"
 - inputText: ${PASSWORD}
-- hideKeyboard
 - tapOn:
     id: "login_submit_button"
 
 # Fresh installs on a biometric device offer enrollment after a successful
-# login. Dismiss it so the home tab assertion is not blocked by the sheet.
+# login. Dismiss it so the home / change-password assertion is not blocked.
 - tapOn:
     text: "مش دلوقتي"
     optional: true
 
-# The director lands straight on the home tab; no forced password change.
+- extendedWaitUntil:
+    visible: "(?s).*(الرئيسية|لازم تغيّر كلمة السر).*"
+    timeout: 40000
+
+- runFlow:
+    when:
+      visible: "لازم تغيّر كلمة السر"
+    file: complete_forced_change.yaml
+
+- tapOn:
+    text: "مش دلوقتي"
+    optional: true
+
 - extendedWaitUntil:
     visible: "الرئيسية"
     timeout: 40000

@@ -6,13 +6,10 @@ tags:
 ---
 # Violations are reached from More rather than the tab bar, because the bar is
 # capped at five and this is a supervisor's screen, not a daily one.
-- runFlow:
-    file: shared/launch_and_login.yaml
-    env:
-      PHONE: "01000000001"
-      PASSWORD: "Dev#12345"
+- runFlow: shared/launch_and_login.yaml
 
-- tapOn: "(?s).*المزيد.*"
+- tapOn:
+    id: "nav_tab_more"
 - extendedWaitUntil:
     visible:
       id: "more_violations_tile"

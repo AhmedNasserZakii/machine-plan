@@ -1,0 +1,28 @@
+appId: com.machinery.machinery.dev
+name: Complete the forced first-login password change
+---
+- extendedWaitUntil:
+    visible: "لازم تغيّر كلمة السر"
+    timeout: 15000
+- assertVisible: "دي أول مرة تدخل، اختار كلمة سر جديدة عشان تكمّل"
+
+- tapOn:
+    id: "current_password_field"
+- inputText: ${PASSWORD}
+- hideKeyboard
+- tapOn:
+    id: "new_password_field"
+- inputText: ${NEW_PASSWORD}
+- tapOn:
+    id: "confirm_password_field"
+- inputText: ${NEW_PASSWORD}
+- hideKeyboard
+- assertVisible:
+    id: "change_password_submit_button"
+    enabled: true
+- tapOn:
+    id: "change_password_submit_button"
+
+- extendedWaitUntil:
+    visible: "(?s).*كلمة السر اتغيّرت، وكل الأجهزة التانية اتسجّل خروجها.*"
+    timeout: 20000
