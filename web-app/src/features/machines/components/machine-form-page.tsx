@@ -94,6 +94,25 @@ export function MachineFormPage({ mode, id }: MachineFormPageProps) {
     if (defaults.machineTypeId) setTypeId(defaults.machineTypeId);
   }, [defaults.machineTypeId]);
 
+  const modelOptions = useMemo(() => {
+    const options = (modelsQuery.data ?? []).map((row) => ({
+      value: row.id,
+      label: row.name,
+    }));
+    // Keep the unit's current model selectable even if it was deactivated and
+    // dropped out of the active catalogue query.
+    if (isEdit && detail.data?.model.id) {
+      const currentId = detail.data.model.id;
+      if (!options.some((row) => row.value === currentId)) {
+        return [
+          { value: currentId, label: detail.data.model.name },
+          ...options,
+        ];
+      }
+    }
+    return options;
+  }, [detail.data?.model.id, detail.data?.model.name, isEdit, modelsQuery.data]);
+
   if (isEdit && detail.isLoading) return <DetailSkeleton />;
   if (isEdit && (detail.error || !detail.data)) {
     return <ErrorState error={detail.error} onRetry={() => void detail.refetch()} />;
@@ -101,7 +120,6 @@ export function MachineFormPage({ mode, id }: MachineFormPageProps) {
 
   const today = new Date().toISOString().slice(0, 10);
   const typeOptions = (typesQuery.data ?? []).map((row) => ({ value: row.id, label: row.name }));
-  const modelOptions = (modelsQuery.data ?? []).map((row) => ({ value: row.id, label: row.name }));
 
   return (
     <div className="space-y-md">
@@ -206,13 +224,16 @@ export function MachineFormPage({ mode, id }: MachineFormPageProps) {
                     <p>{detail.data?.type.name}</p>
                     <input type="hidden" {...form.register('machineTypeId')} />
                   </div>
-                  <SelectField
-                    name="machineModelId"
-                    label={t('web.machines.model')}
-                    required
-                    options={modelOptions}
-                    searchable
-                  />
+                  <div className="space-y-xs">
+                    <SelectField
+                      name="machineModelId"
+                      label={t('web.machines.model')}
+                      required
+                      options={modelOptions}
+                      searchable
+                    />
+                    <p className="t-caption text-text-secondary">{t('web.machines.modelSameTypeHint')}</p>
+                  </div>
                 </>
               ) : (
                 <>
@@ -292,8 +313,14 @@ function TypeSync({
   const watchedType = form.watch('machineTypeId');
   useEffect(() => {
     if (!watchedType || watchedType === typeId) return;
+    // First hydration (edit load) sets typeId from defaults while typeId is
+    // still '' — that must not wipe machineModelId. Only clear when the user
+    // actually switches type after a type was already selected.
+    const hadType = Boolean(typeId);
     onTypeId(watchedType);
-    form.setValue('machineModelId', '');
+    if (hadType) {
+      form.setValue('machineModelId', '');
+    }
   }, [form, onTypeId, typeId, watchedType]);
   return <>{children}</>;
 }
