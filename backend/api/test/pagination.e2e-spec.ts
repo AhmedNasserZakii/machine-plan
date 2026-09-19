@@ -57,9 +57,9 @@ describe('Pagination stress cycle (e2e)', () => {
     });
     representativeApi = representative.api;
 
-    const models = await ok<
-      { id: string; machineType: { id: string; requiresSim: boolean } }[]
-    >(director.get('/machine-models?limit=100'));
+    const models = await ok<{ id: string; machineType: { id: string; requiresSim: boolean } }[]>(
+      director.get('/machine-models?limit=100'),
+    );
     const pos = models.find((model) => model.machineType.requiresSim)!;
     posModelId = pos.id;
     machineTypeId = pos.machineType.id;
@@ -425,9 +425,7 @@ describe('Pagination stress cycle (e2e)', () => {
       expect(full.ordersMeta.total).toBe(TOTAL);
 
       const page1 = await ok<typeof full>(
-        director.get(
-          `/machines/${historyMachineId}/maintenance-history?page=1&limit=${LIMIT}`,
-        ),
+        director.get(`/machines/${historyMachineId}/maintenance-history?page=1&limit=${LIMIT}`),
       );
       expect(page1.orders).toHaveLength(LIMIT);
       expect(page1.totals.orders).toBe(TOTAL);
@@ -438,9 +436,7 @@ describe('Pagination stress cycle (e2e)', () => {
       });
 
       const page2 = await ok<typeof full>(
-        director.get(
-          `/machines/${historyMachineId}/maintenance-history?page=2&limit=${LIMIT}`,
-        ),
+        director.get(`/machines/${historyMachineId}/maintenance-history?page=2&limit=${LIMIT}`),
       );
       expect(page2.orders.length).toBeGreaterThan(0);
       expect(page2.totals.orders).toBe(TOTAL);
@@ -455,11 +451,10 @@ describe('Pagination stress cycle (e2e)', () => {
 
   describe('keyset timelines', () => {
     it('pages the merchant timeline with a cursor', async () => {
-      const count = await assertCursorPaging(
-        director,
-        `/merchants/${merchantId}/timeline`,
-        { limit: 2, expectMultiplePages: true },
-      );
+      const count = await assertCursorPaging(director, `/merchants/${merchantId}/timeline`, {
+        limit: 2,
+        expectMultiplePages: true,
+      });
       expect(count).toBeGreaterThan(LIMIT);
     });
   });
@@ -474,9 +469,7 @@ describe('Pagination stress cycle (e2e)', () => {
       }
 
       const capped = await ok<{ hasMore: boolean; nextSince: string }>(
-        representativeApi.get(
-          `/sync/delta?since=${encodeURIComponent(since)}&limit=1`,
-        ),
+        representativeApi.get(`/sync/delta?since=${encodeURIComponent(since)}&limit=1`),
       );
       expect(capped.hasMore).toBe(true);
       expect(capped.nextSince).toBeTruthy();
@@ -486,9 +479,7 @@ describe('Pagination stress cycle (e2e)', () => {
       let lastHasMore = true;
       while (lastHasMore && safety < 25) {
         const chunk = await ok<{ hasMore: boolean; nextSince: string }>(
-          representativeApi.get(
-            `/sync/delta?since=${encodeURIComponent(cursor)}&limit=50`,
-          ),
+          representativeApi.get(`/sync/delta?since=${encodeURIComponent(cursor)}&limit=50`),
         );
         lastHasMore = chunk.hasMore;
         cursor = chunk.nextSince;

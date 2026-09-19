@@ -1,0 +1,75 @@
+name: Web CI
+
+on:
+  push:
+    paths:
+      - 'web-app/**'
+      # `src/lib/api/endpoints.test.ts` asserts the client catalogue still covers every path
+      # in the committed spec, so a backend-only route change has to run this job too.
+      - 'backend/api/openapi.json'
+      - '.github/workflows/web-ci.yml'
+  pull_request:
+    paths:
+      - 'web-app/**'
+      - 'backend/api/openapi.json'
+      - '.github/workflows/web-ci.yml'
+
+defaults:
+  run:
+    working-directory: web-app
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    env:
+      # `next build` reads these at module scope. The BFF never calls out during a build —
+      # every upstream fetch happens per-request — so a placeholder host is enough here and
+      # keeps CI from depending on the deployed API being reachable.
+      API_BASE_URL: http://localhost:3000/api/v1
+      NEXT_PUBLIC_APP_NAME: Machinery
+      NEXT_PUBLIC_CLIENT_VERSION: 1.0.0
+      SESSION_COOKIE_NAME: mch_session
+      SESSION_COOKIE_SECURE: 'false'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web-app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # `npm run lint` carries `--max-warnings=0`, matching the backend workflow's gate.
+      - name: Lint (zero warnings)
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      # `ar.json`/`en.json` must hold the same key set — a key present in one and missing from
+      # the other renders as the raw key at runtime rather than failing loudly.
+      - name: Translations in sync
+        run: npm run i18n:check
+
+      # Fails on a raw colour/spacing literal where a design token exists.
+      - name: Design tokens only
+        run: npm run tokens:check
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      # Reads `.next`, so it has to follow `build`: first-load shared JS ≤ 200 KB gzipped,
+      # per-route ≤ 120 KB.
+      - name: Bundle budgets
+        run: npm run budgets:check
+
+      # Playwright (`npm run test:e2e`) is deliberately not part of this job: it drives a real
+      # browser against a running API, so it belongs in an environment that has one.

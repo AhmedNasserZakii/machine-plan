@@ -1,0 +1,54 @@
+name: Mobile CI
+
+on:
+  push:
+    paths:
+      - 'mobile-app/**'
+      - '.github/workflows/mobile-ci.yml'
+  pull_request:
+    paths:
+      - 'mobile-app/**'
+      - '.github/workflows/mobile-ci.yml'
+
+defaults:
+  run:
+    working-directory: mobile-app
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          # Pinned to the version the lockfile and `analysis_options.yaml` were last green
+          # against; bump deliberately rather than drifting with `stable`.
+          flutter-version: 3.47.4
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # `pubspec.lock` is committed, so a `pub get` that rewrites it means the lockfile and
+      # `pubspec.yaml` disagree — catch that here instead of shipping an unpinned dependency.
+      - name: Lockfile is up to date
+        run: git diff --exit-code pubspec.lock
+
+      # Plain `flutter analyze`, not `--fatal-infos`: the analyzer currently reports a handful
+      # of `info`-level lints (e.g. `prefer_const_constructors` in tests). Tighten this once
+      # those are cleared.
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Unit and widget tests
+        run: flutter test
+
+      # Compiles the real release Dart kernel and resolves every plugin's Gradle wiring, which
+      # is where an Android-only breakage shows up that `flutter test` cannot see. Uses the
+      # development flavor's defines so no staging/production host is needed — `WebConstant`
+      # throws at build time when a release flavor has no host configured.
+      - name: Android build
+        run: flutter build apk --debug --flavor development --dart-define-from-file=config/development.env.json

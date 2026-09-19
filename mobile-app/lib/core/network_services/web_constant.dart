@@ -85,7 +85,6 @@ abstract class WebConstant {
       '$machines/$id/maintenance-history';
   static String machineReplacementChain(String id) =>
       '$machines/$id/replacement-chain';
-  static String machineBattery(String id) => '$machines/$id/battery';
   static String machineDecommission(String id) => '$machines/$id/decommission';
   static String machineDecommissionRevert(String id) =>
       '$machines/$id/decommission/revert';

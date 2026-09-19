@@ -102,18 +102,14 @@ export async function assertCursorPaging<T extends { id?: string }>(
     expect(safety).toBeLessThan(25);
 
     const next = await okPage<T>(
-      api.get(
-        `${path}${separator}limit=${limit}&cursor=${encodeURIComponent(cursor!)}`,
-      ),
+      api.get(`${path}${separator}limit=${limit}&cursor=${encodeURIComponent(cursor!)}`),
     );
     expect(next.items.length).toBeGreaterThan(0);
     pages += 1;
 
     next.items.forEach((row, index) => {
       const key =
-        'id' in row && row.id
-          ? String(row.id)
-          : `${JSON.stringify(row)}#${pages}-${index}`;
+        'id' in row && row.id ? String(row.id) : `${JSON.stringify(row)}#${pages}-${index}`;
       expect(seen.has(key)).toBe(false);
       seen.add(key);
     });
