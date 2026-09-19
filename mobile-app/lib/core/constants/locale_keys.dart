@@ -580,6 +580,31 @@ class LocaleKeys {
   static const String machineCreated = 'machine_created';
   static const String machineSelectModel = 'machine_select_model';
   static const String machineModelRequired = 'machine_model_required';
+  static const String machineModelEditSameTypeHint =
+      'machine_model_edit_same_type_hint';
+
+  // ── Machine models catalogue (admin, `settings.manage`) ────────────────
+  static const String machineModelsTitle = 'machine_models_title';
+  static const String machineModelsSearchHint = 'machine_models_search_hint';
+  static const String machineModelsEmptyTitle = 'machine_models_empty_title';
+  static const String machineModelsEmptySubtitle =
+      'machine_models_empty_subtitle';
+  static const String machineModelsNoSearchResults =
+      'machine_models_no_search_results';
+  static const String machineModelsOnlineOnlySubtitle =
+      'machine_models_online_only_subtitle';
+  static const String machineModelAddTitle = 'machine_model_add_title';
+  static const String machineModelEditTitle = 'machine_model_edit_title';
+  static const String machineModelCode = 'machine_model_code';
+  static const String machineModelCodeLocked = 'machine_model_code_locked';
+  static const String machineModelCodeInvalid = 'machine_model_code_invalid';
+  static const String machineModelNameAr = 'machine_model_name_ar';
+  static const String machineModelNameEn = 'machine_model_name_en';
+  static const String machineModelSelectType = 'machine_model_select_type';
+  static const String machineModelActive = 'machine_model_active';
+  static const String machineModelActiveHint = 'machine_model_active_hint';
+  static const String machineModelCreated = 'machine_model_created';
+  static const String machineModelUpdated = 'machine_model_updated';
 
   static const String machinesFilterTitle = 'machines_filter_title';
   static const String machinesFilterStatus = 'machines_filter_status';

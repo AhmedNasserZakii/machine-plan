@@ -8,6 +8,9 @@ import 'package:machinery/feature/machines/domain/entities/machine_catalogue_ent
 
 /// Picks the model, which is also what picks the type — and therefore whether
 /// the form asks for a SIM at all.
+///
+/// [selected] must already be in [models] (or null). The edit form filters to
+/// same-type peers so a change is something the server will accept.
 class MachineModelSelector extends StatelessWidget {
   const MachineModelSelector({
     required this.models,
@@ -24,6 +27,12 @@ class MachineModelSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final String? selectedId = selected == null
+        ? null
+        : models.any((MachineModelEntity m) => m.id == selected!.id)
+        ? selected!.id
+        : null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -35,7 +44,7 @@ class MachineModelSelector extends StatelessWidget {
         Semantics(
           identifier: 'machine_model_selector',
           child: DropdownButtonFormField<String>(
-            initialValue: selected?.id,
+            initialValue: selectedId,
             isExpanded: true,
             decoration: InputDecoration(
               hintText: LocaleKeys.machineSelectModel.tr(),
@@ -54,15 +63,17 @@ class MachineModelSelector extends StatelessWidget {
                   );
                 })
                 .toList(growable: false),
-            onChanged: (String? id) {
-              if (id == null) {
-                return;
-              }
+            onChanged: models.isEmpty
+                ? null
+                : (String? id) {
+                    if (id == null) {
+                      return;
+                    }
 
-              onSelected(
-                models.firstWhere((MachineModelEntity m) => m.id == id),
-              );
-            },
+                    onSelected(
+                      models.firstWhere((MachineModelEntity m) => m.id == id),
+                    );
+                  },
           ),
         ),
         if (selected != null) ...<Widget>[

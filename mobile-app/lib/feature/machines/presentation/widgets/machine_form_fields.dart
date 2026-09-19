@@ -71,6 +71,13 @@ class MachineFormFields extends StatelessWidget {
           onSelected: onModelSelected,
           errorText: state.fieldErrors['machineModelId'],
         ),
+        if (isEditing) ...<Widget>[
+          const SizedBox(height: AppSpacing.xs),
+          DetailNote(
+            LocaleKeys.machineModelEditSameTypeHint.tr(),
+            icon: Icons.info_outline_rounded,
+          ),
+        ],
         const SizedBox(height: AppSpacing.md),
 
         if (isEditing)

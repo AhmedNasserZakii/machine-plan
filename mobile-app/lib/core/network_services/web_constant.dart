@@ -73,8 +73,11 @@ abstract class WebConstant {
 
   /// The type and model catalogue behind the intake form's model picker. Reads
   /// are open to any authenticated user because every machine form needs them.
+  /// Writes (`POST` / `PATCH`) need `settings.manage`.
   static const String machineTypes = 'machine-types';
   static const String machineModels = 'machine-models';
+
+  static String machineModel(String id) => '$machineModels/$id';
 
   static String machineBySerial(String serial) => '$machines/by-serial/$serial';
 

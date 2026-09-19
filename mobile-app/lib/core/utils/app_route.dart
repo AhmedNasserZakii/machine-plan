@@ -10,14 +10,19 @@ import 'package:machinery/feature/auth/presentation/pages/login_screen.dart';
 import 'package:machinery/feature/machines/data/logic/machine_bulk_import/machine_bulk_import_cubit.dart';
 import 'package:machinery/feature/machines/data/logic/machine_detail/machine_detail_cubit.dart';
 import 'package:machinery/feature/machines/data/logic/machine_form/machine_form_cubit.dart';
+import 'package:machinery/feature/machines/data/logic/machine_model_form/machine_model_form_cubit.dart';
+import 'package:machinery/feature/machines/data/logic/machine_models_list/machine_models_list_cubit.dart';
 import 'package:machinery/feature/machines/data/logic/machine_maintenance_history/machine_maintenance_history_cubit.dart';
 import 'package:machinery/feature/machines/data/logic/machine_timeline/machine_timeline_cubit.dart';
+import 'package:machinery/feature/machines/domain/entities/machine_catalogue_entity.dart';
 import 'package:machinery/feature/machines/domain/entities/machine_entity.dart';
 import 'package:machinery/feature/machines/domain/entities/machine_lookup_result.dart';
 import 'package:machinery/feature/machines/presentation/pages/machine_bulk_import_screen.dart';
 import 'package:machinery/feature/machines/presentation/pages/machine_detail_screen.dart';
 import 'package:machinery/feature/machines/presentation/pages/machine_form_screen.dart';
 import 'package:machinery/feature/machines/presentation/pages/machine_maintenance_history_screen.dart';
+import 'package:machinery/feature/machines/presentation/pages/machine_model_form_screen.dart';
+import 'package:machinery/feature/machines/presentation/pages/machine_models_list_screen.dart';
 import 'package:machinery/feature/machines/presentation/pages/machine_timeline_screen.dart';
 import 'package:machinery/feature/maintenance/data/logic/maintenance_create/maintenance_create_cubit.dart';
 import 'package:machinery/feature/maintenance/data/logic/maintenance_detail/maintenance_detail_cubit.dart';
@@ -382,6 +387,41 @@ abstract class AppRoute {
         builder: (_) => BlocProvider<MachineBulkImportCubit>(
           create: (_) => getIt<MachineBulkImportCubit>(),
           child: const MachineBulkImportScreen(),
+        ),
+      ),
+    );
+  }
+
+  /// Admin catalogue of machine models. Needs `settings.manage`.
+  static Future<void> goToMachineModelsList({required BuildContext context}) {
+    return Navigator.push<void>(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => PermissionBoundary(
+          permission: P.settingsManage,
+          child: BlocProvider<MachineModelsListCubit>(
+            create: (_) => getIt<MachineModelsListCubit>(),
+            child: const MachineModelsListScreen(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Resolves to true when a model was created or updated.
+  static Future<bool?> goToMachineModelForm({
+    required BuildContext context,
+    MachineModelEntity? existing,
+  }) {
+    return Navigator.push<bool>(
+      context,
+      MaterialPageRoute<bool>(
+        builder: (_) => PermissionBoundary(
+          permission: P.settingsManage,
+          child: BlocProvider<MachineModelFormCubit>(
+            create: (_) => getIt<MachineModelFormCubit>(param1: existing),
+            child: MachineModelFormScreen(existing: existing),
+          ),
         ),
       ),
     );

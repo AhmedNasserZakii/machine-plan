@@ -51,14 +51,19 @@ class MachineFormCubit extends Cubit<MachineFormState> {
       return;
     }
 
-    final List<MachineModelEntity> models = result.getOrElse(
+    final List<MachineModelEntity> catalogue = result.getOrElse(
       () => <MachineModelEntity>[],
     );
+
+    // On edit the server refuses a model of a different type (SIM rules are
+    // fixed for the unit), so the picker only offers same-type peers.
+    final List<MachineModelEntity> models = _modelsForForm(catalogue);
+    final MachineModelEntity? selected = _initialModel(models);
 
     emit(
       MachineFormReady(
         models: models,
-        selectedModel: _initialModel(models),
+        selectedModel: selected,
         warrantyStart: existing?.warranty.start,
         warrantyEnd: existing?.warranty.end,
         hasBox: existing?.hasBox ?? true,
@@ -196,17 +201,61 @@ class MachineFormCubit extends Cubit<MachineFormState> {
   }
 
   MachineModelEntity? _initialModel(List<MachineModelEntity> models) {
-    final String? existingModelId = existing?.model.id;
-    if (existingModelId == null) {
+    final MachineEntity? existing = this.existing;
+    if (existing == null) {
       return null;
     }
 
     for (final MachineModelEntity model in models) {
-      if (model.id == existingModelId) {
+      if (model.id == existing.model.id) {
         return model;
       }
     }
 
-    return null;
+    // Catalogue can lag (or omit an inactive row) — still show what the unit
+    // already has so the field is editable rather than blank.
+    return _syntheticFromExisting(existing);
+  }
+
+  /// Intake sees every model; edit only sees peers of the unit's type.
+  List<MachineModelEntity> _modelsForForm(List<MachineModelEntity> catalogue) {
+    final MachineEntity? existing = this.existing;
+    if (existing == null) {
+      return catalogue;
+    }
+
+    final List<MachineModelEntity> sameType = catalogue
+        .where(
+          (MachineModelEntity model) => model.type.id == existing.type.id,
+        )
+        .toList();
+
+    final bool hasCurrent = sameType.any(
+      (MachineModelEntity model) => model.id == existing.model.id,
+    );
+
+    if (hasCurrent) {
+      return sameType;
+    }
+
+    return <MachineModelEntity>[
+      _syntheticFromExisting(existing),
+      ...sameType,
+    ];
+  }
+
+  MachineModelEntity _syntheticFromExisting(MachineEntity machine) {
+    return MachineModelEntity(
+      id: machine.model.id,
+      code: machine.model.id,
+      name: machine.model.name,
+      manufacturer: machine.model.manufacturer,
+      type: MachineTypeEntity(
+        id: machine.type.id,
+        code: machine.type.id,
+        name: machine.type.name,
+        requiresSim: machine.type.requiresSim,
+      ),
+    );
   }
 }

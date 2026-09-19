@@ -45,9 +45,12 @@ import 'package:machinery/feature/home/domain/repos/home_repo.dart';
 import 'package:machinery/feature/home/domain/repos/home_repo_impl.dart';
 import 'package:machinery/feature/machines/data/logic/machine_bulk_import/machine_bulk_import_cubit.dart';
 import 'package:machinery/feature/machines/data/logic/machine_form/machine_form_cubit.dart';
+import 'package:machinery/feature/machines/data/logic/machine_model_form/machine_model_form_cubit.dart';
+import 'package:machinery/feature/machines/data/logic/machine_models_list/machine_models_list_cubit.dart';
 import 'package:machinery/feature/machines/data/logic/machine_maintenance_history/machine_maintenance_history_cubit.dart';
 import 'package:machinery/feature/machines/data/logic/machine_timeline/machine_timeline_cubit.dart';
 import 'package:machinery/feature/machines/data/logic/machines_list/machines_list_cubit.dart';
+import 'package:machinery/feature/machines/domain/entities/machine_catalogue_entity.dart';
 import 'package:machinery/feature/machines/domain/entities/machine_entity.dart';
 import 'package:machinery/feature/machines/domain/repos/machines_repo.dart';
 import 'package:machinery/feature/machines/domain/repos/machines_repo_impl.dart';
@@ -352,6 +355,15 @@ void setupServiceLocator(AppDatabase appDatabase) {
   getIt.registerFactoryParam<MachineFormCubit, MachineEntity?, void>(
     (MachineEntity? existing, _) =>
         MachineFormCubit(machinesRepo: getIt(), existing: existing),
+  );
+
+  getIt.registerFactory<MachineModelsListCubit>(
+    () => MachineModelsListCubit(machinesRepo: getIt()),
+  );
+
+  getIt.registerFactoryParam<MachineModelFormCubit, MachineModelEntity?, void>(
+    (MachineModelEntity? existing, _) =>
+        MachineModelFormCubit(machinesRepo: getIt(), existing: existing),
   );
 
   getIt.registerFactory<ScannerCubit>(

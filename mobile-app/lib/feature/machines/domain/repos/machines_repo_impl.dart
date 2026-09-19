@@ -20,6 +20,7 @@ import 'package:machinery/feature/machines/domain/entities/machine_entity.dart';
 import 'package:machinery/feature/machines/domain/entities/machine_lookup_result.dart';
 import 'package:machinery/feature/machines/domain/entities/machine_maintenance_history.dart';
 import 'package:machinery/feature/machines/domain/params/machine_form_params.dart';
+import 'package:machinery/feature/machines/domain/params/machine_model_form_params.dart';
 import 'package:machinery/feature/machines/domain/params/machines_query_params.dart';
 import 'package:machinery/feature/machines/domain/repos/machines_repo.dart';
 import 'package:machinery/feature/users/data/models/branch_model.dart';
@@ -367,11 +368,18 @@ class MachinesRepoImpl implements MachinesRepo {
   }
 
   @override
-  Future<Either<ServerFailure, List<MachineModelEntity>>> fetchMachineModels() {
+  Future<Either<ServerFailure, List<MachineModelEntity>>> fetchMachineModels({
+    bool includeInactive = false,
+    bool rawTranslations = false,
+  }) {
     return _guard('fetchMachineModels', () async {
       final List<Map<String, dynamic>> rows = await PaginatedFetch.all(
         client: apiService.client(),
         path: WebConstant.machineModels,
+        extraQuery: <String, dynamic>{
+          if (includeInactive) ApiKeys.includeInactive: true,
+          if (rawTranslations) ApiKeys.rawTranslations: true,
+        },
       );
 
       return rows
@@ -380,6 +388,34 @@ class MachinesRepoImpl implements MachinesRepo {
                 MachineModelModel.fromJson(json).toEntity(),
           )
           .toList(growable: false);
+    });
+  }
+
+  @override
+  Future<Either<ServerFailure, MachineModelEntity>> createMachineModel({
+    required CreateMachineModelParams params,
+  }) {
+    return _guard('createMachineModel', () async {
+      final Response<dynamic> response = await apiService.client().post<dynamic>(
+        WebConstant.machineModels,
+        data: params.toJson(),
+      );
+
+      return MachineModelModel.fromJson(_data(response.data)).toEntity();
+    });
+  }
+
+  @override
+  Future<Either<ServerFailure, MachineModelEntity>> updateMachineModel({
+    required String id,
+    required UpdateMachineModelParams params,
+  }) {
+    return _guard('updateMachineModel', () async {
+      final Response<dynamic> response = await apiService
+          .client()
+          .patch<dynamic>(WebConstant.machineModel(id), data: params.toJson());
+
+      return MachineModelModel.fromJson(_data(response.data)).toEntity();
     });
   }
 

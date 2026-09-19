@@ -42,8 +42,10 @@ class _FakeMachinesRepo implements MachinesRepo {
   List<CreateMachineParams>? lastRows;
 
   @override
-  Future<Either<ServerFailure, List<MachineModelEntity>>>
-  fetchMachineModels() async {
+  Future<Either<ServerFailure, List<MachineModelEntity>>> fetchMachineModels({
+    bool includeInactive = false,
+    bool rawTranslations = false,
+  }) async {
     return modelsResult ?? const Right(<MachineModelEntity>[]);
   }
 

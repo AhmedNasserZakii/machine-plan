@@ -165,6 +165,10 @@ class ApiKeys {
   static const String costVsPricePercent = 'costVsPricePercent';
   static const String manufacturer = 'manufacturer';
   static const String machineType = 'machineType';
+  static const String translations = 'translations';
+  static const String ar = 'ar';
+  static const String en = 'en';
+  static const String rawTranslations = 'rawTranslations';
 
   // Query-string only, so they have no counterpart in any response body.
   static const String holderType = 'holderType';

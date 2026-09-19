@@ -65,6 +65,21 @@ abstract class AppValidators {
     return null;
   }
 
+  /// Lookup `code` — uppercase snake, length 2–60. Matches the backend rule
+  /// on `CreateMachineModelDto` so a bad code never leaves the form.
+  static String? isValidLookupCode(String? value) {
+    final String trimmed = value?.trim() ?? '';
+    if (trimmed.isEmpty) {
+      return LocaleKeys.thisFieldIsRequired.tr();
+    }
+    if (!_lookupCode.hasMatch(trimmed)) {
+      return LocaleKeys.machineModelCodeInvalid.tr();
+    }
+    return null;
+  }
+
+  static final RegExp _lookupCode = RegExp(r'^[A-Z][A-Z0-9_]{1,59}$');
+
   static String? isValidAmount(String? value) {
     if (value?.trim().isEmpty ?? true) {
       return LocaleKeys.thisFieldIsRequired.tr();
