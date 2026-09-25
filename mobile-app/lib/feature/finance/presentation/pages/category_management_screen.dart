@@ -6,6 +6,7 @@ import 'package:machinery/core/shared_widgets/app_confirm_dialog.dart';
 import 'package:machinery/core/shared_widgets/app_empty_state.dart';
 import 'package:machinery/core/shared_widgets/app_error_view.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
+import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
 import 'package:machinery/core/shared_widgets/error_toast.dart';
 import 'package:machinery/core/shared_widgets/ltr_text.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
@@ -196,7 +197,10 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
             .toList(growable: false) ??
         const <FinanceCategory>[];
     return Scaffold(
-      appBar: AppBar(title: Text(LocaleKeys.financeCategories.tr())),
+      appBar: AppBar(
+        title: Text(LocaleKeys.financeCategories.tr()),
+        leading: const ArrowBackWidget(),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: _edit,
         child: const Icon(Icons.add),

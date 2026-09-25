@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/di/service_locator.dart';
+import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/feature/reports/domain/entities/report_entities.dart';
@@ -13,7 +14,10 @@ class ReportExportsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final repo = getIt<ReportsRepo>();
     return Scaffold(
-      appBar: AppBar(title: Text(LocaleKeys.reportsDownloaded.tr())),
+      appBar: AppBar(
+        title: Text(LocaleKeys.reportsDownloaded.tr()),
+        leading: const ArrowBackWidget(),
+      ),
       body: ValueListenableBuilder<List<ReportJob>>(
         valueListenable: repo.exports,
         builder: (_, jobs, _) {

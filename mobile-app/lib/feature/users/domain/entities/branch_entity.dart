@@ -8,13 +8,24 @@ class BranchEntity extends Equatable {
     required this.code,
     required this.name,
     this.isActive = true,
+    this.address,
+    this.phone,
   });
 
   final String id;
   final String code;
   final String name;
   final bool isActive;
+  final String? address;
+  final String? phone;
 
   @override
-  List<Object?> get props => <Object?>[id, code, name, isActive];
+  List<Object?> get props => <Object?>[
+    id,
+    code,
+    name,
+    isActive,
+    address,
+    phone,
+  ];
 }

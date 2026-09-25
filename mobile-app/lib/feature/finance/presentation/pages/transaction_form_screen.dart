@@ -4,6 +4,7 @@ import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/di/service_locator.dart';
 import 'package:machinery/core/shared_widgets/app_error_view.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
+import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
 import 'package:machinery/core/shared_widgets/error_toast.dart';
 import 'package:machinery/core/shared_widgets/ltr_text.dart';
 import 'package:machinery/core/shared_widgets/success_toast.dart';
@@ -136,6 +137,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                 ? LocaleKeys.financeAddTransaction.tr()
                 : LocaleKeys.financeEditTransaction.tr(),
           ),
+          leading: const ArrowBackWidget(),
         ),
         body: _loadError == null
             ? const AppLoadingIndicator()
@@ -149,6 +151,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
               ? LocaleKeys.financeAddTransaction.tr()
               : LocaleKeys.financeEditTransaction.tr(),
         ),
+        leading: const ArrowBackWidget(),
       ),
       body: Form(
         key: _formKey,

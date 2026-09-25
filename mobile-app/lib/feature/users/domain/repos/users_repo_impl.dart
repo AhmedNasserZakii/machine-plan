@@ -22,6 +22,7 @@ import 'package:machinery/feature/users/domain/entities/role_entity.dart';
 import 'package:machinery/feature/users/domain/entities/user_entity.dart';
 import 'package:machinery/feature/users/domain/entities/user_custody_entity.dart';
 import 'package:machinery/feature/users/domain/entities/user_permissions_entity.dart';
+import 'package:machinery/feature/users/domain/params/branch_form_params.dart';
 import 'package:machinery/feature/users/domain/params/user_form_params.dart';
 import 'package:machinery/feature/users/domain/params/role_write_params.dart';
 import 'package:machinery/feature/users/domain/params/users_query_params.dart';
@@ -247,11 +248,16 @@ class UsersRepoImpl implements UsersRepo {
   }
 
   @override
-  Future<Either<ServerFailure, List<BranchEntity>>> fetchBranches() {
+  Future<Either<ServerFailure, List<BranchEntity>>> fetchBranches({
+    bool includeInactive = false,
+  }) {
     return _guard('fetchBranches', () async {
       final List<Map<String, dynamic>> rows = await PaginatedFetch.all(
         client: apiService.client(),
         path: WebConstant.branches,
+        extraQuery: includeInactive
+            ? const <String, dynamic>{ApiKeys.includeInactive: true}
+            : null,
       );
 
       return rows
@@ -260,6 +266,51 @@ class UsersRepoImpl implements UsersRepo {
                 BranchModel.fromJson(json).toEntity(),
           )
           .toList(growable: false);
+    });
+  }
+
+  @override
+  Future<Either<ServerFailure, BranchEntity>> createBranch({
+    required CreateBranchParams params,
+  }) {
+    return _guard('createBranch', () async {
+      final Response<dynamic> response = await apiService
+          .client()
+          .post<dynamic>(WebConstant.branches, data: params.toJson());
+
+      return BranchModel.fromJson(_data(response.data)).toEntity();
+    });
+  }
+
+  @override
+  Future<Either<ServerFailure, BranchEntity>> updateBranch({
+    required String id,
+    required UpdateBranchParams params,
+  }) {
+    return _guard('updateBranch', () async {
+      final Response<dynamic> response = await apiService
+          .client()
+          .patch<dynamic>(WebConstant.branch(id), data: params.toJson());
+
+      return BranchModel.fromJson(_data(response.data)).toEntity();
+    });
+  }
+
+  @override
+  Future<Either<ServerFailure, BranchEntity>> setBranchActive({
+    required String id,
+    required bool isActive,
+  }) {
+    return _guard('setBranchActive', () async {
+      final Response<dynamic> response = await apiService
+          .client()
+          .patch<dynamic>(
+            isActive
+                ? WebConstant.branchActivate(id)
+                : WebConstant.branchDeactivate(id),
+          );
+
+      return BranchModel.fromJson(_data(response.data)).toEntity();
     });
   }
 

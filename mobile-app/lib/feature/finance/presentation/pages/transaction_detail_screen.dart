@@ -5,6 +5,7 @@ import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/di/service_locator.dart';
 import 'package:machinery/core/permissions/permission_keys.dart';
 import 'package:machinery/core/permissions/permission_service.dart';
+import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
 import 'package:machinery/core/shared_widgets/error_toast.dart';
 import 'package:machinery/core/shared_widgets/ltr_text.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
@@ -97,6 +98,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
       title: LtrText(_row.referenceNo),
+      leading: const ArrowBackWidget(),
       actions: <Widget>[
         if (_row.isEditable && getIt<PermissionService>().has(P.financeUpdate))
           IconButton(onPressed: _edit, icon: const Icon(Icons.edit_outlined)),

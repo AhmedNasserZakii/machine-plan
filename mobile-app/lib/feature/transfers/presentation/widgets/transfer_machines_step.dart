@@ -52,13 +52,23 @@ class TransferMachinesStep extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                const Icon(Icons.qr_code_scanner_rounded, size: 18),
+                const Icon(
+                  Icons.qr_code_scanner_rounded,
+                  size: 18,
+                  color: AppColors.whiteColor,
+                ),
                 const SizedBox(width: AppSpacing.sm),
-                Text(LocaleKeys.transferScanToAdd.tr()),
+                Text(
+                  LocaleKeys.transferScanToAdd.tr(),
+                  style: Styles.s14(
+                    context,
+                  ).copyWith(color: AppColors.whiteColor),
+                ),
               ],
             ),
           ),
         ),
+
         Padding(
           padding: const EdgeInsetsDirectional.all(AppSpacing.md),
           child: TextButton.icon(

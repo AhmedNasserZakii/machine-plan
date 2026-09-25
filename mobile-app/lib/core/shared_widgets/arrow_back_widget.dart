@@ -14,19 +14,27 @@ class ArrowBackWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return ClickedWidget(
       onTap: onTap ?? () => Navigator.maybePop(context),
-      child: Container(
-        width: 48,
-        height: 48,
-        alignment: AlignmentDirectional.center,
-        decoration: BoxDecoration(
-          color: AppColors.surfaceColor,
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: AppColors.borderColor),
+      child: Padding(
+        padding: const EdgeInsets.only(
+          left: 12,
+          right: 12,
+          top: 12,
+          bottom: 12,
         ),
-        child: const Icon(
-          Icons.arrow_back,
-          size: 20,
-          color: AppColors.textPrimaryColor,
+        child: Container(
+          width: 36,
+          height: 36,
+          alignment: AlignmentDirectional.center,
+          decoration: BoxDecoration(
+            color: AppColors.surfaceColor,
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            border: Border.all(color: AppColors.borderColor),
+          ),
+          child: const Icon(
+            Icons.arrow_back,
+            size: 20,
+            color: AppColors.textPrimaryColor,
+          ),
         ),
       ),
     );

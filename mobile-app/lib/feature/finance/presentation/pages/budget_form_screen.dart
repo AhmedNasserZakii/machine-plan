@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/di/service_locator.dart';
+import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
 import 'package:machinery/core/shared_widgets/error_toast.dart';
 import 'package:machinery/core/shared_widgets/ltr_text.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
@@ -107,6 +108,7 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
             ? LocaleKeys.financeAddBudget.tr()
             : LocaleKeys.financeEditBudget.tr(),
       ),
+      leading: const ArrowBackWidget(),
     ),
     body: Form(
       key: _key,

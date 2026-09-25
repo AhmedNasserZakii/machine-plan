@@ -68,6 +68,9 @@ import 'package:machinery/feature/users/data/logic/user_detail/user_detail_cubit
 import 'package:machinery/feature/users/data/logic/user_permissions/user_permissions_cubit.dart';
 import 'package:machinery/feature/users/data/logic/users_list/users_list_cubit.dart';
 import 'package:machinery/feature/users/data/logic/roles/roles_cubit.dart';
+import 'package:machinery/feature/users/data/logic/branch_form/branch_form_cubit.dart';
+import 'package:machinery/feature/users/data/logic/branches_list/branches_list_cubit.dart';
+import 'package:machinery/feature/users/domain/entities/branch_entity.dart';
 import 'package:machinery/feature/users/domain/entities/role_entity.dart';
 import 'package:machinery/feature/users/domain/entities/user_entity.dart';
 import 'package:machinery/feature/users/presentation/pages/user_detail_screen.dart';
@@ -76,6 +79,8 @@ import 'package:machinery/feature/users/presentation/pages/user_permissions_scre
 import 'package:machinery/feature/users/presentation/pages/users_list_screen.dart';
 import 'package:machinery/feature/users/presentation/pages/roles_list_screen.dart';
 import 'package:machinery/feature/users/presentation/pages/role_permissions_screen.dart';
+import 'package:machinery/feature/users/presentation/pages/branch_form_screen.dart';
+import 'package:machinery/feature/users/presentation/pages/branches_list_screen.dart';
 import 'package:machinery/core/permissions/permission_keys.dart';
 import 'package:machinery/core/shared_widgets/permission_boundary.dart';
 import 'package:machinery/feature/violations/data/logic/violation_create/violation_create_cubit.dart';
@@ -283,6 +288,42 @@ abstract class AppRoute {
           ),
         ),
       );
+
+  /// Admin list of branches. Needs `branches.manage`.
+  static Future<void> goToBranchesList({required BuildContext context}) {
+    return Navigator.push<void>(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => PermissionBoundary(
+          permission: P.branchesManage,
+          child: BlocProvider<BranchesListCubit>(
+            create: (_) => getIt<BranchesListCubit>(),
+            child: const BranchesListScreen(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Resolves to true when a branch was created, updated, deactivated or
+  /// restored.
+  static Future<bool?> goToBranchForm({
+    required BuildContext context,
+    BranchEntity? existing,
+  }) {
+    return Navigator.push<bool>(
+      context,
+      MaterialPageRoute<bool>(
+        builder: (_) => PermissionBoundary(
+          permission: P.branchesManage,
+          child: BlocProvider<BranchFormCubit>(
+            create: (_) => getIt<BranchFormCubit>(param1: existing),
+            child: BranchFormScreen(existing: existing),
+          ),
+        ),
+      ),
+    );
+  }
 
   static Future<void> goToRolePermissions({
     required BuildContext context,

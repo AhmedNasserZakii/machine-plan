@@ -162,6 +162,14 @@ class _MoreView extends StatelessWidget {
                           label: LocaleKeys.usersAndRoles.tr(),
                           onTap: () => AppRoute.goToUsersList(context: context),
                         ),
+                      if (permissionService.has(P.branchesManage))
+                        MoreTile(
+                          identifier: 'more_branches_tile',
+                          icon: Icons.store_mall_directory_outlined,
+                          label: LocaleKeys.branchesTitle.tr(),
+                          onTap: () =>
+                              AppRoute.goToBranchesList(context: context),
+                        ),
                       if (permissionService.has(P.settingsManage))
                         MoreTile(
                           identifier: 'more_machine_models_tile',

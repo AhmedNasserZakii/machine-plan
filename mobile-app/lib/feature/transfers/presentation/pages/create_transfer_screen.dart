@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
+import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
 import 'package:machinery/core/shared_widgets/custom_button.dart';
 import 'package:machinery/core/shared_widgets/error_toast.dart';
 import 'package:machinery/core/shared_widgets/success_toast.dart';
@@ -179,12 +180,11 @@ class _CreateTransferScreenState extends State<CreateTransferScreen> {
         return Scaffold(
           appBar: AppBar(
             title: Text(LocaleKeys.transferCreateTitle.tr()),
-            leading: state.step == CreateTransferStep.typeAndRecipient
-                ? null
-                : IconButton(
-                    onPressed: context.read<CreateTransferCubit>().back,
-                    icon: const Icon(Icons.arrow_forward_rounded),
-                  ),
+            leading: ArrowBackWidget(
+              onTap: state.step == CreateTransferStep.typeAndRecipient
+                  ? null
+                  : context.read<CreateTransferCubit>().back,
+            ),
           ),
           body: Column(
             children: <Widget>[
@@ -249,13 +249,18 @@ class _CreateTransferScreenState extends State<CreateTransferScreen> {
       // A self-attested type closes with the sender's own signature
       // (`9.3`) — every other type submits plainly and the receiver signs
       // later, on `confirm` (`9.4`).
-      CreateTransferStep.review => state.needsSenderSignature
-          ? (
-              LocaleKeys.transferSubmitSignature.tr(),
-              _submitWithSignature,
-              state.isSubmitting,
-            )
-          : (LocaleKeys.transferSubmit.tr(), cubit.submit, state.isSubmitting),
+      CreateTransferStep.review =>
+        state.needsSenderSignature
+            ? (
+                LocaleKeys.transferSubmitSignature.tr(),
+                _submitWithSignature,
+                state.isSubmitting,
+              )
+            : (
+                LocaleKeys.transferSubmit.tr(),
+                cubit.submit,
+                state.isSubmitting,
+              ),
     };
 
     return SafeArea(

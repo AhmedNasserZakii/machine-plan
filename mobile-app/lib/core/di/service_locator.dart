@@ -84,6 +84,9 @@ import 'package:machinery/feature/users/data/logic/user_form/user_form_cubit.dar
 import 'package:machinery/feature/users/data/logic/user_permissions/user_permissions_cubit.dart';
 import 'package:machinery/feature/users/data/logic/users_list/users_list_cubit.dart';
 import 'package:machinery/feature/users/data/logic/roles/roles_cubit.dart';
+import 'package:machinery/feature/users/data/logic/branch_form/branch_form_cubit.dart';
+import 'package:machinery/feature/users/data/logic/branches_list/branches_list_cubit.dart';
+import 'package:machinery/feature/users/domain/entities/branch_entity.dart';
 import 'package:machinery/feature/users/domain/entities/user_entity.dart';
 import 'package:machinery/feature/users/domain/repos/users_repo.dart';
 import 'package:machinery/feature/users/domain/repos/users_repo_impl.dart';
@@ -307,6 +310,15 @@ void setupServiceLocator(AppDatabase appDatabase) {
   );
 
   getIt.registerFactory<RolesCubit>(() => RolesCubit(repo: getIt()));
+
+  getIt.registerFactory<BranchesListCubit>(
+    () => BranchesListCubit(usersRepo: getIt()),
+  );
+
+  getIt.registerFactoryParam<BranchFormCubit, BranchEntity?, void>(
+    (BranchEntity? existing, _) =>
+        BranchFormCubit(usersRepo: getIt(), existing: existing),
+  );
 
   // The form, the permission editor and the row actions are all scoped to one
   // account, which arrives as a route parameter rather than through the

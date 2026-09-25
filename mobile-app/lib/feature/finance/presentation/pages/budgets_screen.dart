@@ -10,6 +10,7 @@ import 'package:machinery/core/shared_widgets/app_confirm_dialog.dart';
 import 'package:machinery/core/shared_widgets/app_empty_state.dart';
 import 'package:machinery/core/shared_widgets/app_error_view.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
+import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
 import 'package:machinery/core/shared_widgets/error_toast.dart';
 import 'package:machinery/core/shared_widgets/ltr_text.dart';
 import 'package:machinery/core/shared_widgets/paginated_list_view.dart';
@@ -146,7 +147,10 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(LocaleKeys.financeBudgets.tr())),
+    appBar: AppBar(
+      title: Text(LocaleKeys.financeBudgets.tr()),
+      leading: const ArrowBackWidget(),
+    ),
     floatingActionButton: _manage
         ? FloatingActionButton(onPressed: _form, child: const Icon(Icons.add))
         : null,

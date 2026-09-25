@@ -6,6 +6,7 @@ import 'package:machinery/core/local_storage/local_storage_constant_keys.dart';
 import 'package:machinery/core/shared_widgets/app_empty_state.dart';
 import 'package:machinery/core/shared_widgets/app_error_view.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
+import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/feature/finance/domain/entities/finance_entities.dart';
 import 'package:machinery/feature/finance/domain/repos/finance_repo.dart';
@@ -72,7 +73,7 @@ class _CategoryPickerScreenState extends State<CategoryPickerScreen> {
     }
     if (_error != null) {
       return Scaffold(
-        appBar: AppBar(),
+        appBar: AppBar(leading: const ArrowBackWidget()),
         body: AppErrorView(message: _error!, onRetry: _load),
       );
     }
@@ -97,7 +98,10 @@ class _CategoryPickerScreenState extends State<CategoryPickerScreen> {
       );
     }
     return Scaffold(
-      appBar: AppBar(title: Text(LocaleKeys.financeChooseCategory.tr())),
+      appBar: AppBar(
+        title: Text(LocaleKeys.financeChooseCategory.tr()),
+        leading: const ArrowBackWidget(),
+      ),
       body: Column(
         children: <Widget>[
           Padding(

@@ -5,6 +5,7 @@ import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/di/service_locator.dart';
 import 'package:machinery/core/shared_widgets/app_error_view.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
+import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/feature/reports/data/logic/report_viewer/report_viewer_cubit.dart';
@@ -42,6 +43,7 @@ class _ReportsHubScreenState extends State<ReportsHubScreen> {
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
       title: Text(LocaleKeys.reportsTitle.tr()),
+      leading: const ArrowBackWidget(),
       actions: <Widget>[
         IconButton(
           tooltip: LocaleKeys.reportsDownloaded.tr(),

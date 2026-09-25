@@ -5,6 +5,7 @@ import 'package:machinery/core/di/service_locator.dart';
 import 'package:machinery/core/shared_widgets/app_empty_state.dart';
 import 'package:machinery/core/shared_widgets/app_error_view.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
+import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
 import 'package:machinery/core/shared_widgets/ltr_text.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
@@ -52,7 +53,10 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(LocaleKeys.financeBreakdown.tr())),
+    appBar: AppBar(
+      title: Text(LocaleKeys.financeBreakdown.tr()),
+      leading: const ArrowBackWidget(),
+    ),
     body: Column(
       children: <Widget>[
         Padding(

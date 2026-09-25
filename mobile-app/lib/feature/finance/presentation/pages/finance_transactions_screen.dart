@@ -8,6 +8,7 @@ import 'package:machinery/core/permissions/permission_service.dart';
 import 'package:machinery/core/shared_widgets/app_empty_state.dart';
 import 'package:machinery/core/shared_widgets/app_error_view.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
+import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
 import 'package:machinery/core/shared_widgets/ltr_text.dart';
 import 'package:machinery/core/shared_widgets/paginated_list_view.dart';
 import 'package:machinery/feature/finance/data/logic/transactions/finance_transactions_cubit.dart';
@@ -77,6 +78,7 @@ class _FinanceTransactionsScreenState extends State<FinanceTransactionsScreen> {
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
       title: Text(LocaleKeys.financeTransactions.tr()),
+      leading: const ArrowBackWidget(),
       actions: <Widget>[
         BlocBuilder<FinanceTransactionsCubit, FinanceTransactionsState>(
           builder: (_, state) => IconButton(

@@ -5,6 +5,7 @@ import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/permissions/permission_keys.dart';
 import 'package:machinery/core/shared_widgets/app_error_view.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
+import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
 import 'package:machinery/core/shared_widgets/permission_gate.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/core/utils/app_route.dart';
@@ -29,6 +30,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
           title: Text(LocaleKeys.userDetailTitle.tr()),
+          leading: const ArrowBackWidget(),
           actions: <Widget>[
             BlocBuilder<UserDetailCubit, UserDetailState>(
               builder: (context, state) => state is UserDetailLoaded

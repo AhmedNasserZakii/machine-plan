@@ -5,6 +5,7 @@ import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/shared_widgets/app_confirm_dialog.dart';
 import 'package:machinery/core/shared_widgets/app_empty_state.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
+import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
 import 'package:machinery/feature/sync/data/logic/sync_queue_cubit.dart';
 import 'package:machinery/feature/sync/data/logic/sync_queue_state.dart';
 import 'package:machinery/feature/sync/presentation/widgets/sync_conflict_dialog.dart';
@@ -55,7 +56,10 @@ class _SyncQueueScreenState extends State<SyncQueueScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(LocaleKeys.syncQueue.tr())),
+      appBar: AppBar(
+        title: Text(LocaleKeys.syncQueue.tr()),
+        leading: const ArrowBackWidget(),
+      ),
       body: BlocBuilder<SyncQueueCubit, SyncQueueState>(
         builder: (context, state) {
           if (state.isLoading) {

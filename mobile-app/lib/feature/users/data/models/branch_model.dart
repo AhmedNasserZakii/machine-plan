@@ -9,12 +9,16 @@ class BranchModel {
     required this.code,
     required this.name,
     this.isActive = true,
+    this.address,
+    this.phone,
   });
 
   final String id;
   final String code;
   final String name;
   final bool isActive;
+  final String? address;
+  final String? phone;
 
   factory BranchModel.fromJson(Map<String, dynamic> json) {
     return BranchModel(
@@ -22,10 +26,19 @@ class BranchModel {
       code: json[ApiKeys.code] as String? ?? '',
       name: json[ApiKeys.name] as String? ?? '',
       isActive: json[ApiKeys.isActive] as bool? ?? true,
+      address: json[ApiKeys.address] as String?,
+      phone: json[ApiKeys.phone] as String?,
     );
   }
 
   BranchEntity toEntity() {
-    return BranchEntity(id: id, code: code, name: name, isActive: isActive);
+    return BranchEntity(
+      id: id,
+      code: code,
+      name: name,
+      isActive: isActive,
+      address: address,
+      phone: phone,
+    );
   }
 }

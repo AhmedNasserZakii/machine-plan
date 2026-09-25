@@ -1330,4 +1330,31 @@ class LocaleKeys {
       'notification_template_digest';
   static const String notificationTemplateUnknown =
       'notification_template_unknown';
+
+  // ── Branches admin ───────────────────────────────────────────────────────
+  static const String branchesTitle = 'branches_title';
+  static const String branchesSearchHint = 'branches_search_hint';
+  static const String branchesEmptyTitle = 'branches_empty_title';
+  static const String branchesEmptySubtitle = 'branches_empty_subtitle';
+  static const String branchesNoSearchResults = 'branches_no_search_results';
+  static const String branchesOnlineOnlySubtitle =
+      'branches_online_only_subtitle';
+  static const String branchAddTitle = 'branch_add_title';
+  static const String branchEditTitle = 'branch_edit_title';
+  static const String branchCode = 'branch_code';
+  static const String branchCodeLocked = 'branch_code_locked';
+  static const String branchCodeInvalid = 'branch_code_invalid';
+  static const String branchName = 'branch_name';
+  static const String branchAddress = 'branch_address';
+  static const String branchPhone = 'branch_phone';
+  static const String branchPhoneInvalid = 'branch_phone_invalid';
+  static const String branchCreated = 'branch_created';
+  static const String branchUpdated = 'branch_updated';
+  static const String branchDeactivate = 'branch_deactivate';
+  static const String branchActivate = 'branch_activate';
+  static const String branchDeactivateTitle = 'branch_deactivate_title';
+  static const String branchDeactivateMessage = 'branch_deactivate_message';
+  static const String branchDeactivated = 'branch_deactivated';
+  static const String branchActivated = 'branch_activated';
+  static const String branchInactive = 'branch_inactive';
 }

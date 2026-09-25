@@ -226,6 +226,9 @@ abstract class WebConstant {
   static String userViolationsSummary(String id) =>
       '$users/$id/violations/summary';
   static String branchSummary(String id) => '$branches/$id/summary';
+  static String branch(String id) => '$branches/$id';
+  static String branchActivate(String id) => '$branches/$id/activate';
+  static String branchDeactivate(String id) => '$branches/$id/deactivate';
 
   // ── Lookups ──────────────────────────────────────────────────────────────
   // Reference tables the app loads once and holds for the session. Reads are

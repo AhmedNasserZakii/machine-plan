@@ -6,6 +6,7 @@ import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/di/service_locator.dart';
 import 'package:machinery/core/helper/formatters.dart';
 import 'package:machinery/core/network_services/api_service_failure.dart';
+import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
 import 'package:machinery/core/shared_widgets/detail_card.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
@@ -216,6 +217,7 @@ class _SignatureViewerPage extends StatelessWidget {
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         title: Text(LocaleKeys.transferSignatureViewerTitle.tr()),
+        leading: const ArrowBackWidget(),
       ),
       body: FutureBuilder<Either<ServerFailure, String>>(
         future: getIt<TransfersRepo>().fetchSignatureMediaUrl(

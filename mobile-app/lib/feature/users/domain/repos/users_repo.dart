@@ -7,6 +7,7 @@ import 'package:machinery/feature/users/domain/entities/role_entity.dart';
 import 'package:machinery/feature/users/domain/entities/user_entity.dart';
 import 'package:machinery/feature/users/domain/entities/user_custody_entity.dart';
 import 'package:machinery/feature/users/domain/entities/user_permissions_entity.dart';
+import 'package:machinery/feature/users/domain/params/branch_form_params.dart';
 import 'package:machinery/feature/users/domain/params/role_write_params.dart';
 import 'package:machinery/feature/users/domain/params/user_form_params.dart';
 import 'package:machinery/feature/users/domain/params/users_query_params.dart';
@@ -90,5 +91,25 @@ abstract class UsersRepo {
   Future<Either<ServerFailure, List<PermissionGroupEntity>>>
       fetchPermissionCatalogue();
 
-  Future<Either<ServerFailure, List<BranchEntity>>> fetchBranches();
+  /// [includeInactive] is for the branch admin screen only — every picker
+  /// wants active branches.
+  Future<Either<ServerFailure, List<BranchEntity>>> fetchBranches({
+    bool includeInactive = false,
+  });
+
+  Future<Either<ServerFailure, BranchEntity>> createBranch({
+    required CreateBranchParams params,
+  });
+
+  Future<Either<ServerFailure, BranchEntity>> updateBranch({
+    required String id,
+    required UpdateBranchParams params,
+  });
+
+  /// Deactivating is refused (409) while the branch still holds machines or
+  /// active staff.
+  Future<Either<ServerFailure, BranchEntity>> setBranchActive({
+    required String id,
+    required bool isActive,
+  });
 }

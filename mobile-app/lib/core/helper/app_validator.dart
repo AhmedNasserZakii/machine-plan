@@ -80,6 +80,33 @@ abstract class AppValidators {
 
   static final RegExp _lookupCode = RegExp(r'^[A-Z][A-Z0-9_]{1,59}$');
 
+  /// Branch `code` — uppercase snake, length 2–30, per `CreateBranchDto`.
+  static String? isValidBranchCode(String? value) {
+    final String trimmed = value?.trim() ?? '';
+    if (trimmed.isEmpty) {
+      return LocaleKeys.thisFieldIsRequired.tr();
+    }
+    if (!_branchCode.hasMatch(trimmed)) {
+      return LocaleKeys.branchCodeInvalid.tr();
+    }
+    return null;
+  }
+
+  static final RegExp _branchCode = RegExp(r'^[A-Z][A-Z0-9_]{1,29}$');
+
+  /// Optional branch line. Not [isValidEgyptianPhone]: a branch number is
+  /// often a landline such as `0341234567`.
+  static String? isValidBranchPhone(String? value) {
+    final String trimmed = value?.trim() ?? '';
+    if (trimmed.isEmpty) {
+      return null;
+    }
+    if (trimmed.length < 5 || trimmed.length > 20) {
+      return LocaleKeys.branchPhoneInvalid.tr();
+    }
+    return null;
+  }
+
   static String? isValidAmount(String? value) {
     if (value?.trim().isEmpty ?? true) {
       return LocaleKeys.thisFieldIsRequired.tr();

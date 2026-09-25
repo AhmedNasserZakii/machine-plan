@@ -7,6 +7,7 @@ import 'package:machinery/core/permissions/permission_keys.dart';
 import 'package:machinery/core/permissions/permission_service.dart';
 import 'package:machinery/core/shared_widgets/app_error_view.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
+import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
 import 'package:machinery/core/shared_widgets/detail_card.dart';
 import 'package:machinery/core/shared_widgets/error_toast.dart';
 import 'package:machinery/core/shared_widgets/success_toast.dart';
@@ -105,7 +106,10 @@ class _TransferDetailScreenState extends State<TransferDetailScreen> {
         if (!didPop) Navigator.of(context).pop(_changed);
       },
       child: Scaffold(
-        appBar: AppBar(title: Text(LocaleKeys.transfersTitle.tr())),
+        appBar: AppBar(
+          title: Text(LocaleKeys.transfersTitle.tr()),
+          leading: const ArrowBackWidget(),
+        ),
         body: BlocConsumer<TransferDetailCubit, TransferDetailState>(
           listener: _onStateChanged,
           builder: (BuildContext context, TransferDetailState state) {

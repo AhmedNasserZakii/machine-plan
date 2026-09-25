@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/helper/app_validator.dart';
+import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
 import 'package:machinery/core/shared_widgets/custom_button.dart';
 import 'package:machinery/core/shared_widgets/error_toast.dart';
 import 'package:machinery/core/shared_widgets/success_toast.dart';
@@ -95,7 +96,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           return Scaffold(
             appBar: AppBar(
               title: Text(LocaleKeys.changePassword.tr()),
-              automaticallyImplyLeading: !widget.isForced,
+              automaticallyImplyLeading: false,
+              leading: widget.isForced ? null : const ArrowBackWidget(),
             ),
             body: SafeArea(
               child: SingleChildScrollView(

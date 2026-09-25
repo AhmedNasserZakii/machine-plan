@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/shared_widgets/app_empty_state.dart';
+import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
 
 /// Destination for entries whose feature has not shipped yet. It states that
 /// plainly rather than showing an empty list, which would read as "no data"
@@ -19,7 +20,10 @@ class FeatureNotReadyScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(titleKey.tr())),
+      appBar: AppBar(
+        title: Text(titleKey.tr()),
+        leading: const ArrowBackWidget(),
+      ),
       body: AppEmptyState(
         icon: icon,
         title: LocaleKeys.featureNotReadyTitle.tr(),

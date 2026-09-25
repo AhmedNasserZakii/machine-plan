@@ -7,6 +7,7 @@ import 'package:machinery/core/permissions/permission_keys.dart';
 import 'package:machinery/core/permissions/permission_service.dart';
 import 'package:machinery/core/shared_widgets/app_error_view.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
+import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
 import 'package:machinery/core/shared_widgets/error_toast.dart';
 import 'package:machinery/core/shared_widgets/success_toast.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
@@ -173,6 +174,7 @@ class _ReportViewerScreenState extends State<ReportViewerScreen> {
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
       title: Text(widget.report.title),
+      leading: const ArrowBackWidget(),
       actions: <Widget>[
         ValueListenableBuilder<List<ReportJob>>(
           valueListenable: _repo.exports,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/di/service_locator.dart';
 import 'package:machinery/core/permissions/permission_service.dart';
+import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 
 /// A route-level access check. Buttons are still hidden for good UX, but a
@@ -35,7 +36,7 @@ class PermissionBoundary extends StatelessWidget {
       builder: (context, _, _) {
         if (_allowed(service)) return child;
         return Scaffold(
-          appBar: AppBar(),
+          appBar: AppBar(leading: const ArrowBackWidget()),
           body: Center(
             child: Padding(
               padding: const EdgeInsetsDirectional.all(AppSpacing.lg),

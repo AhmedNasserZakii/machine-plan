@@ -5,6 +5,7 @@ import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/shared_widgets/app_empty_state.dart';
 import 'package:machinery/core/shared_widgets/app_error_view.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
+import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
 import 'package:machinery/core/shared_widgets/error_toast.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/core/utils/app_route.dart';
@@ -46,7 +47,10 @@ class _RolesListScreenState extends State<RolesListScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: Text(LocaleKeys.rolesTitle.tr())),
+        appBar: AppBar(
+          title: Text(LocaleKeys.rolesTitle.tr()),
+          leading: const ArrowBackWidget(),
+        ),
         floatingActionButton: FloatingActionButton(
           onPressed: () => _edit(null),
           child: const Icon(Icons.add),

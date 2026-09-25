@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/shared_widgets/app_confirm_dialog.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
+import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
 import 'package:machinery/core/shared_widgets/error_toast.dart';
 import 'package:machinery/core/shared_widgets/success_toast.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
@@ -48,7 +49,10 @@ class _RolePermissionsScreenState extends State<RolePermissionsScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: Text(widget.role.displayName)),
+        appBar: AppBar(
+          title: Text(widget.role.displayName),
+          leading: const ArrowBackWidget(),
+        ),
         body: BlocBuilder<RolesCubit, RolesState>(
           builder: (context, state) {
             if (state is! RolesReady) return const AppLoadingIndicator();
