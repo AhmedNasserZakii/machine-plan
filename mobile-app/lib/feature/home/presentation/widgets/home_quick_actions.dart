@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/styles/app_colors.dart';
+import '../../../../core/theme/styles/app_text_styles.dart';
+
 class HomeQuickAction {
   const HomeQuickAction({
     required this.label,
@@ -39,8 +42,13 @@ class HomeQuickActions extends StatelessWidget {
             (HomeQuickAction action) => FilledButton.tonalIcon(
               key: ValueKey<String>(action.identifier),
               onPressed: action.onTap,
-              icon: Icon(action.icon),
-              label: Text(action.label),
+              icon: Icon(action.icon, color: AppColors.whiteColor),
+              label: Text(
+                action.label,
+                style: Styles.s14(
+                  context,
+                ).copyWith(color: AppColors.whiteColor),
+              ),
             ),
           )
           .toList(growable: false),

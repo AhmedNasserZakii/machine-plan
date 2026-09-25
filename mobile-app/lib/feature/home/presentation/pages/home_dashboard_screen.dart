@@ -75,9 +75,13 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   }
 
   String? _lastUpdatedCaption() {
-    final DateTime? syncedAt = DateTime.tryParse(LocalStorage.getLastSyncedAt());
+    final DateTime? syncedAt = DateTime.tryParse(
+      LocalStorage.getLastSyncedAt(),
+    );
     if (syncedAt == null) return null;
-    return LocaleKeys.homeLastUpdated.tr(args: <String>[Formatters.relative(syncedAt)]);
+    return LocaleKeys.homeLastUpdated.tr(
+      args: <String>[Formatters.relative(syncedAt)],
+    );
   }
 
   @override
@@ -319,7 +323,9 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         child: Text(
           LocaleKeys.homeNoBlocksAvailable.tr(),
           textAlign: TextAlign.center,
-          style: Styles.s14(context).copyWith(color: AppColors.textSecondaryColor),
+          style: Styles.s14(
+            context,
+          ).copyWith(color: AppColors.textSecondaryColor),
         ),
       );
     }
@@ -342,7 +348,9 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
 
   Color _budgetsColor(BudgetStatusList? status) {
     if (status == null) return AppColors.warningColor;
-    return status.exceededCount > 0 ? AppColors.dangerColor : AppColors.warningColor;
+    return status.exceededCount > 0
+        ? AppColors.dangerColor
+        : AppColors.warningColor;
   }
 
   Widget _wrappedMachinesList() => BlocProvider<MachinesListCubit>(
