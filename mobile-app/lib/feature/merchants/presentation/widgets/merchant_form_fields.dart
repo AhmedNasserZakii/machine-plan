@@ -5,6 +5,7 @@ import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/helper/app_validator.dart';
 import 'package:machinery/core/shared_widgets/labeled_text_form_field.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
+import 'package:machinery/feature/auth/presentation/widgets/phone_field.dart';
 import 'package:machinery/feature/merchants/data/logic/merchant_form/merchant_form_state.dart';
 import 'package:machinery/feature/merchants/presentation/widgets/merchant_duplicate_notice.dart';
 
@@ -60,18 +61,10 @@ class MerchantFormFields extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.md),
 
-        LabeledTextFormField(
+        PhoneField(
           label: LocaleKeys.merchantPhone.tr(),
-          hintText: '01xxxxxxxxx',
           controller: phoneController,
-          keyboardType: TextInputType.phone,
-          textDirection: TextDirection.ltr,
           identifier: 'merchant_form_phone',
-          inputFormatters: <TextInputFormatter>[
-            FilteringTextInputFormatter.digitsOnly,
-          ],
-          maxLength: 11,
-          validation: AppValidators.isValidEgyptianPhone,
           errorText: state.fieldErrors['phone'],
           onChanged: (_) => onIdentityChanged(),
         ),

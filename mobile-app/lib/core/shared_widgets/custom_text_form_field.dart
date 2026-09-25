@@ -14,6 +14,7 @@ class CustomTextFormField extends StatefulWidget {
     this.maxLines,
     this.suffixIcon,
     this.prefixIcon,
+    this.prefixIconConstraints,
     this.readOnly,
     this.onTap,
     this.keyboardType,
@@ -40,6 +41,7 @@ class CustomTextFormField extends StatefulWidget {
   final int? maxLines;
   final Widget? suffixIcon;
   final Widget? prefixIcon;
+  final BoxConstraints? prefixIconConstraints;
   final bool? readOnly;
   final void Function()? onTap;
   final TextInputType? keyboardType;
@@ -78,7 +80,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
   Widget build(BuildContext context) {
     final double radius = widget.borderRadius ?? AppRadius.md;
 
-    final Widget field = TextFormField(
+    Widget field = TextFormField(
       onTapOutside: (_) => FocusScope.of(context).unfocus(),
       obscureText: _obscureText,
       obscuringCharacter: '*',
@@ -113,6 +115,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
               vertical: 14,
             ),
         prefixIcon: widget.prefixIcon,
+        prefixIconConstraints: widget.prefixIconConstraints,
         suffixIcon: widget.isPassword
             ? ClickedWidget(
                 onTap: () => setState(() => _obscureText = !_obscureText),
@@ -132,6 +135,15 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
         focusedErrorBorder: _border(radius, AppColors.dangerColor),
       ),
     );
+
+    // Phone / serial fields must keep prefix + digits on the left even when
+    // the surrounding Arabic layout is RTL.
+    if (widget.textDirection != null) {
+      field = Directionality(
+        textDirection: widget.textDirection!,
+        child: field,
+      );
+    }
 
     if (widget.identifier == null) {
       return field;

@@ -2,13 +2,13 @@
 // Flutter one the fields need.
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/helper/app_validator.dart';
 import 'package:machinery/core/shared_widgets/labeled_text_form_field.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/core/theme/styles/app_text_styles.dart';
+import 'package:machinery/feature/auth/presentation/widgets/phone_field.dart';
 import 'package:machinery/feature/users/data/logic/user_form/user_form_state.dart';
 import 'package:machinery/feature/users/domain/entities/role_entity.dart';
 import 'package:machinery/feature/users/presentation/widgets/branch_selector.dart';
@@ -58,20 +58,11 @@ class UserFormFields extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.md),
 
-        LabeledTextFormField(
+        PhoneField(
           controller: phoneController,
           label: LocaleKeys.userPhone.tr(),
-          hintText: '01xxxxxxxxx',
-          keyboardType: TextInputType.phone,
-          textInputAction: TextInputAction.next,
           identifier: 'user_phone_field',
-          textDirection: TextDirection.ltr,
-          maxLength: 11,
-          inputFormatters: <TextInputFormatter>[
-            FilteringTextInputFormatter.digitsOnly,
-          ],
           errorText: state.fieldErrors['phone'],
-          validation: AppValidators.isValidEgyptianPhone,
         ),
         const SizedBox(height: AppSpacing.md),
 

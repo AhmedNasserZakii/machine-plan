@@ -23,6 +23,7 @@ class LabeledTextFormField extends StatelessWidget {
     this.errorText,
     this.textDirection,
     this.prefixIcon,
+    this.prefixIconConstraints,
     this.suffixIcon,
     this.identifier,
   });
@@ -44,6 +45,7 @@ class LabeledTextFormField extends StatelessWidget {
   final String? errorText;
   final TextDirection? textDirection;
   final Widget? prefixIcon;
+  final BoxConstraints? prefixIconConstraints;
   final Widget? suffixIcon;
   final String? identifier;
 
@@ -75,6 +77,7 @@ class LabeledTextFormField extends StatelessWidget {
           errorText: errorText,
           textDirection: textDirection,
           prefixIcon: prefixIcon,
+          prefixIconConstraints: prefixIconConstraints,
           suffixIcon: suffixIcon,
           identifier: identifier,
         ),

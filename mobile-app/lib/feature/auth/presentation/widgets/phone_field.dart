@@ -6,11 +6,13 @@ import 'package:flutter/services.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/helper/app_validator.dart';
 import 'package:machinery/core/shared_widgets/labeled_text_form_field.dart';
+import 'package:machinery/feature/auth/presentation/widgets/egypt_phone_prefix.dart';
 
 class PhoneField extends StatelessWidget {
   const PhoneField({
     required this.controller,
     super.key,
+    this.label,
     this.onChanged,
     this.onFieldSubmitted,
     this.errorText,
@@ -18,6 +20,9 @@ class PhoneField extends StatelessWidget {
   });
 
   final TextEditingController controller;
+
+  /// Defaults to [LocaleKeys.phoneNumber] when omitted (login).
+  final String? label;
   final void Function(String)? onChanged;
   final void Function(String)? onFieldSubmitted;
   final String? errorText;
@@ -26,8 +31,8 @@ class PhoneField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LabeledTextFormField(
-      label: LocaleKeys.phoneNumber.tr(),
-      hintText: '01XXXXXXXXX',
+      label: label ?? LocaleKeys.phoneNumber.tr(),
+      hintText: '1XXXXXXXXX',
       keyboardType: TextInputType.phone,
       textInputAction: TextInputAction.next,
       controller: controller,
@@ -36,13 +41,14 @@ class PhoneField extends StatelessWidget {
       onFieldSubmitted: onFieldSubmitted,
       errorText: errorText,
       identifier: identifier,
-      maxLength: 14,
+      maxLength: 11,
       inputFormatters: <TextInputFormatter>[
-        FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
+        FilteringTextInputFormatter.digitsOnly,
       ],
       // A phone number stays LTR even inside the Arabic layout.
       textDirection: TextDirection.ltr,
-      prefixIcon: const Icon(Icons.phone_outlined, size: 20),
+      prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+      prefixIcon: const EgyptPhonePrefix(),
     );
   }
 }
