@@ -16,9 +16,11 @@ import 'package:machinery/feature/auth/data/logic/auth/auth_cubit.dart';
 import 'package:machinery/feature/auth/data/logic/auth/auth_state.dart';
 import 'package:machinery/feature/machines/domain/entities/machine_entity.dart';
 import 'package:machinery/feature/machines/domain/entities/machine_lookup_result.dart';
+import 'package:machinery/feature/machines/domain/params/machines_query_params.dart';
 import 'package:machinery/feature/scanning/domain/entities/scan_decision.dart';
 import 'package:machinery/feature/transfers/data/logic/create_transfer/create_transfer_cubit.dart';
 import 'package:machinery/feature/transfers/data/logic/create_transfer/create_transfer_state.dart';
+import 'package:machinery/feature/transfers/domain/entities/creatable_transfer_type.dart';
 import 'package:machinery/feature/transfers/domain/params/transfer_write_params.dart';
 import 'package:machinery/feature/transfers/presentation/widgets/handover_signature_card.dart';
 import 'package:machinery/feature/transfers/presentation/widgets/machine_picker_sheet.dart';
@@ -123,15 +125,27 @@ class _CreateTransferScreenState extends State<CreateTransferScreen> {
   /// custody list in one hand-off is a search-and-tick job, not forty trips
   /// through the camera. Selectability and "already added" are enforced by
   /// the sheet itself; the filter here is only a defensive re-check.
+  ///
+  /// Warehouse-origin types (company→branch, …) must not filter by the
+  /// caller's user id: those POSs sit under the warehouse, so a director
+  /// would otherwise see an empty list. Personal-custody types still scope
+  /// by the signed-in user.
   Future<void> _pickFromList() async {
     final CreateTransferCubit cubit = context.read<CreateTransferCubit>();
     final AuthState authState = context.read<AuthCubit>().state;
+    final CreatableTransferType? selected = cubit.state.selected;
 
-    if (authState is! Authenticated) return;
+    if (authState is! Authenticated || selected == null) return;
 
     final List<MachineEntity>? picked = await MachinePickerSheet.show(
       context: context,
-      holderId: authState.profile.user.id,
+      query: MachinesQueryParams(
+        holderId: selected.pickerUsesPersonalCustody
+            ? authState.profile.user.id
+            : null,
+        statuses: selected.allowedFromStatuses,
+        limit: 100,
+      ),
       isSelectable: (MachineEntity machine) => cubit.state.isEligible(machine),
       alreadySelectedIds: cubit.state.items
           .map((DraftItem item) => item.machine.id)

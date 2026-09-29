@@ -37,25 +37,22 @@ void main() {
     expect(none.needsSenderSignature, isFalse);
   });
 
-  test(
-    'recipientDisplayName prefers the merchant name over the bare id',
-    () {
-      const CreateTransferState named = CreateTransferState(
-        clientUuid: 'c1',
-        selected: selfAttestedToMerchant,
-        merchantId: 'm-1',
-        merchantName: 'محل الاختبار',
-      );
-      const CreateTransferState unnamed = CreateTransferState(
-        clientUuid: 'c1',
-        selected: selfAttestedToMerchant,
-        merchantId: 'm-1',
-      );
+  test('recipientDisplayName prefers the merchant name over the bare id', () {
+    const CreateTransferState named = CreateTransferState(
+      clientUuid: 'c1',
+      selected: selfAttestedToMerchant,
+      merchantId: 'm-1',
+      merchantName: 'محل الاختبار',
+    );
+    const CreateTransferState unnamed = CreateTransferState(
+      clientUuid: 'c1',
+      selected: selfAttestedToMerchant,
+      merchantId: 'm-1',
+    );
 
-      expect(named.recipientDisplayName, 'محل الاختبار');
-      expect(unnamed.recipientDisplayName, 'm-1');
-    },
-  );
+    expect(named.recipientDisplayName, 'محل الاختبار');
+    expect(unnamed.recipientDisplayName, 'm-1');
+  });
 
   test(
     'recipientDisplayName resolves a user/warehouse receiver from the recipients list',
@@ -80,5 +77,44 @@ void main() {
     );
 
     expect(state.recipientDisplayName, isNull);
+  });
+
+  test(
+    'pickerUsesPersonalCustody is false for warehouse-origin company→branch',
+    () {
+      const CreatableTransferType companyToBranch = CreatableTransferType(
+        type: TransferType.companyToBranch,
+        receiverKind: ReceiverKind.user,
+        selfAttested: false,
+        allowedFromStatuses: <MachineStatus>[MachineStatus.inCompanyWarehouse],
+      );
+
+      expect(companyToBranch.pickerUsesPersonalCustody, isFalse);
+    },
+  );
+
+  test('pickerUsesPersonalCustody is true for branch→representative', () {
+    const CreatableTransferType branchToRep = CreatableTransferType(
+      type: TransferType.branchToRepresentative,
+      receiverKind: ReceiverKind.user,
+      selfAttested: false,
+      allowedFromStatuses: <MachineStatus>[
+        MachineStatus.inBranchWarehouse,
+        MachineStatus.withSupervisor,
+      ],
+    );
+
+    expect(branchToRep.pickerUsesPersonalCustody, isTrue);
+  });
+
+  test('pickerUsesPersonalCustody is true for representative→merchant', () {
+    const CreatableTransferType repToMerchant = CreatableTransferType(
+      type: TransferType.representativeToMerchant,
+      receiverKind: ReceiverKind.merchant,
+      selfAttested: true,
+      allowedFromStatuses: <MachineStatus>[MachineStatus.withRepresentative],
+    );
+
+    expect(repToMerchant.pickerUsesPersonalCustody, isTrue);
   });
 }

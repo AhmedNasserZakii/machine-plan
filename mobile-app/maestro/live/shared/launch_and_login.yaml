@@ -27,6 +27,15 @@ name: Cold-start against the live API and sign in as the director
 - tapOn:
     id: "login_password_field"
 - inputText: ${PASSWORD}
+# Soft keyboard covers the submit button on physical Samsung devices.
+# Tap above the form (safe point) to drop IME focus — hideKeyboard sends
+# Back on some OEMs and can leave the login screen entirely.
+- tapOn:
+    point: "50%,12%"
+- extendedWaitUntil:
+    visible:
+      id: "login_submit_button"
+    timeout: 10000
 - tapOn:
     id: "login_submit_button"
 

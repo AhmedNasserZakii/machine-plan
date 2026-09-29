@@ -18,10 +18,13 @@ import 'package:machinery/feature/machines/domain/entities/machine_entity.dart';
 import 'package:machinery/feature/machines/domain/params/machines_query_params.dart';
 import 'package:machinery/feature/machines/presentation/widgets/machine_status_chip.dart';
 
-/// A searchable, multi-select list of the machines currently in one party's
-/// custody (`9.1`) — the alternative to scanning forty stickers one at a time
-/// when the machines are already known, e.g. clearing an entire branch
-/// warehouse in one hand-off.
+/// A searchable, multi-select list of machines eligible for this hand-off
+/// (`9.1`) — the alternative to scanning forty stickers one at a time when the
+/// machines are already known, e.g. clearing a company or branch warehouse.
+///
+/// Scope comes from [query]: personal-custody legs pass `holderId` (the
+/// caller's user id); warehouse-side legs pass `statuses` only — those units
+/// sit under a warehouse id, so filtering by the user always looks empty.
 ///
 /// "Cached" means the fetch happens once per opening rather than once per
 /// keystroke: [MachinesListCubit] already debounces search server-side and
@@ -29,13 +32,13 @@ import 'package:machinery/feature/machines/presentation/widgets/machine_status_c
 /// wizard never re-pays for a page already on screen.
 class MachinePickerSheet extends StatefulWidget {
   const MachinePickerSheet({
-    required this.holderId,
+    required this.query,
     required this.isSelectable,
     required this.alreadySelectedIds,
     super.key,
   });
 
-  final String holderId;
+  final MachinesQueryParams query;
 
   /// A machine that fails this cannot go this way — greyed out rather than
   /// hidden, so the rep sees it exists and why it is not offered.
@@ -46,7 +49,7 @@ class MachinePickerSheet extends StatefulWidget {
   /// Returns the machines the user picked, or `null` if he backed out.
   static Future<List<MachineEntity>?> show({
     required BuildContext context,
-    required String holderId,
+    required MachinesQueryParams query,
     required bool Function(MachineEntity machine) isSelectable,
     required Set<String> alreadySelectedIds,
   }) {
@@ -58,7 +61,7 @@ class MachinePickerSheet extends StatefulWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
       ),
       builder: (_) => MachinePickerSheet(
-        holderId: holderId,
+        query: query,
         isSelectable: isSelectable,
         alreadySelectedIds: alreadySelectedIds,
       ),
@@ -78,9 +81,7 @@ class _MachinePickerSheetState extends State<MachinePickerSheet> {
   void initState() {
     super.initState();
     _cubit = getIt<MachinesListCubit>();
-    _cubit.load(
-      params: MachinesQueryParams(holderId: widget.holderId, limit: 100),
-    );
+    _cubit.load(params: widget.query);
   }
 
   @override
@@ -177,7 +178,8 @@ class _MachinePickerSheetState extends State<MachinePickerSheet> {
                                 .contains(machine.id);
                             final bool eligible = widget.isSelectable(machine);
                             final bool checked =
-                                alreadyAdded || _selectedIds.contains(machine.id);
+                                alreadyAdded ||
+                                _selectedIds.contains(machine.id);
 
                             return _PickerRow(
                               machine: machine,

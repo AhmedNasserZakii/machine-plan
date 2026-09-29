@@ -52,6 +52,24 @@ class CreatableTransferType extends Equatable {
   bool allows(MachineStatus status) =>
       allowedFromStatuses.isEmpty || allowedFromStatuses.contains(status);
 
+  /// Whether the machine picker should scope by the signed-in user's id.
+  ///
+  /// Personal-custody legs (branch / supervisor / representative) hold machines
+  /// under `users.id`. Warehouse-side legs hold them under a warehouse (or with
+  /// no person at all) — filtering those by the caller's user id always returns
+  /// an empty list, which is exactly the "I don't see my POSs" bug on
+  /// company→branch. Mirrors the backend's own gate: warehouse senders are
+  /// checked by status alone (`assertInSenderCustody`).
+  bool get pickerUsesPersonalCustody {
+    const Set<MachineStatus> personal = <MachineStatus>{
+      MachineStatus.inBranchWarehouse,
+      MachineStatus.withSupervisor,
+      MachineStatus.withRepresentative,
+    };
+
+    return allowedFromStatuses.any(personal.contains);
+  }
+
   @override
   List<Object?> get props => <Object?>[
     type,

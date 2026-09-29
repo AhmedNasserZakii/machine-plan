@@ -1,0 +1,72 @@
+appId: com.machinery.machinery.dev
+name: L08 — Company→branch POS picker lists warehouse machines
+tags:
+  - live
+  - transfers
+---
+# Regression for the empty POS list on company→branch: the picker used to
+# filter by the caller's user id, but warehouse machines are held by the
+# warehouse (status IN_COMPANY_WAREHOUSE). This flow asserts the list is
+# non-empty after picking من الشركة للفرع + a branch supervisor.
+- runFlow: shared/launch_and_login.yaml
+
+- tapOn:
+    id: "nav_tab_transfers"
+- extendedWaitUntil:
+    visible:
+      id: "transfers_add_button"
+    timeout: 20000
+
+- tapOn:
+    id: "transfers_add_button"
+- extendedWaitUntil:
+    visible: "من الشركة للفرع"
+    timeout: 20000
+
+- tapOn: "من الشركة للفرع"
+
+# Recipient picker is rendered after the full type list, so scroll to it.
+- scrollUntilVisible:
+    element:
+      id: "transfer_recipient_picker_button"
+    direction: DOWN
+    timeout: 20000
+
+- tapOn:
+    id: "transfer_recipient_picker_button"
+- extendedWaitUntil:
+    visible:
+      id: "transfer_recipient_search_field"
+    timeout: 20000
+
+# ListTile merges title+subtitle into one accessibilityText with a newline,
+# so match with a regex rather than the bare name.
+- extendedWaitUntil:
+    visible: "(?s).*أحمد عبد الستار.*"
+    timeout: 20000
+- tapOn: "(?s).*أحمد عبد الستار.*"
+
+- tapOn:
+    id: "transfer_wizard_next"
+
+- extendedWaitUntil:
+    visible:
+      id: "transfer_pick_from_list"
+    timeout: 20000
+
+- tapOn:
+    id: "transfer_pick_from_list"
+
+# The sheet title proves the picker opened; a row keyed by a live warehouse
+# serial proves the status-scoped query returned machines (the old holderId
+# query returned zero).
+- extendedWaitUntil:
+    visible: "اختيار الماكينات"
+    timeout: 20000
+- extendedWaitUntil:
+    visible:
+      id: "machine_picker_row_123456"
+    timeout: 20000
+- assertVisible:
+    id: "machine_picker_row_000000"
+- assertNotVisible: "لا توجد ماكينات في حوزتك"

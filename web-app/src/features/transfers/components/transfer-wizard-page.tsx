@@ -177,12 +177,30 @@ export function TransferWizardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- debounce on item/type changes
   }, [state.step, state.type, state.items, state.toPartyId, buildCreateBody]);
 
+  // Personal-custody legs hold machines under users.id. Warehouse-side legs
+  // (company→branch, …) hold them under a warehouse — filtering those by the
+  // caller's user id always returns an empty list.
+  const personalCustodyStatuses = new Set([
+    'IN_BRANCH_WAREHOUSE',
+    'WITH_SUPERVISOR',
+    'WITH_REPRESENTATIVE',
+  ]);
+  const pickerUsesPersonalCustody = state.allowedFromStatuses.some((status) =>
+    personalCustodyStatuses.has(status),
+  );
+
   const custodyQuery = useQuery({
-    queryKey: ['machines', 'custody-picker', user?.id, state.allowedFromStatuses, pickerSearch],
-    enabled: pickerOpen && Boolean(user?.id),
+    queryKey: [
+      'machines',
+      'custody-picker',
+      pickerUsesPersonalCustody ? user?.id : null,
+      state.allowedFromStatuses,
+      pickerSearch,
+    ],
+    enabled: pickerOpen && (pickerUsesPersonalCustody ? Boolean(user?.id) : true),
     queryFn: async () => {
       const result = await api.get<MachineRow[], ListMeta>(endpoints.machines.list, {
-        holderId: user!.id,
+        holderId: pickerUsesPersonalCustody ? user!.id : undefined,
         status: state.allowedFromStatuses.length ? state.allowedFromStatuses : undefined,
         search: pickerSearch || undefined,
         limit: 50,
