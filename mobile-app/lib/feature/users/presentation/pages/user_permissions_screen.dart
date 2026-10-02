@@ -63,6 +63,12 @@ class _UserPermissionsScreenState extends State<UserPermissionsScreen> {
     );
   }
 
+  Future<void> _handleBack(UserPermissionsState state) async {
+    if (await _confirmLeave(state) && mounted) {
+      Navigator.of(context).pop();
+    }
+  }
+
   Future<void> _save(UserPermissionsReady state) async {
     final bool confirmed = await PermissionChangesDialog.show(
       context: context,
@@ -93,13 +99,11 @@ class _UserPermissionsScreenState extends State<UserPermissionsScreen> {
             if (didPop) {
               return;
             }
-            if (await _confirmLeave(state) && context.mounted) {
-              Navigator.of(context).pop();
-            }
+            await _handleBack(state);
           },
           child: Scaffold(
             appBar: AppBar(
-              leading: const ArrowBackWidget(),
+              leading: ArrowBackWidget(onTap: () => _handleBack(state)),
               title: Text(LocaleKeys.userPermissionsTitle.tr()),
             ),
             body: switch (state) {

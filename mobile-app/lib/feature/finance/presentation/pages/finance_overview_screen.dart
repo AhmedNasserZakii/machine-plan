@@ -7,6 +7,7 @@ import 'package:machinery/core/permissions/permission_keys.dart';
 import 'package:machinery/core/permissions/permission_service.dart';
 import 'package:machinery/core/shared_widgets/app_error_view.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
+import 'package:machinery/core/shared_widgets/custom_button.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/feature/finance/data/logic/finance_overview/finance_overview_cubit.dart';
@@ -200,7 +201,12 @@ class _Filters extends StatelessWidget {
   Widget build(BuildContext context) => Row(
     children: <Widget>[
       Expanded(
-        child: OutlinedButton.icon(
+        child: CustomButton(
+          title: state.query.dateFrom == null
+              ? LocaleKeys.financeDateRange.tr()
+              : '${financeDate(state.query.dateFrom!)} – ${financeDate(state.query.dateTo!)}',
+          isLoading: false,
+          isStroked: true,
           onPressed: () async {
             final range = await showDateRangePicker(
               context: context,
@@ -217,11 +223,20 @@ class _Filters extends StatelessWidget {
               );
             }
           },
-          icon: const Icon(Icons.date_range),
-          label: Text(
-            state.query.dateFrom == null
-                ? LocaleKeys.financeDateRange.tr()
-                : '${financeDate(state.query.dateFrom!)} – ${financeDate(state.query.dateTo!)}',
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              const Icon(Icons.date_range),
+              const SizedBox(width: AppSpacing.sm),
+              Flexible(
+                child: Text(
+                  state.query.dateFrom == null
+                      ? LocaleKeys.financeDateRange.tr()
+                      : '${financeDate(state.query.dateFrom!)} – ${financeDate(state.query.dateTo!)}',
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
         ),
       ),

@@ -5,6 +5,10 @@ import 'package:machinery/core/theme/styles/app_spacing.dart';
 
 /// `Icons.arrow_back` is direction-aware under `Directionality`, so this flips
 /// automatically between Arabic and English.
+///
+/// Uses [Navigator.maybePop] by default so [PopScope] screens (unsaved-change
+/// confirms, result-returning details) still receive [PopScope.onPopInvokedWithResult].
+/// Pass [onTap] when the screen must force a pop with a result.
 class ArrowBackWidget extends StatelessWidget {
   const ArrowBackWidget({super.key, this.onTap});
 
@@ -13,7 +17,7 @@ class ArrowBackWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClickedWidget(
-      onTap: onTap ?? () => Navigator.maybePop(context),
+      onTap: onTap ?? () => Navigator.of(context).maybePop(),
       child: Padding(
         padding: const EdgeInsets.only(
           left: 12,

@@ -2,6 +2,7 @@ import 'package:device_preview/device_preview.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:machinery/core/constants/app_localization.dart';
@@ -18,6 +19,18 @@ import 'package:path_provider/path_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Android 15+ draws edge-to-edge. Keep system bars transparent so Flutter
+  // insets (and SystemNavInsetFix) can lift content above the OS button bar.
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.dark,
+      systemNavigationBarContrastEnforced: false,
+    ),
+  );
 
   HydratedBloc.storage = await HydratedStorage.build(
     storageDirectory: HydratedStorageDirectory(
@@ -62,7 +75,8 @@ Future<void> main() async {
         // node) — harmless for manual dev use, but it makes any UI
         // automation tool (Maestro) relying on that tree unable to find
         // most elements once a screen deeper than the first tab renders.
-        enabled: kDebugMode && !const bool.fromEnvironment('DISABLE_DEVICE_PREVIEW'),
+        enabled:
+            kDebugMode && !const bool.fromEnvironment('DISABLE_DEVICE_PREVIEW'),
         builder: (context) => const MyApp(),
       ),
     ),

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/shared_widgets/app_empty_state.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
+import 'package:machinery/core/shared_widgets/custom_button.dart';
 import 'package:machinery/core/shared_widgets/labeled_text_form_field.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
@@ -121,22 +122,27 @@ class _RecipientPicker extends StatelessWidget {
               : LocaleKeys.transferSelectRecipient.tr(),
         ),
         const SizedBox(height: AppSpacing.sm),
-        OutlinedButton(
+        CustomButton(
+          title:
+              selectedName ??
+              (isWarehouse
+                  ? LocaleKeys.transferSelectWarehouse.tr()
+                  : LocaleKeys.transferSelectRecipient.tr()),
+          isLoading: false,
+          isStroked: true,
+          identifier: 'transfer_recipient_picker_button',
           onPressed: () => RecipientPickerSheet.show(
             context: context,
             cubit: cubit,
             isWarehouse: isWarehouse,
           ),
-          child: Semantics(
-            identifier: 'transfer_recipient_picker_button',
-            child: Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: Text(
-                selectedName ??
-                    (isWarehouse
-                        ? LocaleKeys.transferSelectWarehouse.tr()
-                        : LocaleKeys.transferSelectRecipient.tr()),
-              ),
+          child: Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(
+              selectedName ??
+                  (isWarehouse
+                      ? LocaleKeys.transferSelectWarehouse.tr()
+                      : LocaleKeys.transferSelectRecipient.tr()),
             ),
           ),
         ),

@@ -9,8 +9,10 @@ import 'package:machinery/core/shared_widgets/app_empty_state.dart';
 import 'package:machinery/core/shared_widgets/app_error_view.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
 import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
+import 'package:machinery/core/shared_widgets/custom_button.dart';
 import 'package:machinery/core/shared_widgets/ltr_text.dart';
 import 'package:machinery/core/shared_widgets/paginated_list_view.dart';
+import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/feature/finance/data/logic/transactions/finance_transactions_cubit.dart';
 import 'package:machinery/feature/finance/data/logic/transactions/finance_transactions_state.dart';
 import 'package:machinery/feature/finance/domain/entities/finance_entities.dart';
@@ -219,7 +221,12 @@ class _TransactionFiltersState extends State<_TransactionFilters> {
               value: _voided,
               onChanged: (v) => setState(() => _voided = v),
             ),
-            OutlinedButton.icon(
+            CustomButton(
+              title: _from == null
+                  ? LocaleKeys.financeDateRange.tr()
+                  : '${financeDate(_from!)} – ${financeDate(_to!)}',
+              isLoading: false,
+              isStroked: true,
               onPressed: () async {
                 final range = await showDateRangePicker(
                   context: context,
@@ -233,12 +240,17 @@ class _TransactionFiltersState extends State<_TransactionFilters> {
                   });
                 }
               },
-              icon: const Icon(Icons.date_range),
-              label: _from == null
-                  ? Text(LocaleKeys.financeDateRange.tr())
-                  : LtrText(
-                      '${financeDate(_from!)} – ${financeDate(_to!)}',
-                    ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  const Icon(Icons.date_range),
+                  const SizedBox(width: AppSpacing.sm),
+                  if (_from == null)
+                    Text(LocaleKeys.financeDateRange.tr())
+                  else
+                    LtrText('${financeDate(_from!)} – ${financeDate(_to!)}'),
+                ],
+              ),
             ),
             const SizedBox(height: 16),
             SizedBox(

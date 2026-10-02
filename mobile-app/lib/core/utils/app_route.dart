@@ -105,8 +105,15 @@ import 'package:machinery/feature/notifications/presentation/pages/notifications
 abstract class AppRoute {
   AppRoute._();
 
+  /// Forces a pop when there is a route below. Prefer this over
+  /// [Navigator.maybePop] for intentional exits (form success, PopScope
+  /// callbacks that already decided to leave) — `maybePop` no-ops when a
+  /// descendant [PopScope] has `canPop: false`, which traps the user.
   static void goBack({required BuildContext context, Object? result}) {
-    Navigator.of(context).maybePop(result);
+    final NavigatorState navigator = Navigator.of(context);
+    if (navigator.canPop()) {
+      navigator.pop(result);
+    }
   }
 
   static void goToSplashScreen({required BuildContext context}) {
@@ -268,7 +275,8 @@ abstract class AppRoute {
       builder: (_) => PermissionBoundary(
         permission: P.usersRead,
         child: BlocProvider<UserDetailCubit>(
-          create: (_) => getIt<UserDetailCubit>(param1: userId, param2: initial),
+          create: (_) =>
+              getIt<UserDetailCubit>(param1: userId, param2: initial),
           child: const UserDetailScreen(),
         ),
       ),
@@ -674,8 +682,10 @@ abstract class AppRoute {
         builder: (_) => PermissionBoundary(
           permission: P.violationsRead,
           child: BlocProvider<ViolationDetailCubit>(
-            create: (_) =>
-                getIt<ViolationDetailCubit>(param1: violationId, param2: initial),
+            create: (_) => getIt<ViolationDetailCubit>(
+              param1: violationId,
+              param2: initial,
+            ),
             child: const ViolationDetailScreen(),
           ),
         ),

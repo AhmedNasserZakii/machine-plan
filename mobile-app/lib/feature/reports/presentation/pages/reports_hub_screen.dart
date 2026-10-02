@@ -6,6 +6,7 @@ import 'package:machinery/core/di/service_locator.dart';
 import 'package:machinery/core/shared_widgets/app_error_view.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
 import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
+import 'package:machinery/core/shared_widgets/custom_button.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/feature/reports/data/logic/report_viewer/report_viewer_cubit.dart';
@@ -153,10 +154,19 @@ class _DownloadedShortcut extends StatelessWidget {
   Widget build(BuildContext context) => SafeArea(
     child: Padding(
       padding: const EdgeInsetsDirectional.all(AppSpacing.md),
-      child: OutlinedButton.icon(
+      child: CustomButton(
+        title: LocaleKeys.reportsDownloaded.tr(),
+        isLoading: false,
+        isStroked: true,
         onPressed: onTap,
-        icon: const Icon(Icons.offline_pin_outlined),
-        label: Text(LocaleKeys.reportsDownloaded.tr()),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            const Icon(Icons.offline_pin_outlined),
+            const SizedBox(width: AppSpacing.sm),
+            Text(LocaleKeys.reportsDownloaded.tr()),
+          ],
+        ),
       ),
     ),
   );

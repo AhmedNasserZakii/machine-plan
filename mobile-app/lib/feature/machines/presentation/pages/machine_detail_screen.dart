@@ -6,6 +6,7 @@ import 'package:machinery/core/permissions/permission_keys.dart';
 import 'package:machinery/core/shared_widgets/app_error_view.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
 import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
+import 'package:machinery/core/shared_widgets/custom_button.dart';
 import 'package:machinery/core/shared_widgets/permission_gate.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/core/utils/app_route.dart';
@@ -136,18 +137,22 @@ class _MachineDetailScreenState extends State<MachineDetailScreen> {
     }
   }
 
+  void _pop() {
+    Navigator.of(context).pop(_didChange);
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope<Object?>(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, Object? _) {
         if (!didPop) {
-          Navigator.of(context).pop(_didChange);
+          _pop();
         }
       },
       child: Scaffold(
         appBar: AppBar(
-          leading: const ArrowBackWidget(),
+          leading: ArrowBackWidget(onTap: _pop),
           title: Text(LocaleKeys.machinesTitle.tr()),
           actions: <Widget>[
             BlocBuilder<MachineDetailCubit, MachineDetailState>(
@@ -236,12 +241,19 @@ class _MachineDetailScreenState extends State<MachineDetailScreen> {
             const SizedBox(height: AppSpacing.lg),
             PermissionGate(
               permission: P.machinesUpdate,
-              child: OutlinedButton.icon(
+              child: CustomButton(
+                title: LocaleKeys.machineEditTitle.tr(),
+                isLoading: false,
+                isStroked: true,
                 onPressed: () => _edit(machine),
-                icon: const Icon(Icons.edit_outlined, size: 18),
-                label: Semantics(
-                  identifier: 'machine_edit_button',
-                  child: Text(LocaleKeys.machineEditTitle.tr()),
+                identifier: 'machine_edit_button',
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    const Icon(Icons.edit_outlined, size: 18),
+                    const SizedBox(width: AppSpacing.sm),
+                    Text(LocaleKeys.machineEditTitle.tr()),
+                  ],
                 ),
               ),
             ),

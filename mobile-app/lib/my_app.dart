@@ -9,6 +9,7 @@ import 'package:machinery/core/network_services/upgrade_required_handler.dart';
 import 'package:machinery/core/services/observability/app_analytics.dart';
 import 'package:machinery/core/services/push/push_notification_service.dart';
 import 'package:machinery/core/shared_widgets/app_confirm_dialog.dart';
+import 'package:machinery/core/shared_widgets/system_nav_inset_fix.dart';
 import 'package:machinery/core/shared_widgets/upgrade_required_screen.dart';
 import 'package:machinery/core/theme/styles/app_theme.dart';
 import 'package:machinery/core/utils/app_route.dart';
@@ -104,18 +105,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }) async {
     getIt<AppAnalytics>().track(
       AnalyticsEvents.upgradeRequiredShown,
-      properties: <String, Object?>{
-        'min_version': ?minVersion,
-      },
+      properties: <String, Object?>{'min_version': ?minVersion},
     );
     final navigator = navigatorKey.currentState;
     if (navigator == null) return;
     await navigator.pushAndRemoveUntil<void>(
       MaterialPageRoute<void>(
-        builder: (_) => UpgradeRequiredScreen(
-          message: message,
-          minVersion: minVersion,
-        ),
+        builder: (_) =>
+            UpgradeRequiredScreen(message: message, minVersion: minVersion),
       ),
       (_) => false,
     );
@@ -141,7 +138,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         localizationsDelegates: context.localizationDelegates,
         supportedLocales: context.supportedLocales,
         locale: context.locale,
-        builder: DevicePreview.appBuilder,
+        // DevicePreview may inject its own MediaQuery; run the Android system
+        // nav inset fix inside that so FABs / list bottoms clear the OS bar.
+        builder: (BuildContext context, Widget? child) {
+          return DevicePreview.appBuilder(
+            context,
+            SystemNavInsetFix(child: child ?? const SizedBox.shrink()),
+          );
+        },
         debugShowCheckedModeBanner: false,
         theme: AppThemes.lightTheme,
         // Splash resolves the session and routes from there, including the

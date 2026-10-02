@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
+import 'package:machinery/core/shared_widgets/custom_button.dart';
 import 'package:machinery/core/shared_widgets/error_toast.dart';
 import 'package:machinery/core/shared_widgets/labeled_text_form_field.dart';
 import 'package:machinery/core/shared_widgets/ltr_text.dart';
@@ -150,7 +151,10 @@ class _ApplyToAllSheetState extends State<_ApplyToAllSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              Text(LocaleKeys.transferApplyToAll.tr(), style: Styles.s17(context)),
+              Text(
+                LocaleKeys.transferApplyToAll.tr(),
+                style: Styles.s17(context),
+              ),
               const SizedBox(height: AppSpacing.md),
               SwitchListTile.adaptive(
                 value: _hasCharger,
@@ -172,7 +176,8 @@ class _ApplyToAllSheetState extends State<_ApplyToAllSheet> {
                       (ItemCondition condition) => ChoiceChip(
                         label: Text(TransferLabels.condition(condition)),
                         selected: _condition == condition,
-                        onSelected: (_) => setState(() => _condition = condition),
+                        onSelected: (_) =>
+                            setState(() => _condition = condition),
                       ),
                     )
                     .toList(growable: false),
@@ -464,25 +469,22 @@ class _PhotosRow extends StatelessWidget {
           if (mediaIds.length < 4)
             Semantics(
               identifier: 'transfer_add_photo',
-              child: SizedBox(
+              child: CustomButton(
+                title: '',
+                isLoading: false,
+                isStroked: true,
                 width: _tileSize,
                 height: _tileSize,
-                child: OutlinedButton(
-                  onPressed: isUploading ? null : onAdd,
-                  style: OutlinedButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.sm),
-                    ),
-                  ),
-                  child: isUploading
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.add_a_photo_outlined, size: 22),
-                ),
+                padding: EdgeInsets.zero,
+                borderRadius: AppRadius.sm,
+                onPressed: isUploading ? null : onAdd,
+                child: isUploading
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.add_a_photo_outlined, size: 22),
               ),
             ),
         ],

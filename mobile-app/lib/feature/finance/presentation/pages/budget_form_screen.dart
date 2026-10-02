@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/di/service_locator.dart';
 import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
+import 'package:machinery/core/shared_widgets/custom_button.dart';
 import 'package:machinery/core/shared_widgets/error_toast.dart';
 import 'package:machinery/core/shared_widgets/ltr_text.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
@@ -132,13 +133,10 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
           const SizedBox(height: AppSpacing.md),
           DropdownButtonFormField<String>(
             initialValue: _periodType,
-            decoration: InputDecoration(labelText: LocaleKeys.financePeriod.tr()),
-            items: const <String>[
-              'MONTHLY',
-              'QUARTERLY',
-              'YEARLY',
-              'CUSTOM',
-            ]
+            decoration: InputDecoration(
+              labelText: LocaleKeys.financePeriod.tr(),
+            ),
+            items: const <String>['MONTHLY', 'QUARTERLY', 'YEARLY', 'CUSTOM']
                 .map(
                   (v) => DropdownMenuItem(
                     value: v,
@@ -154,7 +152,12 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
           Row(
             children: <Widget>[
               Expanded(
-                child: OutlinedButton(
+                child: CustomButton(
+                  title: LocaleKeys.financeFromDate.tr(
+                    args: <String>[financeDate(_start)],
+                  ),
+                  isLoading: false,
+                  isStroked: true,
                   onPressed: widget.existing == null ? () => _date(true) : null,
                   child: LtrText(
                     LocaleKeys.financeFromDate.tr(
@@ -165,7 +168,12 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: OutlinedButton(
+                child: CustomButton(
+                  title: LocaleKeys.financeToDate.tr(
+                    args: <String>[financeDate(_end)],
+                  ),
+                  isLoading: false,
+                  isStroked: true,
                   onPressed: widget.existing == null
                       ? () => _date(false)
                       : null,

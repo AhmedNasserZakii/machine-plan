@@ -8,6 +8,7 @@ import 'package:machinery/core/permissions/permission_service.dart';
 import 'package:machinery/core/shared_widgets/app_error_view.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
 import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
+import 'package:machinery/core/shared_widgets/custom_button.dart';
 import 'package:machinery/core/shared_widgets/detail_card.dart';
 import 'package:machinery/core/shared_widgets/error_toast.dart';
 import 'package:machinery/core/shared_widgets/ltr_text.dart';
@@ -124,26 +125,27 @@ class _MaintenanceDetailScreenState extends State<MaintenanceDetailScreen> {
     }
   }
 
+  void _pop() {
+    final MaintenanceDetailState state = context
+        .read<MaintenanceDetailCubit>()
+        .state;
+    final MaintenanceOrderEntity? updated =
+        _changed && state is MaintenanceDetailLoaded ? state.order : null;
+    Navigator.of(context).pop(updated);
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope<Object?>(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, Object? _) {
-        if (didPop) return;
-
-        final MaintenanceDetailState state = context
-            .read<MaintenanceDetailCubit>()
-            .state;
-        final MaintenanceOrderEntity? updated =
-            _changed && state is MaintenanceDetailLoaded
-            ? state.order
-            : null;
-
-        Navigator.of(context).pop(updated);
+        if (!didPop) {
+          _pop();
+        }
       },
       child: Scaffold(
         appBar: AppBar(
-          leading: const ArrowBackWidget(),
+          leading: ArrowBackWidget(onTap: _pop),
           title: Text(LocaleKeys.maintenanceDetailTitle.tr()),
         ),
         body: BlocConsumer<MaintenanceDetailCubit, MaintenanceDetailState>(
@@ -400,18 +402,24 @@ class _ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
+    return CustomButton(
+      title: label,
+      isLoading: false,
+      isStroked: true,
+      height: 40,
+      fillWidth: false,
       identifier: identifier,
-      child: OutlinedButton.icon(
-        onPressed: onPressed,
-        icon: Icon(icon, size: 16),
-        label: Text(label),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: destructive ? AppColors.dangerColor : null,
-          side: BorderSide(
-            color: destructive ? AppColors.dangerColor : AppColors.borderColor,
-          ),
-        ),
+      onPressed: onPressed,
+      foregroundColor: destructive ? AppColors.dangerColor : null,
+      borderColor: destructive ? AppColors.dangerColor : AppColors.borderColor,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Icon(icon, size: 16),
+          const SizedBox(width: AppSpacing.sm),
+          Text(label),
+        ],
       ),
     );
   }

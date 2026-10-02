@@ -13,6 +13,7 @@ class CustomButton extends StatelessWidget {
     this.isStroked = false,
     this.backgroundColor,
     this.foregroundColor,
+    this.borderColor,
     this.width,
     this.height,
     this.borderRadius,
@@ -20,6 +21,7 @@ class CustomButton extends StatelessWidget {
     this.style,
     this.child,
     this.identifier,
+    this.fillWidth = true,
   });
 
   final String title;
@@ -28,6 +30,7 @@ class CustomButton extends StatelessWidget {
   final bool isStroked;
   final Color? backgroundColor;
   final Color? foregroundColor;
+  final Color? borderColor;
   final double? width;
   final double? height;
   final double? borderRadius;
@@ -38,21 +41,33 @@ class CustomButton extends StatelessWidget {
   /// Stable accessibility id, matched by the end-to-end suite.
   final String? identifier;
 
+  /// When true (default), the button expands to fill available width.
+  /// Set false for content-sized buttons inside a [Wrap] or similar.
+  final bool fillWidth;
+
   @override
   Widget build(BuildContext context) {
     final bool isDisabled = onPressed == null;
+    final Color resolvedForeground = isDisabled
+        ? AppColors.textDisabledColor
+        : foregroundColor ??
+              (isStroked
+                  ? AppColors.primaryColor
+                  : AppColors.textOnPrimaryColor);
+    final Color resolvedStroke =
+        borderColor ?? foregroundColor ?? AppColors.primaryColor;
     final Color resolvedBackground = isStroked
         ? AppColors.surfaceColor
         : backgroundColor ?? AppColors.primaryColor;
     final BorderSide resolvedBorder = isStroked
         ? BorderSide(
-            color: isDisabled ? AppColors.borderColor : AppColors.primaryColor,
+            color: isDisabled ? AppColors.borderColor : resolvedStroke,
             width: 1,
           )
         : BorderSide.none;
 
     final Widget button = SizedBox(
-      width: width ?? double.infinity,
+      width: width ?? (fillWidth ? double.infinity : null),
       height: height ?? 56,
       child: ElevatedButton(
         onPressed: isDisabled || isLoading ? null : onPressed,
@@ -60,9 +75,11 @@ class CustomButton extends StatelessWidget {
           padding: padding,
           alignment: Alignment.center,
           backgroundColor: resolvedBackground,
+          foregroundColor: resolvedForeground,
           disabledBackgroundColor: isStroked
               ? AppColors.surfaceColor
               : AppColors.disabledButtonColor,
+          disabledForegroundColor: AppColors.textDisabledColor,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(borderRadius ?? AppRadius.md),
@@ -73,7 +90,7 @@ class CustomButton extends StatelessWidget {
             ? Center(
                 child: LoadingAnimationWidget.fallingDot(
                   color: isStroked
-                      ? AppColors.primaryColor
+                      ? resolvedStroke
                       : AppColors.textOnPrimaryColor,
                   size: 30,
                 ),
@@ -84,14 +101,9 @@ class CustomButton extends StatelessWidget {
                       title,
                       style:
                           style ??
-                          Styles.s15(context).copyWith(
-                            color: isDisabled
-                                ? AppColors.textDisabledColor
-                                : foregroundColor ??
-                                      (isStroked
-                                          ? AppColors.primaryColor
-                                          : AppColors.textOnPrimaryColor),
-                          ),
+                          Styles.s15(
+                            context,
+                          ).copyWith(color: resolvedForeground),
                     ),
                   ),
       ),

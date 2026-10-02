@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/di/service_locator.dart';
 import 'package:machinery/core/permissions/permission_service.dart';
+import 'package:machinery/core/shared_widgets/custom_button.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/feature/finance/domain/entities/finance_entities.dart';
 import 'package:machinery/feature/finance/domain/repos/finance_repo.dart';
@@ -198,10 +199,12 @@ class _ReportFiltersSheetState extends State<ReportFiltersSheet> {
             Row(
               children: <Widget>[
                 Expanded(
-                  child: OutlinedButton(
+                  child: CustomButton(
+                    title: LocaleKeys.reportClearFilters.tr(),
+                    isLoading: false,
+                    isStroked: true,
                     onPressed: () =>
                         Navigator.pop(context, const ReportFilters()),
-                    child: Text(LocaleKeys.reportClearFilters.tr()),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),

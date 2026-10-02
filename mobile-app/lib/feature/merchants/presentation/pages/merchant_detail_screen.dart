@@ -8,6 +8,7 @@ import 'package:machinery/core/shared_widgets/app_confirm_dialog.dart';
 import 'package:machinery/core/shared_widgets/app_error_view.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
 import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
+import 'package:machinery/core/shared_widgets/custom_button.dart';
 import 'package:machinery/core/shared_widgets/detail_card.dart';
 import 'package:machinery/core/shared_widgets/error_toast.dart';
 import 'package:machinery/core/shared_widgets/permission_gate.dart';
@@ -143,18 +144,22 @@ class _MerchantDetailScreenState extends State<MerchantDetailScreen> {
     }
   }
 
+  void _pop() {
+    Navigator.of(context).pop(_changed);
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, Object? _) {
         if (!didPop) {
-          AppRoute.goBack(context: context, result: _changed);
+          _pop();
         }
       },
       child: Scaffold(
         appBar: AppBar(
-          leading: const ArrowBackWidget(),
+          leading: ArrowBackWidget(onTap: _pop),
           title: Text(LocaleKeys.merchantDetailsTitle.tr()),
         ),
         body: BlocConsumer<MerchantDetailCubit, MerchantDetailState>(
@@ -199,10 +204,8 @@ class _MerchantDetailScreenState extends State<MerchantDetailScreen> {
         children: <Widget>[
           MerchantDetailHeader(merchant: merchant),
           const SizedBox(height: AppSpacing.md),
-
           _RecordCard(merchant: merchant),
           const SizedBox(height: AppSpacing.md),
-
           _MachinesCard(
             machines: detail.machines,
             hasNext: state.machinesHasNext,
@@ -210,7 +213,6 @@ class _MerchantDetailScreenState extends State<MerchantDetailScreen> {
             onLoadMore: context.read<MerchantDetailCubit>().loadMoreMachines,
           ),
           const SizedBox(height: AppSpacing.md),
-
           _SubscriptionsCard(
             subscriptions: detail.subscriptions,
             canAdd: merchant.isActive,
@@ -223,7 +225,6 @@ class _MerchantDetailScreenState extends State<MerchantDetailScreen> {
             onCollect: _collect,
           ),
           const SizedBox(height: AppSpacing.md),
-
           MerchantTimelineCard(
             entries: detail.timeline,
             hasNext: state.timelineHasNext,
@@ -231,7 +232,6 @@ class _MerchantDetailScreenState extends State<MerchantDetailScreen> {
             onLoadMore: context.read<MerchantDetailCubit>().loadMoreTimeline,
           ),
           const SizedBox(height: AppSpacing.md),
-
           if (merchant.isActive) _Actions(merchant: merchant, screen: this),
         ],
       ),
@@ -305,9 +305,7 @@ class _MachinesCard extends StatelessWidget {
         else
           ...machines.map(
             (MachineEntity machine) => Padding(
-              padding: const EdgeInsetsDirectional.only(
-                bottom: AppSpacing.sm,
-              ),
+              padding: const EdgeInsetsDirectional.only(bottom: AppSpacing.sm),
               child: MachineCard(
                 machine: machine,
                 onTap: () => AppRoute.goToMachineDetail(
@@ -438,10 +436,19 @@ class _Actions extends StatelessWidget {
       children: <Widget>[
         PermissionGate(
           permission: P.merchantsUpdate,
-          child: OutlinedButton.icon(
+          child: CustomButton(
+            title: LocaleKeys.merchantEditTitle.tr(),
+            isLoading: false,
+            isStroked: true,
             onPressed: () => screen._edit(merchant),
-            icon: const Icon(Icons.edit_outlined),
-            label: Text(LocaleKeys.merchantEditTitle.tr()),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                const Icon(Icons.edit_outlined),
+                const SizedBox(width: AppSpacing.sm),
+                Text(LocaleKeys.merchantEditTitle.tr()),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -449,14 +456,21 @@ class _Actions extends StatelessWidget {
           permission: P.merchantsDelete,
           child: Column(
             children: <Widget>[
-              OutlinedButton.icon(
+              CustomButton(
+                title: LocaleKeys.merchantDeactivate.tr(),
+                isLoading: false,
+                isStroked: true,
                 // The machines have to come back through a hand-off first, so
                 // the button is down rather than left to fail with a 409.
                 onPressed: merchant.canDeactivate ? screen._deactivate : null,
-                icon: const Icon(Icons.block_outlined),
-                label: Text(LocaleKeys.merchantDeactivate.tr()),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.dangerColor,
+                foregroundColor: AppColors.dangerColor,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    const Icon(Icons.block_outlined),
+                    const SizedBox(width: AppSpacing.sm),
+                    Text(LocaleKeys.merchantDeactivate.tr()),
+                  ],
                 ),
               ),
               if (!merchant.canDeactivate)

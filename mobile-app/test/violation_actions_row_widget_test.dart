@@ -84,7 +84,7 @@ void main() {
       );
 
       expect(
-        find.widgetWithIcon(OutlinedButton, Icons.visibility_outlined),
+        find.widgetWithIcon(ElevatedButton, Icons.visibility_outlined),
         findsOneWidget,
       );
     },
@@ -110,7 +110,7 @@ void main() {
       );
 
       expect(
-        find.widgetWithIcon(OutlinedButton, Icons.visibility_outlined),
+        find.widgetWithIcon(ElevatedButton, Icons.visibility_outlined),
         findsNothing,
       );
     },
@@ -186,7 +186,7 @@ void main() {
     );
 
     expect(
-      find.widgetWithIcon(OutlinedButton, Icons.do_not_disturb_on_outlined),
+      find.widgetWithIcon(ElevatedButton, Icons.do_not_disturb_on_outlined),
       findsOneWidget,
     );
   });
@@ -211,7 +211,7 @@ void main() {
       );
 
       expect(
-        find.widgetWithIcon(OutlinedButton, Icons.edit_outlined),
+        find.widgetWithIcon(ElevatedButton, Icons.edit_outlined),
         findsNothing,
       );
     },
@@ -237,7 +237,7 @@ void main() {
       );
 
       expect(
-        find.widgetWithIcon(OutlinedButton, Icons.edit_outlined),
+        find.widgetWithIcon(ElevatedButton, Icons.edit_outlined),
         findsOneWidget,
       );
     },

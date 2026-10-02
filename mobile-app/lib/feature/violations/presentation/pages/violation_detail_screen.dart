@@ -118,18 +118,22 @@ class _ViolationDetailScreenState extends State<ViolationDetailScreen> {
     }, context);
   }
 
+  void _pop() {
+    Navigator.of(context).pop(_updated);
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, Object? _) {
         if (!didPop) {
-          AppRoute.goBack(context: context, result: _updated);
+          _pop();
         }
       },
       child: Scaffold(
         appBar: AppBar(
-          leading: const ArrowBackWidget(),
+          leading: ArrowBackWidget(onTap: _pop),
           title: Text(LocaleKeys.violationDetailsTitle.tr()),
         ),
         body: BlocConsumer<ViolationDetailCubit, ViolationDetailState>(
@@ -175,7 +179,6 @@ class _ViolationDetailScreenState extends State<ViolationDetailScreen> {
       children: <Widget>[
         _Header(violation: violation),
         const SizedBox(height: AppSpacing.md),
-
         _FactsCard(
           violation: violation,
           onTapMachine: violation.machine == null
@@ -192,7 +195,6 @@ class _ViolationDetailScreenState extends State<ViolationDetailScreen> {
                 ),
         ),
         const SizedBox(height: AppSpacing.md),
-
         if (violation.isSettled)
           _OutcomeCard(violation: violation)
         else

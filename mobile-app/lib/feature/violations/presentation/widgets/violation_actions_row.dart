@@ -4,6 +4,7 @@ import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/di/service_locator.dart';
 import 'package:machinery/core/permissions/permission_keys.dart';
 import 'package:machinery/core/permissions/permission_service.dart';
+import 'package:machinery/core/shared_widgets/custom_button.dart';
 import 'package:machinery/core/shared_widgets/detail_card.dart';
 import 'package:machinery/core/shared_widgets/permission_gate.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
@@ -46,12 +47,19 @@ class ViolationActionsRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         if (violation.canAcknowledgeBy(currentUserId)) ...<Widget>[
-          OutlinedButton.icon(
+          CustomButton(
+            title: LocaleKeys.violationAcknowledge.tr(),
+            isLoading: false,
+            isStroked: true,
             onPressed: isBusy ? null : onAcknowledge,
-            icon: const Icon(Icons.visibility_outlined),
-            label: Semantics(
-              identifier: 'violation_acknowledge_button',
-              child: Text(LocaleKeys.violationAcknowledge.tr()),
+            identifier: 'violation_acknowledge_button',
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                const Icon(Icons.visibility_outlined),
+                const SizedBox(width: AppSpacing.sm),
+                Text(LocaleKeys.violationAcknowledge.tr()),
+              ],
             ),
           ),
           const SizedBox(height: AppSpacing.xs),
@@ -62,12 +70,19 @@ class ViolationActionsRow extends StatelessWidget {
         if (violation.isEditable) ...<Widget>[
           PermissionGate(
             permission: P.violationsResolve,
-            child: OutlinedButton.icon(
+            child: CustomButton(
+              title: LocaleKeys.violationEdit.tr(),
+              isLoading: false,
+              isStroked: true,
               onPressed: isBusy ? null : onEdit,
-              icon: const Icon(Icons.edit_outlined),
-              label: Semantics(
-                identifier: 'violation_edit_button',
-                child: Text(LocaleKeys.violationEdit.tr()),
+              identifier: 'violation_edit_button',
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  const Icon(Icons.edit_outlined),
+                  const SizedBox(width: AppSpacing.sm),
+                  Text(LocaleKeys.violationEdit.tr()),
+                ],
               ),
             ),
           ),
@@ -107,12 +122,19 @@ class ViolationActionsRow extends StatelessWidget {
         ),
         PermissionGate(
           permission: P.violationsWaive,
-          child: OutlinedButton.icon(
+          child: CustomButton(
+            title: LocaleKeys.violationWaive.tr(),
+            isLoading: false,
+            isStroked: true,
             onPressed: isBusy ? null : onWaive,
-            icon: const Icon(Icons.do_not_disturb_on_outlined),
-            label: Semantics(
-              identifier: 'violation_waive_button',
-              child: Text(LocaleKeys.violationWaive.tr()),
+            identifier: 'violation_waive_button',
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                const Icon(Icons.do_not_disturb_on_outlined),
+                const SizedBox(width: AppSpacing.sm),
+                Text(LocaleKeys.violationWaive.tr()),
+              ],
             ),
           ),
         ),

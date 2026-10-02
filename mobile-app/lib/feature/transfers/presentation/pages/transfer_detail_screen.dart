@@ -98,17 +98,23 @@ class _TransferDetailScreenState extends State<TransferDetailScreen> {
     context.read<TransferDetailCubit>().consumeMessages();
   }
 
+  void _pop() {
+    Navigator.of(context).pop(_changed);
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope<Object?>(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, Object? _) {
-        if (!didPop) Navigator.of(context).pop(_changed);
+        if (!didPop) {
+          _pop();
+        }
       },
       child: Scaffold(
         appBar: AppBar(
           title: Text(LocaleKeys.transfersTitle.tr()),
-          leading: const ArrowBackWidget(),
+          leading: ArrowBackWidget(onTap: _pop),
         ),
         body: BlocConsumer<TransferDetailCubit, TransferDetailState>(
           listener: _onStateChanged,

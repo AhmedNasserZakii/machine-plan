@@ -45,8 +45,7 @@ class MaintenanceCloseScreen extends StatefulWidget {
   final MaintenanceOrderEntity order;
 
   @override
-  State<MaintenanceCloseScreen> createState() =>
-      _MaintenanceCloseScreenState();
+  State<MaintenanceCloseScreen> createState() => _MaintenanceCloseScreenState();
 }
 
 class _MaintenanceCloseScreenState extends State<MaintenanceCloseScreen> {
@@ -306,7 +305,8 @@ class _MaintenanceCloseScreenState extends State<MaintenanceCloseScreen> {
           ? _responsibleMerchant?.id
           : null,
       paymentMethodId:
-          (chargeable && _responsibleParty == MaintenanceResponsibleParty.company)
+          (chargeable &&
+              _responsibleParty == MaintenanceResponsibleParty.company)
           ? _paymentMethodId
           : null,
       supplierId: chargeable ? _supplierId : null,
@@ -398,7 +398,10 @@ class _MaintenanceCloseScreenState extends State<MaintenanceCloseScreen> {
               child: ListView(
                 padding: const EdgeInsetsDirectional.all(AppSpacing.md),
                 children: <Widget>[
-                  _sectionLabel(context, LocaleKeys.maintenanceCloseResult.tr()),
+                  _sectionLabel(
+                    context,
+                    LocaleKeys.maintenanceCloseResult.tr(),
+                  ),
                   FilterChoiceRow(
                     labels: _resultOptions
                         .map(MaintenanceLabels.result)
@@ -410,7 +413,6 @@ class _MaintenanceCloseScreenState extends State<MaintenanceCloseScreen> {
                     onSelected: _selectResult,
                   ),
                   const SizedBox(height: AppSpacing.lg),
-
                   SwitchListTile.adaptive(
                     contentPadding: EdgeInsets.zero,
                     value: _isFreeUnderWarranty,
@@ -430,7 +432,6 @@ class _MaintenanceCloseScreenState extends State<MaintenanceCloseScreen> {
                         : null,
                   ),
                   const SizedBox(height: AppSpacing.md),
-
                   if (!_isFreeUnderWarranty) ...<Widget>[
                     LabeledTextFormField(
                       label: LocaleKeys.maintenanceCloseCost.tr(),
@@ -444,7 +445,6 @@ class _MaintenanceCloseScreenState extends State<MaintenanceCloseScreen> {
                     ),
                     const SizedBox(height: AppSpacing.lg),
                   ],
-
                   _sectionLabel(
                     context,
                     LocaleKeys.maintenanceCloseResponsibleParty.tr(),
@@ -460,7 +460,6 @@ class _MaintenanceCloseScreenState extends State<MaintenanceCloseScreen> {
                     onSelected: _selectResponsibleParty,
                   ),
                   const SizedBox(height: AppSpacing.lg),
-
                   if (_responsibleParty ==
                       MaintenanceResponsibleParty.representative) ...<Widget>[
                     _PickerTile(
@@ -471,18 +470,17 @@ class _MaintenanceCloseScreenState extends State<MaintenanceCloseScreen> {
                     ),
                     const SizedBox(height: AppSpacing.lg),
                   ],
-
                   if (_responsibleParty ==
                       MaintenanceResponsibleParty.merchant) ...<Widget>[
                     _PickerTile(
                       identifier: 'maintenance_close_responsible_merchant',
-                      label: LocaleKeys.maintenanceCloseResponsibleMerchant.tr(),
+                      label: LocaleKeys.maintenanceCloseResponsibleMerchant
+                          .tr(),
                       value: _responsibleMerchant?.shopName,
                       onTap: _pickResponsibleMerchant,
                     ),
                     const SizedBox(height: AppSpacing.lg),
                   ],
-
                   if (!_isFreeUnderWarranty &&
                       _responsibleParty ==
                           MaintenanceResponsibleParty.company) ...<Widget>[
@@ -503,7 +501,6 @@ class _MaintenanceCloseScreenState extends State<MaintenanceCloseScreen> {
                     ),
                     const SizedBox(height: AppSpacing.lg),
                   ],
-
                   if (!_isFreeUnderWarranty) ...<Widget>[
                     if (suppliers.isNotEmpty) ...<Widget>[
                       _sectionLabel(
@@ -527,13 +524,10 @@ class _MaintenanceCloseScreenState extends State<MaintenanceCloseScreen> {
                       preview: _invoicePreview,
                       isUploading: _uploadingInvoice,
                       onPick: _chooseInvoiceSource,
-                      onRemove: _invoiceMediaId == null
-                          ? null
-                          : _removeInvoice,
+                      onRemove: _invoiceMediaId == null ? null : _removeInvoice,
                     ),
                     const SizedBox(height: AppSpacing.lg),
                   ],
-
                   _EffectPreviewCard(
                     effect: maintenanceCloseEffectFor(
                       isFreeUnderWarranty: _isFreeUnderWarranty,
@@ -542,7 +536,6 @@ class _MaintenanceCloseScreenState extends State<MaintenanceCloseScreen> {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.lg),
-
                   if (_result == MaintenanceOrderResult.replaced) ...<Widget>[
                     DetailCard(
                       title: LocaleKeys.maintenanceCloseNeedsReplacement.tr(),
@@ -609,7 +602,6 @@ class _MaintenanceCloseScreenState extends State<MaintenanceCloseScreen> {
                     ),
                     const SizedBox(height: AppSpacing.lg),
                   ],
-
                   LabeledTextFormField(
                     label: LocaleKeys.maintenancePerformedBy.tr(),
                     hintText: '',
@@ -617,7 +609,6 @@ class _MaintenanceCloseScreenState extends State<MaintenanceCloseScreen> {
                     identifier: 'maintenance_close_performed_by',
                   ),
                   const SizedBox(height: AppSpacing.lg),
-
                   _DateField(
                     label: LocaleKeys.maintenanceCloseReturnedAt.tr(),
                     value: _returnedAt,
@@ -626,7 +617,6 @@ class _MaintenanceCloseScreenState extends State<MaintenanceCloseScreen> {
                     identifier: 'maintenance_close_returned_at',
                   ),
                   const SizedBox(height: AppSpacing.lg),
-
                   LabeledTextFormField(
                     label: LocaleKeys.maintenanceNotes.tr(),
                     hintText: '',
@@ -678,7 +668,9 @@ class _MaintenanceCloseScreenState extends State<MaintenanceCloseScreen> {
                 Text(
                   LocaleKeys.maintenanceClosedSuccess.tr(),
                   textAlign: TextAlign.center,
-                  style: Styles.s17(context).copyWith(fontWeight: FontWeight.w700),
+                  style: Styles.s17(
+                    context,
+                  ).copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 DetailCard(
@@ -715,7 +707,8 @@ class _MaintenanceCloseScreenState extends State<MaintenanceCloseScreen> {
                     isFreeUnderWarranty: order.isFreeUnderWarranty,
                     cost: order.cost ?? 0,
                     responsibleParty:
-                        order.responsibleParty ?? MaintenanceResponsibleParty.company,
+                        order.responsibleParty ??
+                        MaintenanceResponsibleParty.company,
                   ),
                 ),
               ],
@@ -742,9 +735,10 @@ class _MaintenanceCloseScreenState extends State<MaintenanceCloseScreen> {
       padding: const EdgeInsetsDirectional.only(bottom: AppSpacing.sm),
       child: Text(
         text,
-        style: Styles.s14(
-          context,
-        ).copyWith(fontWeight: FontWeight.w600, color: AppColors.textSecondaryColor),
+        style: Styles.s14(context).copyWith(
+          fontWeight: FontWeight.w600,
+          color: AppColors.textSecondaryColor,
+        ),
       ),
     );
   }
@@ -847,9 +841,10 @@ class _InvoicePicker extends StatelessWidget {
       children: <Widget>[
         Text(
           LocaleKeys.maintenanceCloseInvoice.tr(),
-          style: Styles.s14(
-            context,
-          ).copyWith(fontWeight: FontWeight.w600, color: AppColors.textSecondaryColor),
+          style: Styles.s14(context).copyWith(
+            fontWeight: FontWeight.w600,
+            color: AppColors.textSecondaryColor,
+          ),
         ),
         const SizedBox(height: AppSpacing.sm),
         if (preview != null)
@@ -881,15 +876,25 @@ class _InvoicePicker extends StatelessWidget {
         else
           Semantics(
             identifier: 'maintenance_close_invoice_pick',
-            child: OutlinedButton.icon(
+            child: CustomButton(
+              title: LocaleKeys.maintenanceCloseInvoice.tr(),
+              isLoading: false,
+              isStroked: true,
               onPressed: isUploading ? null : onPick,
-              icon: isUploading
-                  ? const SizedBox.square(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  if (isUploading)
+                    const SizedBox.square(
                       dimension: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Icon(Icons.attach_file_outlined),
-              label: Text(LocaleKeys.maintenanceCloseInvoice.tr()),
+                  else
+                    const Icon(Icons.attach_file_outlined),
+                  const SizedBox(width: AppSpacing.sm),
+                  Text(LocaleKeys.maintenanceCloseInvoice.tr()),
+                ],
+              ),
             ),
           ),
       ],
@@ -938,9 +943,10 @@ class _DateField extends StatelessWidget {
       children: <Widget>[
         Text(
           label,
-          style: Styles.s14(
-            context,
-          ).copyWith(fontWeight: FontWeight.w600, color: AppColors.textSecondaryColor),
+          style: Styles.s14(context).copyWith(
+            fontWeight: FontWeight.w600,
+            color: AppColors.textSecondaryColor,
+          ),
         ),
         const SizedBox(height: AppSpacing.sm),
         Semantics(
@@ -954,9 +960,9 @@ class _DateField extends StatelessWidget {
               ),
               child: Text(
                 Formatters.isoDate(value) ?? label,
-                style: Styles.s14(
-                  context,
-                ).copyWith(color: value == null ? AppColors.textDisabledColor : null),
+                style: Styles.s14(context).copyWith(
+                  color: value == null ? AppColors.textDisabledColor : null,
+                ),
               ),
             ),
           ),
