@@ -7,3 +7,25 @@
 .vscode/*
 !.vscode/extensions.json
 *.log
+
+# Local dependencies, caches, and generated output
+node_modules/
+.gradle/
+.gradle-home/
+.dart_tool/
+.pub-cache/
+.local-flutter/
+.local-config/
+.fvm/flutter_sdk
+
+# Local environment and signing credentials
+.env
+.env.*
+!.env.example
+!.env.*.example
+!.env.sample
+!.env.template
+local.properties
+key.properties
+*.jks
+*.keystore

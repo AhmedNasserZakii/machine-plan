@@ -177,103 +177,108 @@ class _MaintenanceDetailScreenState extends State<MaintenanceDetailScreen> {
     return Column(
       children: <Widget>[
         Expanded(
-          child: ListView(
-            padding: const EdgeInsetsDirectional.all(AppSpacing.md),
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: LtrText(
-                      order.referenceNo,
-                      style: Styles.s17(
-                        context,
-                      ).copyWith(fontWeight: FontWeight.w700),
-                    ),
-                  ),
-                  StatusChip(
-                    label: MaintenanceLabels.status(order.status),
-                    color: MaintenanceLabels.statusColor(order.status),
-                    icon: MaintenanceLabels.statusIcon(order.status),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.md),
-              DetailCard(
-                title: LocaleKeys.maintenanceDetailTitle.tr(),
-                icon: Icons.build_circle_outlined,
-                children: <Widget>[
-                  DetailRow(
-                    label: LocaleKeys.violationMachine.tr(),
-                    value: order.machine.serial,
-                  ),
-                  DetailRow(
-                    label: LocaleKeys.maintenanceLocation.tr(),
-                    value: order.location.name,
-                  ),
-                  DetailRow(
-                    label: LocaleKeys.maintenanceReportedFault.tr(),
-                    value: order.reportedFault,
-                  ),
-                  DetailRow(
-                    label: LocaleKeys.maintenanceSentAt.tr(),
-                    value: Formatters.dateTime(order.sentAt),
-                  ),
-                  DetailRow(
-                    label: LocaleKeys.maintenanceReturnedAt.tr(),
-                    value: order.returnedAt == null
-                        ? null
-                        : Formatters.dateTime(order.returnedAt!),
-                  ),
-                  if (order.result != null)
-                    DetailRow(
-                      label: LocaleKeys.maintenanceCloseResult.tr(),
-                      value: MaintenanceLabels.result(order.result!),
-                    ),
-                  DetailRow(
-                    label: LocaleKeys.maintenanceCost.tr(),
-                    value: order.cost == null
-                        ? (order.isFreeUnderWarranty
-                              ? LocaleKeys.maintenanceFreeUnderWarranty.tr()
-                              : null)
-                        : Formatters.currency(order.cost!),
-                  ),
-                  if (order.responsibleParty != null)
-                    DetailRow(
-                      label: LocaleKeys.maintenanceResponsibleParty.tr(),
-                      value: MaintenanceLabels.responsibleParty(
-                        order.responsibleParty!,
+          child: RefreshIndicator(
+            color: AppColors.primaryColor,
+            onRefresh: () => context.read<MaintenanceDetailCubit>().load(),
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsetsDirectional.all(AppSpacing.md),
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: LtrText(
+                        order.referenceNo,
+                        style: Styles.s17(
+                          context,
+                        ).copyWith(fontWeight: FontWeight.w700),
                       ),
                     ),
-                  DetailRow(
-                    label: LocaleKeys.maintenancePerformedBy.tr(),
-                    value: order.performedByName,
-                  ),
-                  DetailRow(
-                    label: LocaleKeys.maintenanceNotes.tr(),
-                    value: order.notes,
-                  ),
-                  if (order.isCancelled) ...<Widget>[
-                    DetailRow(
-                      label: LocaleKeys.maintenanceCancelledAt.tr(),
-                      value: order.cancelledAt == null
-                          ? null
-                          : Formatters.dateTime(order.cancelledAt!),
-                    ),
-                    DetailRow(
-                      label: LocaleKeys.maintenanceCancelReasonLabel.tr(),
-                      value: order.cancelReason,
+                    StatusChip(
+                      label: MaintenanceLabels.status(order.status),
+                      color: MaintenanceLabels.statusColor(order.status),
+                      icon: MaintenanceLabels.statusIcon(order.status),
                     ),
                   ],
-                  if (order.isClosed)
+                ),
+                const SizedBox(height: AppSpacing.md),
+                DetailCard(
+                  title: LocaleKeys.maintenanceDetailTitle.tr(),
+                  icon: Icons.build_circle_outlined,
+                  children: <Widget>[
                     DetailRow(
-                      label: LocaleKeys.maintenanceClosedAt.tr(),
-                      value: order.closedAt == null
-                          ? null
-                          : Formatters.dateTime(order.closedAt!),
+                      label: LocaleKeys.violationMachine.tr(),
+                      value: order.machine.serial,
                     ),
-                ],
-              ),
-            ],
+                    DetailRow(
+                      label: LocaleKeys.maintenanceLocation.tr(),
+                      value: order.location.name,
+                    ),
+                    DetailRow(
+                      label: LocaleKeys.maintenanceReportedFault.tr(),
+                      value: order.reportedFault,
+                    ),
+                    DetailRow(
+                      label: LocaleKeys.maintenanceSentAt.tr(),
+                      value: Formatters.dateTime(order.sentAt),
+                    ),
+                    DetailRow(
+                      label: LocaleKeys.maintenanceReturnedAt.tr(),
+                      value: order.returnedAt == null
+                          ? null
+                          : Formatters.dateTime(order.returnedAt!),
+                    ),
+                    if (order.result != null)
+                      DetailRow(
+                        label: LocaleKeys.maintenanceCloseResult.tr(),
+                        value: MaintenanceLabels.result(order.result!),
+                      ),
+                    DetailRow(
+                      label: LocaleKeys.maintenanceCost.tr(),
+                      value: order.cost == null
+                          ? (order.isFreeUnderWarranty
+                                ? LocaleKeys.maintenanceFreeUnderWarranty.tr()
+                                : null)
+                          : Formatters.currency(order.cost!),
+                    ),
+                    if (order.responsibleParty != null)
+                      DetailRow(
+                        label: LocaleKeys.maintenanceResponsibleParty.tr(),
+                        value: MaintenanceLabels.responsibleParty(
+                          order.responsibleParty!,
+                        ),
+                      ),
+                    DetailRow(
+                      label: LocaleKeys.maintenancePerformedBy.tr(),
+                      value: order.performedByName,
+                    ),
+                    DetailRow(
+                      label: LocaleKeys.maintenanceNotes.tr(),
+                      value: order.notes,
+                    ),
+                    if (order.isCancelled) ...<Widget>[
+                      DetailRow(
+                        label: LocaleKeys.maintenanceCancelledAt.tr(),
+                        value: order.cancelledAt == null
+                            ? null
+                            : Formatters.dateTime(order.cancelledAt!),
+                      ),
+                      DetailRow(
+                        label: LocaleKeys.maintenanceCancelReasonLabel.tr(),
+                        value: order.cancelReason,
+                      ),
+                    ],
+                    if (order.isClosed)
+                      DetailRow(
+                        label: LocaleKeys.maintenanceClosedAt.tr(),
+                        value: order.closedAt == null
+                            ? null
+                            : Formatters.dateTime(order.closedAt!),
+                      ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
         if (!order.isClosed && !order.isCancelled)

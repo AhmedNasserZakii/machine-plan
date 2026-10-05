@@ -6,6 +6,7 @@ import 'package:machinery/core/shared_widgets/app_error_view.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
 import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
 import 'package:machinery/core/shared_widgets/error_toast.dart';
+import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/core/utils/enums.dart';
 import 'package:machinery/feature/notifications/data/logic/notification_preferences/notification_preferences_cubit.dart';
@@ -37,41 +38,39 @@ class _NotificationPreferencesScreenState
         leading: const ArrowBackWidget(),
         title: Text(LocaleKeys.notificationPreferencesTitle.tr()),
       ),
-      body: BlocConsumer<
-        NotificationPreferencesCubit,
-        NotificationPreferencesState
-      >(
-        listener:
-            (
-              BuildContext context,
-              NotificationPreferencesState state,
-            ) {
-              if (state is NotificationPreferencesLoaded &&
-                  state.saveError != null &&
-                  state.saveError!.isNotEmpty) {
-                showErrorToast(state.saveError!, context);
-              }
-            },
-        builder:
-            (BuildContext context, NotificationPreferencesState state) {
-              return switch (state) {
-                NotificationPreferencesFailure(
-                  :final String errorMessage,
-                  :final bool isOffline,
-                ) =>
-                  AppErrorView(
-                    message: isOffline
-                        ? LocaleKeys.machinesOnlineOnlySubtitle.tr()
-                        : errorMessage,
-                    onRetry: () =>
-                        context.read<NotificationPreferencesCubit>().load(),
-                  ),
-                NotificationPreferencesLoaded(:final preferences) =>
-                  _buildBody(context, preferences),
-                _ => const AppLoadingIndicator(),
-              };
-            },
-      ),
+      body:
+          BlocConsumer<
+            NotificationPreferencesCubit,
+            NotificationPreferencesState
+          >(
+            listener:
+                (BuildContext context, NotificationPreferencesState state) {
+                  if (state is NotificationPreferencesLoaded &&
+                      state.saveError != null &&
+                      state.saveError!.isNotEmpty) {
+                    showErrorToast(state.saveError!, context);
+                  }
+                },
+            builder:
+                (BuildContext context, NotificationPreferencesState state) {
+                  return switch (state) {
+                    NotificationPreferencesFailure(
+                      :final String errorMessage,
+                      :final bool isOffline,
+                    ) =>
+                      AppErrorView(
+                        message: isOffline
+                            ? LocaleKeys.machinesOnlineOnlySubtitle.tr()
+                            : errorMessage,
+                        onRetry: () =>
+                            context.read<NotificationPreferencesCubit>().load(),
+                      ),
+                    NotificationPreferencesLoaded(:final preferences) =>
+                      _buildBody(context, preferences),
+                    _ => const AppLoadingIndicator(),
+                  };
+                },
+          ),
     );
   }
 
@@ -91,21 +90,26 @@ class _NotificationPreferencesScreenState
         )
         .toList(growable: false);
 
-    return ListView(
-      padding: const EdgeInsetsDirectional.all(AppSpacing.md),
-      children: <Widget>[
-        const QuietHoursField(),
-        const SizedBox(height: AppSpacing.lg),
-        ...entries.map(
-          (NotificationPreferenceEntry entry) => PreferenceSwitchTile(
-            entry: entry,
-            onPushChanged: (bool value) =>
-                cubit.togglePush(entry.templateCode, value: value),
-            onInAppChanged: (bool value) =>
-                cubit.toggleInApp(entry.templateCode, value: value),
+    return RefreshIndicator(
+      color: AppColors.primaryColor,
+      onRefresh: () => cubit.load(showLoader: false),
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsetsDirectional.all(AppSpacing.md),
+        children: <Widget>[
+          const QuietHoursField(),
+          const SizedBox(height: AppSpacing.lg),
+          ...entries.map(
+            (NotificationPreferenceEntry entry) => PreferenceSwitchTile(
+              entry: entry,
+              onPushChanged: (bool value) =>
+                  cubit.togglePush(entry.templateCode, value: value),
+              onInAppChanged: (bool value) =>
+                  cubit.toggleInApp(entry.templateCode, value: value),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

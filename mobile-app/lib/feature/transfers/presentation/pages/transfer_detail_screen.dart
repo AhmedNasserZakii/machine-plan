@@ -11,6 +11,7 @@ import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
 import 'package:machinery/core/shared_widgets/detail_card.dart';
 import 'package:machinery/core/shared_widgets/error_toast.dart';
 import 'package:machinery/core/shared_widgets/success_toast.dart';
+import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/core/utils/app_route.dart';
 import 'package:machinery/feature/transfers/data/logic/transfer_detail/transfer_detail_cubit.dart';
@@ -145,26 +146,32 @@ class _TransferDetailScreenState extends State<TransferDetailScreen> {
     return Column(
       children: <Widget>[
         Expanded(
-          child: ListView(
-            padding: const EdgeInsetsDirectional.all(AppSpacing.md),
-            children: <Widget>[
-              TransferDetailHeader(transfer: transfer),
-              const SizedBox(height: AppSpacing.md),
-              DetailCard(
-                title: LocaleKeys.transferMachinesTitle.tr(),
-                icon: Icons.point_of_sale_outlined,
-                children: transfer.items
-                    .map(
-                      (TransferItemEntity item) => TransferItemTile(item: item),
-                    )
-                    .toList(growable: false),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              TransferSignaturesCard(
-                transferId: transfer.id,
-                signatures: transfer.signatures,
-              ),
-            ],
+          child: RefreshIndicator(
+            color: AppColors.primaryColor,
+            onRefresh: () => context.read<TransferDetailCubit>().load(),
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsetsDirectional.all(AppSpacing.md),
+              children: <Widget>[
+                TransferDetailHeader(transfer: transfer),
+                const SizedBox(height: AppSpacing.md),
+                DetailCard(
+                  title: LocaleKeys.transferMachinesTitle.tr(),
+                  icon: Icons.point_of_sale_outlined,
+                  children: transfer.items
+                      .map(
+                        (TransferItemEntity item) =>
+                            TransferItemTile(item: item),
+                      )
+                      .toList(growable: false),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                TransferSignaturesCard(
+                  transferId: transfer.id,
+                  signatures: transfer.signatures,
+                ),
+              ],
+            ),
           ),
         ),
         // Only a pending transfer has anything to do. A confirmed one is a

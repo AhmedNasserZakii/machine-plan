@@ -174,40 +174,45 @@ class _ViolationDetailScreenState extends State<ViolationDetailScreen> {
   Widget _buildBody(BuildContext context, ViolationDetailLoaded state) {
     final ViolationEntity violation = state.violation;
 
-    return ListView(
-      padding: const EdgeInsetsDirectional.all(AppSpacing.md),
-      children: <Widget>[
-        _Header(violation: violation),
-        const SizedBox(height: AppSpacing.md),
-        _FactsCard(
-          violation: violation,
-          onTapMachine: violation.machine == null
-              ? null
-              : () => AppRoute.goToMachineDetail(
-                  context: context,
-                  machineId: violation.machine!.id,
-                ),
-          onTapTransfer: violation.transferId == null
-              ? null
-              : () => AppRoute.goToTransferDetail(
-                  context: context,
-                  transferId: violation.transferId!,
-                ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        if (violation.isSettled)
-          _OutcomeCard(violation: violation)
-        else
-          ViolationActionsRow(
+    return RefreshIndicator(
+      color: AppColors.primaryColor,
+      onRefresh: () => context.read<ViolationDetailCubit>().load(),
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsetsDirectional.all(AppSpacing.md),
+        children: <Widget>[
+          _Header(violation: violation),
+          const SizedBox(height: AppSpacing.md),
+          _FactsCard(
             violation: violation,
-            isBusy: state.actionInProgress,
-            currentUserId: _currentUserId,
-            onAcknowledge: context.read<ViolationDetailCubit>().acknowledge,
-            onCharge: _charge,
-            onWaive: _waive,
-            onEdit: () => _edit(violation),
+            onTapMachine: violation.machine == null
+                ? null
+                : () => AppRoute.goToMachineDetail(
+                    context: context,
+                    machineId: violation.machine!.id,
+                  ),
+            onTapTransfer: violation.transferId == null
+                ? null
+                : () => AppRoute.goToTransferDetail(
+                    context: context,
+                    transferId: violation.transferId!,
+                  ),
           ),
-      ],
+          const SizedBox(height: AppSpacing.md),
+          if (violation.isSettled)
+            _OutcomeCard(violation: violation)
+          else
+            ViolationActionsRow(
+              violation: violation,
+              isBusy: state.actionInProgress,
+              currentUserId: _currentUserId,
+              onAcknowledge: context.read<ViolationDetailCubit>().acknowledge,
+              onCharge: _charge,
+              onWaive: _waive,
+              onEdit: () => _edit(violation),
+            ),
+        ],
+      ),
     );
   }
 }

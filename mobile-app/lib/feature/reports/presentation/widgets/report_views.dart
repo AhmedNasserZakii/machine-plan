@@ -90,6 +90,7 @@ class ReportCardView extends StatelessWidget {
   final ReportResult result;
   @override
   Widget build(BuildContext context) => ListView.separated(
+    physics: const AlwaysScrollableScrollPhysics(),
     padding: const EdgeInsetsDirectional.all(AppSpacing.md),
     itemCount: result.rows.length,
     separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
@@ -189,6 +190,7 @@ class ReportTableView extends StatelessWidget {
         ),
         Expanded(
           child: ListView.separated(
+            physics: const AlwaysScrollableScrollPhysics(),
             itemCount: result.rows.length,
             separatorBuilder: (_, _) => const Divider(height: 1),
             itemBuilder: (_, index) {
@@ -272,6 +274,7 @@ class ReportGroupedView extends StatelessWidget {
         ? result.columns[1]
         : result.columns.first;
     return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsetsDirectional.all(AppSpacing.md),
       children: groups.entries
           .map(

@@ -7,6 +7,7 @@ import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
 import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
 import 'package:machinery/core/shared_widgets/error_toast.dart';
 import 'package:machinery/core/shared_widgets/success_toast.dart';
+import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/feature/users/data/logic/roles/roles_cubit.dart';
 import 'package:machinery/feature/users/domain/entities/role_entity.dart';
@@ -49,77 +50,90 @@ class _RolePermissionsScreenState extends State<RolePermissionsScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-          title: Text(widget.role.displayName),
-          leading: const ArrowBackWidget(),
-        ),
-        body: BlocBuilder<RolesCubit, RolesState>(
-          builder: (context, state) {
-            if (state is! RolesReady) return const AppLoadingIndicator();
-            return SafeArea(
-              child: Column(
-                children: <Widget>[
-                  if (_protected)
-                    MaterialBanner(
-                      content: Text(LocaleKeys.roleSystemProtected.tr()),
-                      actions: const <Widget>[SizedBox.shrink()],
-                    ),
-                  Expanded(
-                    child: ListView(
-                      padding: const EdgeInsetsDirectional.all(AppSpacing.md),
-                      children: state.groups
-                          .map((group) => Card(
-                                child: ExpansionTile(
-                                  title: Text(group.label),
-                                  subtitle:
-                                      Text(LocaleKeys.rolePermissionCount.tr(
-                                    args: <String>[
-                                      group.permissions
-                                          .where(
-                                              (p) => _selected.contains(p.code))
-                                          .length
-                                          .toString(),
-                                    ],
-                                  )),
-                                  children: group.permissions
-                                      .map((permission) => CheckboxListTile(
-                                            value: _selected
-                                                .contains(permission.code),
-                                            title: Text(permission.displayName),
-                                            subtitle: permission.description ==
-                                                    null
-                                                ? null
-                                                : Text(permission.description!),
-                                            onChanged: _protected ||
-                                                    state.isSaving
-                                                ? null
-                                                : (checked) => setState(() {
-                                                      checked == true
-                                                          ? _selected.add(
-                                                              permission.code)
-                                                          : _selected.remove(
-                                                              permission.code);
-                                                    }),
-                                          ))
-                                      .toList(growable: false),
+    appBar: AppBar(
+      title: Text(widget.role.displayName),
+      leading: const ArrowBackWidget(),
+    ),
+    body: BlocBuilder<RolesCubit, RolesState>(
+      builder: (context, state) {
+        if (state is! RolesReady) return const AppLoadingIndicator();
+        return SafeArea(
+          child: Column(
+            children: <Widget>[
+              if (_protected)
+                MaterialBanner(
+                  content: Text(LocaleKeys.roleSystemProtected.tr()),
+                  actions: const <Widget>[SizedBox.shrink()],
+                ),
+              Expanded(
+                child: RefreshIndicator(
+                  color: AppColors.primaryColor,
+                  onRefresh: () =>
+                      context.read<RolesCubit>().load(showLoader: false),
+                  child: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsetsDirectional.all(AppSpacing.md),
+                    children: state.groups
+                        .map(
+                          (group) => Card(
+                            child: ExpansionTile(
+                              title: Text(group.label),
+                              subtitle: Text(
+                                LocaleKeys.rolePermissionCount.tr(
+                                  args: <String>[
+                                    group.permissions
+                                        .where(
+                                          (p) => _selected.contains(p.code),
+                                        )
+                                        .length
+                                        .toString(),
+                                  ],
                                 ),
-                              ))
-                          .toList(growable: false),
-                    ),
+                              ),
+                              children: group.permissions
+                                  .map(
+                                    (permission) => CheckboxListTile(
+                                      value: _selected.contains(
+                                        permission.code,
+                                      ),
+                                      title: Text(permission.displayName),
+                                      subtitle: permission.description == null
+                                          ? null
+                                          : Text(permission.description!),
+                                      onChanged: _protected || state.isSaving
+                                          ? null
+                                          : (checked) => setState(() {
+                                              checked == true
+                                                  ? _selected.add(
+                                                      permission.code,
+                                                    )
+                                                  : _selected.remove(
+                                                      permission.code,
+                                                    );
+                                            }),
+                                    ),
+                                  )
+                                  .toList(growable: false),
+                            ),
+                          ),
+                        )
+                        .toList(growable: false),
                   ),
-                  if (!_protected)
-                    Padding(
-                      padding: const EdgeInsetsDirectional.all(AppSpacing.md),
-                      child: FilledButton.icon(
-                        onPressed: state.isSaving ? null : _save,
-                        icon: const Icon(Icons.save_outlined),
-                        label: Text(LocaleKeys.save.tr()),
-                      ),
-                    ),
-                ],
+                ),
               ),
-            );
-          },
-        ),
-      );
+              if (!_protected)
+                Padding(
+                  padding: const EdgeInsetsDirectional.all(AppSpacing.md),
+                  child: FilledButton.icon(
+                    onPressed: state.isSaving ? null : _save,
+                    icon: const Icon(Icons.save_outlined),
+                    label: Text(LocaleKeys.save.tr()),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    ),
+  );
 }

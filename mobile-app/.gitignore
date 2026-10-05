@@ -46,3 +46,6 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Machine-specific build helper
+/scripts/_build_production_apk.sh

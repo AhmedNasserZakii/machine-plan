@@ -7,6 +7,7 @@ import 'package:machinery/core/shared_widgets/app_empty_state.dart';
 import 'package:machinery/core/shared_widgets/app_error_view.dart';
 import 'package:machinery/core/shared_widgets/app_loading_indicator.dart';
 import 'package:machinery/core/shared_widgets/arrow_back_widget.dart';
+import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/feature/finance/domain/entities/finance_entities.dart';
 import 'package:machinery/feature/finance/domain/repos/finance_repo.dart';
@@ -146,46 +147,60 @@ class _CategoryPickerScreenState extends State<CategoryPickerScreen> {
               ),
             ),
           Expanded(
-            child: rows.isEmpty
-                ? AppEmptyState(
-                    icon: Icons.category_outlined,
-                    title: LocaleKeys.financeNoCategories.tr(),
-                    subtitle: LocaleKeys.financeNoCategoriesSubtitle.tr(),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsetsDirectional.all(AppSpacing.md),
-                    itemCount: rows.length,
-                    itemBuilder: (_, index) {
-                      final c = rows[index];
-                      return Card(
-                        child: ListTile(
-                          leading: recentIds.contains(c.id) && _trail.isEmpty
-                              ? const Icon(Icons.history)
-                              : Icon(
-                                  c.children.isEmpty
-                                      ? Icons.label_outline
-                                      : Icons.folder_outlined,
-                                ),
-                          title: Text(c.name),
-                          subtitle: c.description == null
-                              ? null
-                              : Text(c.description!, maxLines: 1),
-                          onTap: () => _select(c),
-                          trailing: c.children.isEmpty
-                              ? null
-                              : IconButton(
-                                  icon: const Icon(Icons.chevron_right),
-                                  tooltip: LocaleKeys.financeOpenSubcategories
-                                      .tr(),
-                                  onPressed: () => setState(() {
-                                    _trail.add(c);
-                                    _search = '';
-                                  }),
-                                ),
+            child: RefreshIndicator(
+              color: AppColors.primaryColor,
+              onRefresh: _load,
+              child: rows.isEmpty
+                  ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: <Widget>[
+                        SizedBox(
+                          height: MediaQuery.sizeOf(context).height * 0.5,
+                          child: AppEmptyState(
+                            icon: Icons.category_outlined,
+                            title: LocaleKeys.financeNoCategories.tr(),
+                            subtitle: LocaleKeys.financeNoCategoriesSubtitle
+                                .tr(),
+                          ),
                         ),
-                      );
-                    },
-                  ),
+                      ],
+                    )
+                  : ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsetsDirectional.all(AppSpacing.md),
+                      itemCount: rows.length,
+                      itemBuilder: (_, index) {
+                        final c = rows[index];
+                        return Card(
+                          child: ListTile(
+                            leading: recentIds.contains(c.id) && _trail.isEmpty
+                                ? const Icon(Icons.history)
+                                : Icon(
+                                    c.children.isEmpty
+                                        ? Icons.label_outline
+                                        : Icons.folder_outlined,
+                                  ),
+                            title: Text(c.name),
+                            subtitle: c.description == null
+                                ? null
+                                : Text(c.description!, maxLines: 1),
+                            onTap: () => _select(c),
+                            trailing: c.children.isEmpty
+                                ? null
+                                : IconButton(
+                                    icon: const Icon(Icons.chevron_right),
+                                    tooltip: LocaleKeys.financeOpenSubcategories
+                                        .tr(),
+                                    onPressed: () => setState(() {
+                                      _trail.add(c);
+                                      _search = '';
+                                    }),
+                                  ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
           ),
         ],
       ),

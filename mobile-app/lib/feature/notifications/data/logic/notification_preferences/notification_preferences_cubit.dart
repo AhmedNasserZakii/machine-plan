@@ -12,12 +12,14 @@ class NotificationPreferencesCubit extends Cubit<NotificationPreferencesState> {
 
   final NotificationsRepo notificationsRepo;
 
-  Future<void> load() async {
+  Future<void> load({bool showLoader = true}) async {
     if (isClosed) {
       return;
     }
 
-    emit(const NotificationPreferencesLoading());
+    if (showLoader) {
+      emit(const NotificationPreferencesLoading());
+    }
 
     final result = await notificationsRepo.fetchPreferences();
 
@@ -32,13 +34,15 @@ class NotificationPreferencesCubit extends Cubit<NotificationPreferencesState> {
           isOffline: failure is OfflineFailure,
         ),
       ),
-      (NotificationPreferencesEntity preferences) => emit(
-        NotificationPreferencesLoaded(preferences: preferences),
-      ),
+      (NotificationPreferencesEntity preferences) =>
+          emit(NotificationPreferencesLoaded(preferences: preferences)),
     );
   }
 
-  Future<void> togglePush(NotificationTemplateCode code, {required bool value}) {
+  Future<void> togglePush(
+    NotificationTemplateCode code, {
+    required bool value,
+  }) {
     return _toggle(code, push: value);
   }
 
@@ -100,11 +104,7 @@ class NotificationPreferencesCubit extends Cubit<NotificationPreferencesState> {
     final result = await notificationsRepo.updatePreferences(
       params: UpdateNotificationPreferencesParams(
         preferences: <PreferenceUpdateEntry>[
-          PreferenceUpdateEntry(
-            templateCode: code,
-            push: push,
-            inApp: inApp,
-          ),
+          PreferenceUpdateEntry(templateCode: code, push: push, inApp: inApp),
         ],
       ),
     );
@@ -115,14 +115,10 @@ class NotificationPreferencesCubit extends Cubit<NotificationPreferencesState> {
 
     result.fold(
       (ServerFailure failure) => emit(
-        current.copyWith(
-          isSaving: false,
-          saveError: failure.errorMessage,
-        ),
+        current.copyWith(isSaving: false, saveError: failure.errorMessage),
       ),
-      (NotificationPreferencesEntity preferences) => emit(
-        NotificationPreferencesLoaded(preferences: preferences),
-      ),
+      (NotificationPreferencesEntity preferences) =>
+          emit(NotificationPreferencesLoaded(preferences: preferences)),
     );
   }
 }

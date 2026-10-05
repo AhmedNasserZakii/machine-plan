@@ -63,15 +63,20 @@ class _ViolationSummaryScreenState extends State<ViolationSummaryScreen> {
   }
 
   Widget _buildBody(BuildContext context, ViolationSummary summary) {
-    return ListView(
-      padding: const EdgeInsetsDirectional.all(AppSpacing.md),
-      children: <Widget>[
-        _PersonCard(summary: summary),
-        const SizedBox(height: AppSpacing.md),
-        _TotalsCard(summary: summary),
-        const SizedBox(height: AppSpacing.md),
-        if (summary.byType.isNotEmpty) _ByTypeCard(rows: summary.byType),
-      ],
+    return RefreshIndicator(
+      color: AppColors.primaryColor,
+      onRefresh: () => context.read<ViolationSummaryCubit>().load(),
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsetsDirectional.all(AppSpacing.md),
+        children: <Widget>[
+          _PersonCard(summary: summary),
+          const SizedBox(height: AppSpacing.md),
+          _TotalsCard(summary: summary),
+          const SizedBox(height: AppSpacing.md),
+          if (summary.byType.isNotEmpty) _ByTypeCard(rows: summary.byType),
+        ],
+      ),
     );
   }
 }

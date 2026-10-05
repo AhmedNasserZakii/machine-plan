@@ -28,11 +28,15 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
   List<FinanceCategory>? _rows;
   String? _error;
   FinanceKind _kind = FinanceKind.expense;
-  Future<void> _load() async {
-    setState(() {
-      _rows = null;
-      _error = null;
-    });
+  Future<void> _load({bool showLoader = true}) async {
+    if (showLoader) {
+      setState(() {
+        _rows = null;
+        _error = null;
+      });
+    } else {
+      setState(() => _error = null);
+    }
     final result = await _repo.categories(kind: _kind, includeInactive: true);
     if (!mounted) return;
     result.fold(
@@ -187,14 +191,15 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
         category.rolledUpTotal.toStringAsFixed(2),
       ],
     );
-    return category.isActive ? stats : '$stats • ${LocaleKeys.userInactive.tr()}';
+    return category.isActive
+        ? stats
+        : '$stats • ${LocaleKeys.userInactive.tr()}';
   }
 
   @override
   Widget build(BuildContext context) {
-    final List<FinanceCategory> flatRows = _rows
-            ?.expand((e) => e.flattened)
-            .toList(growable: false) ??
+    final List<FinanceCategory> flatRows =
+        _rows?.expand((e) => e.flattened).toList(growable: false) ??
         const <FinanceCategory>[];
     return Scaffold(
       appBar: AppBar(
@@ -232,63 +237,89 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
                 ? AppErrorView(message: _error!, onRetry: _load)
                 : _rows == null
                 ? const AppLoadingIndicator()
-                : flatRows.isEmpty
-                ? AppEmptyState(
-                    icon: Icons.category_outlined,
-                    title: LocaleKeys.financeNoCategories.tr(),
-                    subtitle: LocaleKeys.financeNoCategoriesSubtitle.tr(),
-                  )
-                : ListView(
-                    children: flatRows
-                        .map(
-                          (c) => ListTile(
-                            contentPadding: EdgeInsetsDirectional.only(
-                              start: AppSpacing.md + c.depth * 18,
-                              end: AppSpacing.sm,
-                            ),
-                            leading: Icon(
-                              c.isSystem
-                                  ? Icons.lock_outline
-                                  : Icons.category_outlined,
-                              color: c.isActive
-                                  ? AppColors.primaryColor
-                                  : AppColors.textDisabledColor,
-                            ),
-                            title: Text(c.name),
-                            subtitle: LtrText(_categorySubtitle(c)),
-                            trailing: c.isSystem
-                                ? null
-                                : PopupMenuButton<String>(
-                                    onSelected: (value) {
-                                      if (value == 'edit') _edit(c);
-                                      if (value == 'toggle') _toggle(c);
-                                      if (value == 'delete') _delete(c);
-                                    },
-                                    itemBuilder: (_) =>
-                                        <PopupMenuEntry<String>>[
-                                      PopupMenuItem(
-                                        value: 'edit',
-                                        child: Text(
-                                          LocaleKeys.financeEditMove.tr(),
-                                        ),
-                                      ),
-                                      PopupMenuItem(
-                                        value: 'toggle',
-                                        child: Text(
-                                          c.isActive
-                                              ? LocaleKeys.userDeactivate.tr()
-                                              : LocaleKeys.userActivate.tr(),
-                                        ),
-                                      ),
-                                      PopupMenuItem(
-                                        value: 'delete',
-                                        child: Text(LocaleKeys.delete.tr()),
-                                      ),
-                                    ],
+                : RefreshIndicator(
+                    color: AppColors.primaryColor,
+                    onRefresh: () => _load(showLoader: false),
+                    child: flatRows.isEmpty
+                        ? ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: <Widget>[
+                              SizedBox(
+                                height: MediaQuery.sizeOf(context).height * 0.5,
+                                child: AppEmptyState(
+                                  icon: Icons.category_outlined,
+                                  title: LocaleKeys.financeNoCategories.tr(),
+                                  subtitle: LocaleKeys
+                                      .financeNoCategoriesSubtitle
+                                      .tr(),
+                                ),
+                              ),
+                            ],
+                          )
+                        : ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: flatRows
+                                .map(
+                                  (c) => ListTile(
+                                    contentPadding: EdgeInsetsDirectional.only(
+                                      start: AppSpacing.md + c.depth * 18,
+                                      end: AppSpacing.sm,
+                                    ),
+                                    leading: Icon(
+                                      c.isSystem
+                                          ? Icons.lock_outline
+                                          : Icons.category_outlined,
+                                      color: c.isActive
+                                          ? AppColors.primaryColor
+                                          : AppColors.textDisabledColor,
+                                    ),
+                                    title: Text(c.name),
+                                    subtitle: LtrText(_categorySubtitle(c)),
+                                    trailing: c.isSystem
+                                        ? null
+                                        : PopupMenuButton<String>(
+                                            onSelected: (value) {
+                                              if (value == 'edit') _edit(c);
+                                              if (value == 'toggle') {
+                                                _toggle(c);
+                                              }
+                                              if (value == 'delete') {
+                                                _delete(c);
+                                              }
+                                            },
+                                            itemBuilder: (_) =>
+                                                <PopupMenuEntry<String>>[
+                                                  PopupMenuItem(
+                                                    value: 'edit',
+                                                    child: Text(
+                                                      LocaleKeys.financeEditMove
+                                                          .tr(),
+                                                    ),
+                                                  ),
+                                                  PopupMenuItem(
+                                                    value: 'toggle',
+                                                    child: Text(
+                                                      c.isActive
+                                                          ? LocaleKeys
+                                                                .userDeactivate
+                                                                .tr()
+                                                          : LocaleKeys
+                                                                .userActivate
+                                                                .tr(),
+                                                    ),
+                                                  ),
+                                                  PopupMenuItem(
+                                                    value: 'delete',
+                                                    child: Text(
+                                                      LocaleKeys.delete.tr(),
+                                                    ),
+                                                  ),
+                                                ],
+                                          ),
                                   ),
+                                )
+                                .toList(),
                           ),
-                        )
-                        .toList(),
                   ),
           ),
         ],
@@ -301,7 +332,6 @@ String _friendlyCategoryError(String code, String fallback) => switch (code) {
   'CIRCULAR_CATEGORY_REFERENCE' => LocaleKeys.errorCategoryCycle.tr(),
   'CATEGORY_HAS_CHILDREN' => LocaleKeys.errorCategoryHasChildren.tr(),
   'CATEGORY_HAS_TRANSACTIONS' => LocaleKeys.errorCategoryHasTransactions.tr(),
-  'SYSTEM_CATEGORY_PROTECTED' =>
-    LocaleKeys.errorSystemCategoryProtected.tr(),
+  'SYSTEM_CATEGORY_PROTECTED' => LocaleKeys.errorSystemCategoryProtected.tr(),
   _ => fallback,
 };

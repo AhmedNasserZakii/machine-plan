@@ -21,53 +21,70 @@ class ReportExportsScreen extends StatelessWidget {
       body: ValueListenableBuilder<List<ReportJob>>(
         valueListenable: repo.exports,
         builder: (_, jobs, _) {
-          if (jobs.isEmpty) {
-            return Center(child: Text(LocaleKeys.reportNoDownloads.tr()));
-          }
-          return ListView.separated(
-            padding: const EdgeInsetsDirectional.all(AppSpacing.md),
-            itemCount: jobs.length,
-            separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
-            itemBuilder: (_, index) {
-              final job = jobs[index];
-              final ready = job.isDownloaded;
-              return Card(
-                child: ListTile(
-                  leading: job.status == ReportJobStatus.failed
-                      ? const Icon(
-                          Icons.error_outline,
-                          color: AppColors.dangerColor,
-                        )
-                      : ready
-                      ? const Icon(
-                          Icons.description_outlined,
-                          color: AppColors.successColor,
-                        )
-                      : const SizedBox.square(
-                          dimension: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+          return RefreshIndicator(
+            color: AppColors.primaryColor,
+            onRefresh: repo.loadDownloadedExports,
+            child: jobs.isEmpty
+                ? ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: <Widget>[
+                      SizedBox(
+                        height: MediaQuery.sizeOf(context).height * 0.5,
+                        child: Center(
+                          child: Text(LocaleKeys.reportNoDownloads.tr()),
                         ),
-                  title: Text(job.filename ?? job.reportKey),
-                  subtitle: Text(
-                    job.status == ReportJobStatus.failed
-                        ? '${LocaleKeys.reportExportFailed.tr()}${job.errorCode == null ? '' : ': ${job.errorCode}'}'
-                        : ready
-                        ? '${job.format.name.toUpperCase()} • ${job.rowCount ?? 0} rows'
-                        : (job.status == ReportJobStatus.running
-                                  ? LocaleKeys.reportExportRunning
-                                  : LocaleKeys.reportExportQueued)
-                              .tr(),
+                      ),
+                    ],
+                  )
+                : ListView.separated(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsetsDirectional.all(AppSpacing.md),
+                    itemCount: jobs.length,
+                    separatorBuilder: (_, _) =>
+                        const SizedBox(height: AppSpacing.sm),
+                    itemBuilder: (_, index) {
+                      final job = jobs[index];
+                      final ready = job.isDownloaded;
+                      return Card(
+                        child: ListTile(
+                          leading: job.status == ReportJobStatus.failed
+                              ? const Icon(
+                                  Icons.error_outline,
+                                  color: AppColors.dangerColor,
+                                )
+                              : ready
+                              ? const Icon(
+                                  Icons.description_outlined,
+                                  color: AppColors.successColor,
+                                )
+                              : const SizedBox.square(
+                                  dimension: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                          title: Text(job.filename ?? job.reportKey),
+                          subtitle: Text(
+                            job.status == ReportJobStatus.failed
+                                ? '${LocaleKeys.reportExportFailed.tr()}${job.errorCode == null ? '' : ': ${job.errorCode}'}'
+                                : ready
+                                ? '${job.format.name.toUpperCase()} • ${job.rowCount ?? 0} rows'
+                                : (job.status == ReportJobStatus.running
+                                          ? LocaleKeys.reportExportRunning
+                                          : LocaleKeys.reportExportQueued)
+                                      .tr(),
+                          ),
+                          onTap: ready ? () => repo.openExport(job) : null,
+                          trailing: ready
+                              ? IconButton(
+                                  icon: const Icon(Icons.share_outlined),
+                                  onPressed: () => repo.shareExport(job),
+                                )
+                              : null,
+                        ),
+                      );
+                    },
                   ),
-                  onTap: ready ? () => repo.openExport(job) : null,
-                  trailing: ready
-                      ? IconButton(
-                          icon: const Icon(Icons.share_outlined),
-                          onPressed: () => repo.shareExport(job),
-                        )
-                      : null,
-                ),
-              );
-            },
           );
         },
       ),

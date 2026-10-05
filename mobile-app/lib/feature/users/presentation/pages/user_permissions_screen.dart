@@ -11,6 +11,7 @@ import 'package:machinery/core/shared_widgets/custom_button.dart';
 import 'package:machinery/core/shared_widgets/custom_search_bar.dart';
 import 'package:machinery/core/shared_widgets/error_toast.dart';
 import 'package:machinery/core/shared_widgets/success_toast.dart';
+import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/feature/users/data/logic/user_permissions/user_permissions_cubit.dart';
 import 'package:machinery/feature/users/data/logic/user_permissions/user_permissions_state.dart';
@@ -147,30 +148,43 @@ class _UserPermissionsScreenState extends State<UserPermissionsScreen> {
             ),
           ),
           Expanded(
-            child: groups.isEmpty
-                ? AppEmptyState(
-                    icon: Icons.search_off_rounded,
-                    title: LocaleKeys.userPermissionsEmptySearch.tr(),
-                    subtitle: '',
-                  )
-                : ListView.separated(
-                    padding: const EdgeInsetsDirectional.all(AppSpacing.md),
-                    itemCount: groups.length,
-                    separatorBuilder: (_, _) =>
-                        const SizedBox(height: AppSpacing.sm),
-                    itemBuilder: (BuildContext context, int index) {
-                      final PermissionGroupEntity group = groups[index];
+            child: RefreshIndicator(
+              color: AppColors.primaryColor,
+              onRefresh: () => cubit.load(showLoader: false),
+              child: groups.isEmpty
+                  ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: <Widget>[
+                        SizedBox(
+                          height: MediaQuery.sizeOf(context).height * 0.4,
+                          child: AppEmptyState(
+                            icon: Icons.search_off_rounded,
+                            title: LocaleKeys.userPermissionsEmptySearch.tr(),
+                            subtitle: '',
+                          ),
+                        ),
+                      ],
+                    )
+                  : ListView.separated(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsetsDirectional.all(AppSpacing.md),
+                      itemCount: groups.length,
+                      separatorBuilder: (_, _) =>
+                          const SizedBox(height: AppSpacing.sm),
+                      itemBuilder: (BuildContext context, int index) {
+                        final PermissionGroupEntity group = groups[index];
 
-                      return PermissionGroupTile(
-                        group: group,
-                        draft: state.draft,
-                        enabled: !state.isSaving,
-                        isExpanded: state.isExpanded(group.group),
-                        onToggleGroup: () => cubit.toggleGroup(group.group),
-                        onTogglePermission: cubit.toggle,
-                      );
-                    },
-                  ),
+                        return PermissionGroupTile(
+                          group: group,
+                          draft: state.draft,
+                          enabled: !state.isSaving,
+                          isExpanded: state.isExpanded(group.group),
+                          onToggleGroup: () => cubit.toggleGroup(group.group),
+                          onTogglePermission: cubit.toggle,
+                        );
+                      },
+                    ),
+            ),
           ),
           if (state.hasChanges)
             Padding(

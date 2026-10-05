@@ -265,23 +265,49 @@ class _ReportViewerScreenState extends State<ReportViewerScreen> {
               ),
             ),
             Expanded(
-              child: state.result.rows.isEmpty
-                  ? Center(child: Text(LocaleKeys.reportNoRows.tr()))
-                  : switch (state.mode) {
-                      ReportViewMode.table => ReportTableView(
-                        result: state.result,
-                        visibleKeys: _visibleColumns,
-                      ),
-                      ReportViewMode.cards => ReportCardView(
-                        result: state.result,
-                      ),
-                      ReportViewMode.grouped => ReportGroupedView(
-                        result: state.result,
-                      ),
-                      ReportViewMode.chart => ReportChartView(
-                        result: state.result,
-                      ),
-                    },
+              child: RefreshIndicator(
+                color: AppColors.primaryColor,
+                onRefresh: () => context.read<ReportViewerCubit>().load(
+                  filters: state.filters,
+                  showLoader: false,
+                  viewportWidth: MediaQuery.sizeOf(context).width,
+                ),
+                child: state.result.rows.isEmpty
+                    ? ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: <Widget>[
+                          SizedBox(
+                            height: MediaQuery.sizeOf(context).height * 0.4,
+                            child: Center(
+                              child: Text(LocaleKeys.reportNoRows.tr()),
+                            ),
+                          ),
+                        ],
+                      )
+                    : switch (state.mode) {
+                        ReportViewMode.table => ReportTableView(
+                          result: state.result,
+                          visibleKeys: _visibleColumns,
+                        ),
+                        ReportViewMode.cards => ReportCardView(
+                          result: state.result,
+                        ),
+                        ReportViewMode.grouped => ReportGroupedView(
+                          result: state.result,
+                        ),
+                        // Chart view is not itself a vertical scrollable;
+                        // wrap so pull-to-refresh still works.
+                        ReportViewMode.chart => ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          children: <Widget>[
+                            SizedBox(
+                              height: MediaQuery.sizeOf(context).height * 0.55,
+                              child: ReportChartView(result: state.result),
+                            ),
+                          ],
+                        ),
+                      },
+              ),
             ),
             if (state.hasNext)
               SafeArea(
