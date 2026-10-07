@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:machinery/core/shared_widgets/app_3d_icon.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/di/service_locator.dart';
@@ -28,16 +29,16 @@ abstract class NavTabsBuilder {
 
   static const NavTab _home = NavTab(
     labelKey: LocaleKeys.navHome,
-    icon: Icons.home_outlined,
-    activeIcon: Icons.home_rounded,
+    icon: App3dIconType.home,
+
     identifier: 'nav_tab_home',
     pageBuilder: _buildHome,
   );
 
   static const NavTab _more = NavTab(
     labelKey: LocaleKeys.navMore,
-    icon: Icons.more_horiz_outlined,
-    activeIcon: Icons.more_horiz_rounded,
+    icon: App3dIconType.more,
+
     identifier: 'nav_tab_more',
     pageBuilder: _buildMore,
   );
@@ -45,32 +46,32 @@ abstract class NavTabsBuilder {
   static const List<NavTab> _gatedTabs = <NavTab>[
     NavTab(
       labelKey: LocaleKeys.navMachines,
-      icon: Icons.precision_manufacturing_outlined,
-      activeIcon: Icons.precision_manufacturing_rounded,
+      icon: App3dIconType.machines,
+
       permission: P.machinesRead,
       identifier: 'nav_tab_machines',
       pageBuilder: _buildMachines,
     ),
     NavTab(
       labelKey: LocaleKeys.navTransfers,
-      icon: Icons.swap_horiz_outlined,
-      activeIcon: Icons.swap_horiz_rounded,
+      icon: App3dIconType.transfers,
+
       permission: P.transfersRead,
       identifier: 'nav_tab_transfers',
       pageBuilder: _buildTransfers,
     ),
     NavTab(
       labelKey: LocaleKeys.navMerchants,
-      icon: Icons.storefront_outlined,
-      activeIcon: Icons.storefront_rounded,
+      icon: App3dIconType.merchants,
+
       permission: P.merchantsRead,
       identifier: 'nav_tab_merchants',
       pageBuilder: _buildMerchants,
     ),
     NavTab(
       labelKey: LocaleKeys.navFinance,
-      icon: Icons.account_balance_wallet_outlined,
-      activeIcon: Icons.account_balance_wallet_rounded,
+      icon: App3dIconType.finance,
+
       permission: P.financeRead,
       identifier: 'nav_tab_finance',
       pageBuilder: _buildFinance,

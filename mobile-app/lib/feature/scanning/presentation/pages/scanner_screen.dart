@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/full_width_action.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -244,10 +245,12 @@ class _BottomActions extends StatelessWidget {
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          FilledButton.icon(
-            onPressed: onRetry,
-            icon: const Icon(Icons.refresh_rounded),
-            label: Text(LocaleKeys.scanRetry.tr()),
+          FullWidthAction(
+            child: FilledButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded),
+              label: Text(LocaleKeys.scanRetry.tr()),
+            ),
           ),
           const SizedBox(height: AppSpacing.sm),
           TextButton(
@@ -258,12 +261,14 @@ class _BottomActions extends StatelessWidget {
       );
     }
 
-    return FilledButton.tonalIcon(
-      onPressed: onManualEntry,
-      icon: const Icon(Icons.keyboard_alt_outlined),
-      label: Semantics(
-        identifier: 'scanner_manual_entry_button',
-        child: Text(LocaleKeys.scanManualEntry.tr()),
+    return FullWidthAction(
+      child: FilledButton.tonalIcon(
+        onPressed: onManualEntry,
+        icon: const Icon(Icons.keyboard_alt_outlined),
+        label: Semantics(
+          identifier: 'scanner_manual_entry_button',
+          child: Text(LocaleKeys.scanManualEntry.tr()),
+        ),
       ),
     );
   }
@@ -293,10 +298,12 @@ class _CameraUnavailable extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.lg),
-            FilledButton.icon(
-              onPressed: onManualEntry,
-              icon: const Icon(Icons.keyboard_alt_outlined),
-              label: Text(LocaleKeys.scanManualEntry.tr()),
+            FullWidthAction(
+              child: FilledButton.icon(
+                onPressed: onManualEntry,
+                icon: const Icon(Icons.keyboard_alt_outlined),
+                label: Text(LocaleKeys.scanManualEntry.tr()),
+              ),
             ),
           ],
         ),

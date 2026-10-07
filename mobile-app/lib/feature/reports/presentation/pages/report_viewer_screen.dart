@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/full_width_action.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -151,9 +152,11 @@ class _ReportViewerScreenState extends State<ReportViewerScreen> {
                         }),
                       ),
                     ),
-                FilledButton(
-                  onPressed: () => Navigator.pop(context, draft),
-                  child: Text(LocaleKeys.reportApply.tr()),
+                FullWidthAction(
+                  child: FilledButton(
+                    onPressed: () => Navigator.pop(context, draft),
+                    child: Text(LocaleKeys.reportApply.tr()),
+                  ),
                 ),
               ],
             ),

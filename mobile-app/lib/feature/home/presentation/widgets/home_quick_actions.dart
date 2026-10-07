@@ -1,6 +1,6 @@
+import 'package:machinery/core/shared_widgets/full_width_action.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/styles/app_colors.dart';
 import '../../../../core/theme/styles/app_text_styles.dart';
 
 class HomeQuickAction {
@@ -39,15 +39,12 @@ class HomeQuickActions extends StatelessWidget {
       runSpacing: 8,
       children: actions
           .map(
-            (HomeQuickAction action) => FilledButton.tonalIcon(
-              key: ValueKey<String>(action.identifier),
-              onPressed: action.onTap,
-              icon: Icon(action.icon, color: AppColors.whiteColor),
-              label: Text(
-                action.label,
-                style: Styles.s14(
-                  context,
-                ).copyWith(color: AppColors.whiteColor),
+            (HomeQuickAction action) => FullWidthAction(
+              child: FilledButton.tonalIcon(
+                key: ValueKey<String>(action.identifier),
+                onPressed: action.onTap,
+                icon: Icon(action.icon),
+                label: Text(action.label, style: Styles.s14(context)),
               ),
             ),
           )

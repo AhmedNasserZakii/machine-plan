@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:machinery/core/shared_widgets/app_3d_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
@@ -45,7 +46,7 @@ class AppBottomNavBar extends StatelessWidget {
                         identifier: tab.identifier,
                         child: _navIcon(
                           tab.icon,
-                          color: AppColors.textSecondaryColor,
+                          selected: false,
                           badgeCount: tab.identifier == 'nav_tab_more'
                               ? badge.unread
                               : 0,
@@ -54,8 +55,8 @@ class AppBottomNavBar extends StatelessWidget {
                       selectedIcon: Semantics(
                         identifier: tab.identifier,
                         child: _navIcon(
-                          tab.activeIcon,
-                          color: AppColors.primaryColor,
+                          tab.icon,
+                          selected: true,
                           badgeCount: tab.identifier == 'nav_tab_more'
                               ? badge.unread
                               : 0,
@@ -73,11 +74,11 @@ class AppBottomNavBar extends StatelessWidget {
   }
 
   static Widget _navIcon(
-    IconData icon, {
-    required Color color,
+    App3dIconType icon, {
+    required bool selected,
     required int badgeCount,
   }) {
-    final Widget child = Icon(icon, color: color);
+    final Widget child = App3dIcon(icon, size: 34, selected: selected);
     if (badgeCount <= 0) {
       return child;
     }

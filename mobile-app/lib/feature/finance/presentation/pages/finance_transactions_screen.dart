@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/full_width_action.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -255,21 +256,23 @@ class _TransactionFiltersState extends State<_TransactionFilters> {
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
-              child: FilledButton(
-                onPressed: () => Navigator.pop(
-                  context,
-                  TransactionQuery(
-                    kind: _kind,
-                    search: _search.text,
-                    minAmount: double.tryParse(_min.text),
-                    maxAmount: double.tryParse(_max.text),
-                    includeVoided: _voided,
-                    dateFrom: _from,
-                    dateTo: _to,
-                    branchId: widget.query.branchId,
+              child: FullWidthAction(
+                child: FilledButton(
+                  onPressed: () => Navigator.pop(
+                    context,
+                    TransactionQuery(
+                      kind: _kind,
+                      search: _search.text,
+                      minAmount: double.tryParse(_min.text),
+                      maxAmount: double.tryParse(_max.text),
+                      includeVoided: _voided,
+                      dateFrom: _from,
+                      dateTo: _to,
+                      branchId: widget.query.branchId,
+                    ),
                   ),
+                  child: Text(LocaleKeys.financeApplyFilters.tr()),
                 ),
-                child: Text(LocaleKeys.financeApplyFilters.tr()),
               ),
             ),
           ],

@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:machinery/core/shared_widgets/app_3d_icon.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/di/service_locator.dart';
@@ -110,7 +111,7 @@ class _MoreView extends StatelessWidget {
                         if (permissionService.hasAny(P.anyReport))
                           MoreTile(
                             identifier: 'more_reports_tile',
-                            icon: Icons.bar_chart_rounded,
+                            icon: App3dIconType.reports,
                             label: LocaleKeys.reports.tr(),
                             onTap: () =>
                                 AppRoute.goToReportsHub(context: context),
@@ -120,7 +121,7 @@ class _MoreView extends StatelessWidget {
                         )) ...<Widget>[
                           MoreTile(
                             identifier: 'more_violations_tile',
-                            icon: Icons.gavel_rounded,
+                            icon: App3dIconType.violations,
                             label: LocaleKeys.violationsTitle.tr(),
                             // A representative who can only read his own record
                             // still lands on the same screen: the server scopes
@@ -130,7 +131,7 @@ class _MoreView extends StatelessWidget {
                           ),
                           MoreTile(
                             identifier: 'more_my_violations_tile',
-                            icon: Icons.badge_outlined,
+                            icon: App3dIconType.myViolations,
                             label: LocaleKeys.violationsMineTitle.tr(),
                             // Explicitly scoped to the signed-in user, unlike
                             // the tile above — a branch supervisor's own record
@@ -148,7 +149,7 @@ class _MoreView extends StatelessWidget {
                         if (permissionService.has(P.maintenanceRead))
                           MoreTile(
                             identifier: 'more_maintenance_tile',
-                            icon: Icons.build_circle_outlined,
+                            icon: App3dIconType.maintenance,
                             label: LocaleKeys.maintenanceListTitle.tr(),
                             onTap: () =>
                                 AppRoute.goToMaintenanceList(context: context),
@@ -156,7 +157,7 @@ class _MoreView extends StatelessWidget {
                         if (permissionService.has(P.machinesRead))
                           MoreTile(
                             identifier: 'more_decommission_candidates_tile',
-                            icon: Icons.fact_check_outlined,
+                            icon: App3dIconType.checklist,
                             label: LocaleKeys.decommissionCandidatesTitle.tr(),
                             onTap: () => AppRoute.goToDecommissionCandidates(
                               context: context,
@@ -165,7 +166,7 @@ class _MoreView extends StatelessWidget {
                         if (permissionService.has(P.usersRead))
                           MoreTile(
                             identifier: 'more_users_tile',
-                            icon: Icons.people_alt_outlined,
+                            icon: App3dIconType.users,
                             label: LocaleKeys.usersAndRoles.tr(),
                             onTap: () =>
                                 AppRoute.goToUsersList(context: context),
@@ -173,7 +174,7 @@ class _MoreView extends StatelessWidget {
                         if (permissionService.has(P.branchesManage))
                           MoreTile(
                             identifier: 'more_branches_tile',
-                            icon: Icons.store_mall_directory_outlined,
+                            icon: App3dIconType.branches,
                             label: LocaleKeys.branchesTitle.tr(),
                             onTap: () =>
                                 AppRoute.goToBranchesList(context: context),
@@ -181,7 +182,7 @@ class _MoreView extends StatelessWidget {
                         if (permissionService.has(P.settingsManage))
                           MoreTile(
                             identifier: 'more_machine_models_tile',
-                            icon: Icons.devices_other_outlined,
+                            icon: App3dIconType.models,
                             label: LocaleKeys.machineModelsTitle.tr(),
                             onTap: () => AppRoute.goToMachineModelsList(
                               context: context,
@@ -189,7 +190,7 @@ class _MoreView extends StatelessWidget {
                           ),
                         MoreTile(
                           identifier: 'more_notifications_tile',
-                          icon: Icons.notifications_none_rounded,
+                          icon: App3dIconType.notifications,
                           label: LocaleKeys.notifications.tr(),
                           badgeCount: context
                               .watch<NotificationBadgeCubit>()
@@ -207,13 +208,13 @@ class _MoreView extends StatelessWidget {
                       children: <Widget>[
                         MoreTile(
                           identifier: 'more_sync_queue_tile',
-                          icon: Icons.sync_rounded,
+                          icon: App3dIconType.sync,
                           label: LocaleKeys.syncQueue.tr(),
                           onTap: () => AppRoute.goToSyncQueue(context: context),
                         ),
                         MoreTile(
                           identifier: 'more_language_tile',
-                          icon: Icons.language_rounded,
+                          icon: App3dIconType.language,
                           label: LocaleKeys.appLanguage.tr(),
                           trailingLabel: context.locale.languageCode == 'ar'
                               ? LocaleKeys.arabicLanguage.tr()
@@ -229,7 +230,7 @@ class _MoreView extends StatelessWidget {
                       children: <Widget>[
                         MoreTile(
                           identifier: 'more_change_password_tile',
-                          icon: Icons.lock_outline_rounded,
+                          icon: App3dIconType.password,
                           label: LocaleKeys.changePassword.tr(),
                           onTap: () => AppRoute.goToChangePasswordScreen(
                             context: context,
@@ -238,7 +239,7 @@ class _MoreView extends StatelessWidget {
                         ),
                         MoreTile(
                           identifier: 'more_logout_tile',
-                          icon: Icons.logout_rounded,
+                          icon: App3dIconType.logout,
                           label: LocaleKeys.logout.tr(),
                           isDestructive: true,
                           onTap: () => _onLogoutPressed(context),

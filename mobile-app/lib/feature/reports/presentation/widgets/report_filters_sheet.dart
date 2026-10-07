@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/full_width_action.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -101,7 +102,7 @@ class _ReportFiltersSheetState extends State<ReportFiltersSheet> {
             ListTile(
               shape: RoundedRectangleBorder(
                 side: BorderSide(color: Theme.of(context).dividerColor),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
               ),
               leading: const Icon(Icons.date_range),
               title: Text(LocaleKeys.reportDateRange.tr()),
@@ -196,19 +197,19 @@ class _ReportFiltersSheetState extends State<ReportFiltersSheet> {
               ),
             ],
             const SizedBox(height: AppSpacing.lg),
-            Row(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                Expanded(
-                  child: CustomButton(
-                    title: LocaleKeys.reportClearFilters.tr(),
-                    isLoading: false,
-                    isStroked: true,
-                    onPressed: () =>
-                        Navigator.pop(context, const ReportFilters()),
-                  ),
+                CustomButton(
+                  title: LocaleKeys.reportClearFilters.tr(),
+                  isLoading: false,
+                  isStroked: true,
+                  onPressed: () =>
+                      Navigator.pop(context, const ReportFilters()),
                 ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
+                const SizedBox(height: AppSpacing.sm),
+                FullWidthAction(
                   child: FilledButton(
                     onPressed:
                         widget.report.key == 'machine-lifecycle' &&

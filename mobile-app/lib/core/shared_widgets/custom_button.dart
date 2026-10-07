@@ -68,11 +68,14 @@ class CustomButton extends StatelessWidget {
 
     final Widget button = SizedBox(
       width: width ?? (fillWidth ? double.infinity : null),
-      height: height ?? 56,
+      height: height,
       child: ElevatedButton(
         onPressed: isDisabled || isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          padding: padding,
+          minimumSize: Size(0, height ?? 56),
+          padding:
+              padding ??
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           alignment: Alignment.center,
           backgroundColor: resolvedBackground,
           foregroundColor: resolvedForeground,
@@ -99,6 +102,7 @@ class CustomButton extends StatelessWidget {
                   Center(
                     child: Text(
                       title,
+                      textAlign: TextAlign.center,
                       style:
                           style ??
                           Styles.s15(

@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/full_width_action.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -107,12 +108,14 @@ class ViolationActionsRow extends StatelessWidget {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                FilledButton.icon(
-                  onPressed: isBusy ? null : onCharge,
-                  icon: const Icon(Icons.payments_outlined),
-                  label: Semantics(
-                    identifier: 'violation_charge_button',
-                    child: Text(LocaleKeys.violationCharge.tr()),
+                FullWidthAction(
+                  child: FilledButton.icon(
+                    onPressed: isBusy ? null : onCharge,
+                    icon: const Icon(Icons.payments_outlined),
+                    label: Semantics(
+                      identifier: 'violation_charge_button',
+                      child: Text(LocaleKeys.violationCharge.tr()),
+                    ),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.sm),

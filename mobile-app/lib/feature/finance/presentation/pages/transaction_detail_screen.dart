@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/full_width_action.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -53,9 +54,11 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
             onPressed: () => Navigator.pop(context),
             child: Text(LocaleKeys.cancel.tr()),
           ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, controller.text.trim()),
-            child: Text(LocaleKeys.financeVoid.tr()),
+          FullWidthAction(
+            child: FilledButton(
+              onPressed: () => Navigator.pop(context, controller.text.trim()),
+              child: Text(LocaleKeys.financeVoid.tr()),
+            ),
           ),
         ],
       ),

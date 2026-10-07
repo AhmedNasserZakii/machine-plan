@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:machinery/core/shared_widgets/app_3d_icon.dart';
 
 /// One bottom-bar destination. `permission` is null for tabs everyone gets.
 class NavTab {
   const NavTab({
     required this.labelKey,
     required this.icon,
-    required this.activeIcon,
     required this.pageBuilder,
     required this.identifier,
     this.permission,
   });
 
   final String labelKey;
-  final IconData icon;
-  final IconData activeIcon;
+  final App3dIconType icon;
   final Widget Function() pageBuilder;
   final String? permission;
 

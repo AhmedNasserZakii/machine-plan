@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/full_width_action.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/config/app_environment.dart';
@@ -85,10 +86,12 @@ class UpgradeRequiredScreen extends StatelessWidget {
                   style: theme.textTheme.bodySmall,
                 ),
                 const Spacer(),
-                FilledButton.icon(
-                  onPressed: () => _openStore(context),
-                  icon: const Icon(Icons.open_in_new),
-                  label: Text(LocaleKeys.upgradeRequiredUpdate.tr()),
+                FullWidthAction(
+                  child: FilledButton.icon(
+                    onPressed: () => _openStore(context),
+                    icon: const Icon(Icons.open_in_new),
+                    label: Text(LocaleKeys.upgradeRequiredUpdate.tr()),
+                  ),
                 ),
               ],
             ),

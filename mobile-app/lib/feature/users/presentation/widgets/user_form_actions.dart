@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:machinery/core/shared_widgets/app_3d_icon.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
 import 'package:machinery/core/di/service_locator.dart';
@@ -80,8 +81,9 @@ class UserFormActions extends StatelessWidget {
           }
         },
         builder: (BuildContext context, UserActionsState state) {
-          final bool isActive =
-              state is UserActionsIdle ? state.isActive : user.isActive;
+          final bool isActive = state is UserActionsIdle
+              ? state.isActive
+              : user.isActive;
 
           return Container(
             decoration: BoxDecoration(
@@ -95,7 +97,7 @@ class UserFormActions extends StatelessWidget {
                   permission: P.rolesManage,
                   child: MoreTile(
                     identifier: 'user_permissions_tile',
-                    icon: Icons.shield_outlined,
+                    icon: App3dIconType.users,
                     label: LocaleKeys.userPermissionsTitle.tr(),
                     onTap: () {
                       if (_isSelf(context)) {
@@ -116,7 +118,7 @@ class UserFormActions extends StatelessWidget {
                   permission: P.usersUpdate,
                   child: MoreTile(
                     identifier: 'user_reset_password_tile',
-                    icon: Icons.password_rounded,
+                    icon: App3dIconType.password,
                     label: LocaleKeys.userResetPassword.tr(),
                     onTap: () => _resetPassword(context),
                   ),
@@ -126,8 +128,8 @@ class UserFormActions extends StatelessWidget {
                   child: MoreTile(
                     identifier: 'user_set_active_tile',
                     icon: isActive
-                        ? Icons.block_outlined
-                        : Icons.check_circle_outline_rounded,
+                        ? App3dIconType.password
+                        : App3dIconType.checklist,
                     label: isActive
                         ? LocaleKeys.userDeactivate.tr()
                         : LocaleKeys.userActivate.tr(),
@@ -139,7 +141,7 @@ class UserFormActions extends StatelessWidget {
                   permission: P.violationsRead,
                   child: MoreTile(
                     identifier: 'user_violations_tile',
-                    icon: Icons.gavel_rounded,
+                    icon: App3dIconType.violations,
                     label: LocaleKeys.violationsTitle.tr(),
                     onTap: () => AppRoute.goToViolationsList(
                       context: context,
@@ -151,7 +153,7 @@ class UserFormActions extends StatelessWidget {
                   permission: P.violationsRead,
                   child: MoreTile(
                     identifier: 'user_violation_summary_tile',
-                    icon: Icons.summarize_outlined,
+                    icon: App3dIconType.reports,
                     label: LocaleKeys.violationSummaryTitle.tr(),
                     onTap: () => AppRoute.goToViolationSummary(
                       context: context,

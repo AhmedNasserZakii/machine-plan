@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
+import 'package:machinery/core/shared_widgets/app_3d_icon.dart';
 import 'package:machinery/core/shared_widgets/clicked_widget.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
@@ -27,11 +28,7 @@ class LanguageToggleButton extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            const Icon(
-              Icons.language_rounded,
-              size: 18,
-              color: AppColors.textSecondaryColor,
-            ),
+            const App3dIcon(App3dIconType.language, size: 26),
             const SizedBox(width: AppSpacing.sm),
             Text(
               context.locale.languageCode == 'ar'

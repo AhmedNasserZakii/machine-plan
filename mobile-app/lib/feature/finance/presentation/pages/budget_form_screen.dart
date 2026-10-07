@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/full_width_action.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -119,7 +120,7 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
           ListTile(
             shape: RoundedRectangleBorder(
               side: BorderSide(color: Theme.of(context).dividerColor),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
             ),
             title: Text(LocaleKeys.financeExpenseCategory.tr()),
             subtitle: Text(
@@ -149,38 +150,34 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
                 : null,
           ),
           const SizedBox(height: AppSpacing.md),
-          Row(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Expanded(
-                child: CustomButton(
-                  title: LocaleKeys.financeFromDate.tr(
+              CustomButton(
+                title: LocaleKeys.financeFromDate.tr(
+                  args: <String>[financeDate(_start)],
+                ),
+                isLoading: false,
+                isStroked: true,
+                onPressed: widget.existing == null ? () => _date(true) : null,
+                child: LtrText(
+                  LocaleKeys.financeFromDate.tr(
                     args: <String>[financeDate(_start)],
-                  ),
-                  isLoading: false,
-                  isStroked: true,
-                  onPressed: widget.existing == null ? () => _date(true) : null,
-                  child: LtrText(
-                    LocaleKeys.financeFromDate.tr(
-                      args: <String>[financeDate(_start)],
-                    ),
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: CustomButton(
-                  title: LocaleKeys.financeToDate.tr(
+              const SizedBox(height: 8),
+              CustomButton(
+                title: LocaleKeys.financeToDate.tr(
+                  args: <String>[financeDate(_end)],
+                ),
+                isLoading: false,
+                isStroked: true,
+                onPressed: widget.existing == null ? () => _date(false) : null,
+                child: LtrText(
+                  LocaleKeys.financeToDate.tr(
                     args: <String>[financeDate(_end)],
-                  ),
-                  isLoading: false,
-                  isStroked: true,
-                  onPressed: widget.existing == null
-                      ? () => _date(false)
-                      : null,
-                  child: LtrText(
-                    LocaleKeys.financeToDate.tr(
-                      args: <String>[financeDate(_end)],
-                    ),
                   ),
                 ),
               ),
@@ -224,12 +221,14 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
             onChanged: (v) => setState(() => _renew = v),
           ),
           const SizedBox(height: AppSpacing.lg),
-          FilledButton(
-            onPressed: _saving ? null : _save,
-            child: Text(
-              _saving
-                  ? LocaleKeys.financeSaving.tr()
-                  : LocaleKeys.financeSaveBudget.tr(),
+          FullWidthAction(
+            child: FilledButton(
+              onPressed: _saving ? null : _save,
+              child: Text(
+                _saving
+                    ? LocaleKeys.financeSaving.tr()
+                    : LocaleKeys.financeSaveBudget.tr(),
+              ),
             ),
           ),
         ],

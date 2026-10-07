@@ -1,0 +1,69 @@
+appId: com.machinery.machinery
+name: BUG — Locked merchant cannot be reopened
+---
+# Repro: open a مقفول merchant and assert there is no activate / reopen action.
+- launchApp
+- tapOn:
+    text: "تسجيل الدخول"
+    optional: true
+- tapOn:
+    text: "إغلاق"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "login_phone_field"
+    timeout: 30000
+- tapOn:
+    id: "login_phone_field"
+- eraseText
+- inputText: ${PHONE}
+- tapOn:
+    id: "login_password_field"
+- eraseText
+- inputText: ${PASSWORD}
+- tapOn:
+    point: "50%,12%"
+- tapOn:
+    id: "login_submit_button"
+- tapOn:
+    text: "مش دلوقتي"
+    optional: true
+- extendedWaitUntil:
+    visible: "الرئيسية"
+    timeout: 40000
+
+- tapOn:
+    id: "nav_tab_merchants"
+- extendedWaitUntil:
+    visible:
+      id: "merchants_search_field"
+    timeout: 20000
+
+# Filter icon sits beside the search field (start side in RTL ≈ left).
+- tapOn:
+    point: "8%,16%"
+- extendedWaitUntil:
+    visible: "(?s).*اعرض التجار المقفولين.*"
+    timeout: 15000
+- tapOn: "(?s).*اعرض التجار المقفولين.*"
+- tapOn:
+    id: "merchants_filter_apply"
+- extendedWaitUntil:
+    visible: "(?s).*مقفول.*"
+    timeout: 20000
+
+# Open the locked merchant (محمد علي / العميد).
+- tapOn: "(?s).*العميد.*"
+- extendedWaitUntil:
+    visible: "(?s).*بيانات التاجر.*"
+    timeout: 20000
+- assertVisible: "(?s).*مقفول.*"
+
+# These must NOT appear — reopen is missing.
+- assertNotVisible: "(?s).*فتح التاجر.*"
+- assertNotVisible: "(?s).*تفعيل.*"
+- assertNotVisible: "(?s).*تعديل بيانات التاجر.*"
+- assertNotVisible: "(?s).*قفل التاجر.*"
+
+- takeScreenshot: bug_merchant_locked_no_reopen

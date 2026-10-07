@@ -122,23 +122,24 @@ void main() {
   });
 
   test('create-role body uppercases the code and trims names', () {
-    final json = CreateRoleParams(
+    final json = const CreateRoleParams(
       code: ' field_ops ',
-      translations: const RoleTranslations(
+      translations: RoleTranslations(
         arName: ' ميداني ',
         enName: ' Field ',
-        arDescription: ' ',
-        enDescription: 'On site',
+        arDescription: ' ميداني ',
+        enDescription: ' Field ',
       ),
-      permissions: const <String>['machines.read'],
+      permissions: <String>['machines.read'],
     ).toJson();
 
     expect(json['code'], 'FIELD_OPS');
     expect(json['translations']['ar']['displayName'], 'ميداني');
     expect(json['translations']['en']['description'], 'On site');
     expect(
-      (json['translations']['ar'] as Map<String, dynamic>)
-          .containsKey('description'),
+      (json['translations']['ar'] as Map<String, dynamic>).containsKey(
+        'description',
+      ),
       isFalse,
     );
   });
@@ -182,10 +183,10 @@ void main() {
 
   test('branch-scoped roles are the ones the form asks a branch for', () {
     RoleModel roleWith(String code) => RoleModel.fromJson(<String, dynamic>{
-          'id': 'r',
-          'code': code,
-          'displayName': code,
-        });
+      'id': 'r',
+      'code': code,
+      'displayName': code,
+    });
 
     expect(roleWith('REPRESENTATIVE').toEntity().isBranchScoped, isTrue);
     expect(roleWith('BRANCH_SUPERVISOR').toEntity().isBranchScoped, isTrue);

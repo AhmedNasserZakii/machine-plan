@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/full_width_action.dart';
 import 'dart:typed_data';
 
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
@@ -183,15 +184,17 @@ class _ApplyToAllSheetState extends State<_ApplyToAllSheet> {
                     .toList(growable: false),
               ),
               const SizedBox(height: AppSpacing.lg),
-              FilledButton(
-                onPressed: () => Navigator.of(context).pop(
-                  _ApplyToAllChoice(
-                    hasCharger: _hasCharger,
-                    hasBox: _hasBox,
-                    condition: _condition,
+              FullWidthAction(
+                child: FilledButton(
+                  onPressed: () => Navigator.of(context).pop(
+                    _ApplyToAllChoice(
+                      hasCharger: _hasCharger,
+                      hasBox: _hasBox,
+                      condition: _condition,
+                    ),
                   ),
+                  child: Text(LocaleKeys.transferApplyToAllApply.tr()),
                 ),
-                child: Text(LocaleKeys.transferApplyToAllApply.tr()),
               ),
             ],
           ),
@@ -524,7 +527,7 @@ class _PhotoThumb extends StatelessWidget {
             end: -6,
             child: InkWell(
               onTap: onRemove,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               child: const CircleAvatar(
                 radius: 11,
                 backgroundColor: AppColors.dangerColor,

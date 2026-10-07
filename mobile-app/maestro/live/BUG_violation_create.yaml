@@ -1,0 +1,99 @@
+appId: com.machinery.machinery
+name: BUG — Create violation returns invalid payload
+---
+# Repro: raise a violation with a short description (UI allows it; API rejects).
+- launchApp
+- tapOn:
+    text: "إغلاق"
+    optional: true
+- tapOn:
+    text: "تسجيل الدخول"
+    optional: true
+
+- runFlow:
+    when:
+      visible:
+        id: "login_phone_field"
+    commands:
+      - tapOn:
+          id: "login_phone_field"
+      - inputText: ${PHONE}
+      - tapOn:
+          point: "50%,12%"
+      - tapOn:
+          id: "login_password_field"
+      - inputText: ${PASSWORD}
+      - tapOn:
+          point: "50%,12%"
+      - tapOn:
+          id: "login_submit_button"
+      - tapOn:
+          text: "مش دلوقتي"
+          optional: true
+
+- extendedWaitUntil:
+    visible: "الرئيسية"
+    timeout: 40000
+
+- tapOn:
+    id: "nav_tab_more"
+- extendedWaitUntil:
+    visible:
+      id: "more_violations_tile"
+    timeout: 15000
+- tapOn:
+    id: "more_violations_tile"
+- extendedWaitUntil:
+    visible:
+      id: "violations_filter_button"
+    timeout: 20000
+
+- tapOn:
+    point: "12%,90%"
+- extendedWaitUntil:
+    visible:
+      id: "violation_create_submit"
+    timeout: 20000
+
+- tapOn: "(?s).*أخرى.*"
+
+- tapOn:
+    id: "violation_create_user_tile"
+- extendedWaitUntil:
+    visible:
+      id: "violation_user_picker_search"
+    timeout: 15000
+- tapOn: "(?s).*أحمد عبد الستار.*"
+- extendedWaitUntil:
+    visible:
+      id: "violation_create_submit"
+    timeout: 15000
+
+# Case A: short description — form stays open after failed submit
+- tapOn:
+    id: "violation_create_description"
+- inputText: "قصير"
+- tapOn:
+    point: "50%,12%"
+- tapOn:
+    id: "violation_create_submit"
+- waitForAnimationToEnd
+- assertVisible:
+    id: "violation_create_submit"
+- assertVisible: "(?s).*قصير.*"
+- takeScreenshot: bug_violation_short_description
+
+# Case B: valid length leaves the form
+- tapOn:
+    id: "violation_create_description"
+- eraseText
+- inputText: "اختبار تسجيل مخالفة من المايسترو"
+- tapOn:
+    point: "50%,12%"
+- tapOn:
+    id: "violation_create_submit"
+- extendedWaitUntil:
+    visible:
+      id: "violations_filter_button"
+    timeout: 25000
+- takeScreenshot: bug_violation_valid_create

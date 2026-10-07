@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/full_width_action.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -153,32 +154,38 @@ class _FinanceOverviewScreenState extends State<FinanceOverviewScreen> {
             spacing: AppSpacing.sm,
             runSpacing: AppSpacing.sm,
             children: <Widget>[
-              FilledButton.tonalIcon(
-                onPressed: () => _open(
-                  BlocProvider<FinanceTransactionsCubit>(
-                    create: (_) => getIt<FinanceTransactionsCubit>(),
-                    child: FinanceTransactionsScreen(
-                      initialQuery: TransactionQuery(
-                        dateFrom: state.query.dateFrom,
-                        dateTo: state.query.dateTo,
-                        branchId: state.query.branchId,
+              FullWidthAction(
+                child: FilledButton.tonalIcon(
+                  onPressed: () => _open(
+                    BlocProvider<FinanceTransactionsCubit>(
+                      create: (_) => getIt<FinanceTransactionsCubit>(),
+                      child: FinanceTransactionsScreen(
+                        initialQuery: TransactionQuery(
+                          dateFrom: state.query.dateFrom,
+                          dateTo: state.query.dateTo,
+                          branchId: state.query.branchId,
+                        ),
                       ),
                     ),
                   ),
+                  icon: const Icon(Icons.receipt_long_outlined),
+                  label: Text(LocaleKeys.financeTransactions.tr()),
                 ),
-                icon: const Icon(Icons.receipt_long_outlined),
-                label: Text(LocaleKeys.financeTransactions.tr()),
               ),
-              FilledButton.tonalIcon(
-                onPressed: () =>
-                    _open(CategoryBreakdownScreen(query: state.query)),
-                icon: const Icon(Icons.donut_small_outlined),
-                label: Text(LocaleKeys.financeBreakdown.tr()),
+              FullWidthAction(
+                child: FilledButton.tonalIcon(
+                  onPressed: () =>
+                      _open(CategoryBreakdownScreen(query: state.query)),
+                  icon: const Icon(Icons.donut_small_outlined),
+                  label: Text(LocaleKeys.financeBreakdown.tr()),
+                ),
               ),
-              FilledButton.tonalIcon(
-                onPressed: () => _open(BudgetsScreen(query: state.query)),
-                icon: const Icon(Icons.speed_outlined),
-                label: Text(LocaleKeys.financeBudgets.tr()),
+              FullWidthAction(
+                child: FilledButton.tonalIcon(
+                  onPressed: () => _open(BudgetsScreen(query: state.query)),
+                  icon: const Icon(Icons.speed_outlined),
+                  label: Text(LocaleKeys.financeBudgets.tr()),
+                ),
               ),
             ],
           ),

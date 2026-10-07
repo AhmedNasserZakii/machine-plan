@@ -183,6 +183,7 @@ class _MachinesListScreenState extends State<MachinesListScreen> {
             isLoadingMore: state.isLoadingMore,
             onRefresh: () => cubit.load(showLoader: false),
             onLoadMore: cubit.loadMore,
+            separator: const SizedBox(height: AppSpacing.md),
             padding: const EdgeInsetsDirectional.fromSTEB(
               AppSpacing.md,
               0,

@@ -1,0 +1,9 @@
+{
+  "dart.flutterSdkPath": ".fvm/versions/3.24.5",
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit",
+    "dart.analysisServer.strictMode": "explicit",
+    "dart.fix.onSave": "explicit"
+  }
+}

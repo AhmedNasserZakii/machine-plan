@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/full_width_action.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -200,7 +201,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                       ? Theme.of(context).colorScheme.error
                       : Theme.of(context).dividerColor,
                 ),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
               ),
               leading: const Icon(Icons.category_outlined),
               title: Text(LocaleKeys.financeCategory.tr()),
@@ -269,7 +270,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
             ListTile(
               shape: RoundedRectangleBorder(
                 side: BorderSide(color: Theme.of(context).dividerColor),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
               ),
               leading: const Icon(Icons.event_outlined),
               title: Text(LocaleKeys.financeTransactionDate.tr()),
@@ -286,15 +287,17 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
-            FilledButton.icon(
-              onPressed: _saving ? null : _save,
-              icon: _saving
-                  ? const SizedBox.square(
-                      dimension: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.save_outlined),
-              label: Text(LocaleKeys.financeSaveTransaction.tr()),
+            FullWidthAction(
+              child: FilledButton.icon(
+                onPressed: _saving ? null : _save,
+                icon: _saving
+                    ? const SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.save_outlined),
+                label: Text(LocaleKeys.financeSaveTransaction.tr()),
+              ),
             ),
           ],
         ),

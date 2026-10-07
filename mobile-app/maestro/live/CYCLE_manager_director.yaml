@@ -1,0 +1,131 @@
+appId: com.machinery.machinery
+name: CYCLE — Manager (Director) merchant lock + violation
+---
+# Phone A — manager/director full cycle for the two reported bugs.
+- launchApp
+- tapOn:
+    text: "إغلاق"
+    optional: true
+- tapOn:
+    text: "تسجيل الدخول"
+    optional: true
+
+- runFlow:
+    when:
+      visible:
+        id: "login_phone_field"
+    commands:
+      - tapOn:
+          id: "login_phone_field"
+      - inputText: ${PHONE}
+      - tapOn:
+          point: "50%,12%"
+      - tapOn:
+          id: "login_password_field"
+      - inputText: ${PASSWORD}
+      - tapOn:
+          point: "50%,12%"
+      - tapOn:
+          id: "login_submit_button"
+      - tapOn:
+          text: "مش دلوقتي"
+          optional: true
+
+- extendedWaitUntil:
+    visible: "الرئيسية"
+    timeout: 40000
+- takeScreenshot: cycle_mgr_home
+
+# ── Merchant: find مقفول, confirm cannot reopen ─────────────────────────────
+- tapOn:
+    id: "nav_tab_merchants"
+- extendedWaitUntil:
+    visible:
+      id: "merchants_search_field"
+    timeout: 20000
+- tapOn:
+    point: "8%,16%"
+- extendedWaitUntil:
+    visible: "(?s).*اعرض التجار المقفولين.*"
+    timeout: 15000
+- tapOn: "(?s).*اعرض التجار المقفولين.*"
+- tapOn:
+    id: "merchants_filter_apply"
+- extendedWaitUntil:
+    visible: "(?s).*مقفول.*"
+    timeout: 20000
+- tapOn: "(?s).*العميد.*"
+- extendedWaitUntil:
+    visible: "(?s).*بيانات التاجر.*"
+    timeout: 20000
+- assertVisible: "(?s).*مقفول.*"
+- assertNotVisible: "(?s).*فتح التاجر.*"
+- assertNotVisible: "(?s).*تعديل بيانات التاجر.*"
+- takeScreenshot: cycle_mgr_merchant_locked
+# AppBar back (RTL → top-end / right side)
+- tapOn:
+    point: "92%,8%"
+- extendedWaitUntil:
+    visible:
+      id: "merchants_search_field"
+    timeout: 15000
+- tapOn:
+    id: "nav_tab_home"
+
+# ── Violation: short description → invalid payload ──────────────────────────
+- tapOn:
+    id: "nav_tab_more"
+- extendedWaitUntil:
+    visible:
+      id: "more_violations_tile"
+    timeout: 20000
+- tapOn:
+    id: "more_violations_tile"
+- extendedWaitUntil:
+    visible:
+      id: "violations_filter_button"
+    timeout: 20000
+- tapOn:
+    point: "12%,90%"
+- extendedWaitUntil:
+    visible:
+      id: "violation_create_submit"
+    timeout: 20000
+- tapOn: "(?s).*أخرى.*"
+- tapOn:
+    id: "violation_create_user_tile"
+- extendedWaitUntil:
+    visible:
+      id: "violation_user_picker_search"
+    timeout: 15000
+- tapOn: "(?s).*أحمد عبد الستار.*"
+- extendedWaitUntil:
+    visible:
+      id: "violation_create_submit"
+    timeout: 15000
+- tapOn:
+    id: "violation_create_description"
+- inputText: "قصير"
+- tapOn:
+    point: "50%,12%"
+- tapOn:
+    id: "violation_create_submit"
+- waitForAnimationToEnd
+- assertVisible:
+    id: "violation_create_submit"
+- takeScreenshot: cycle_mgr_violation_short_fail
+
+# Valid description succeeds and leaves the form
+- tapOn:
+    id: "violation_create_description"
+- eraseText
+- inputText: "اختبار دورة المدير من المايسترو"
+- tapOn:
+    point: "50%,12%"
+- tapOn:
+    id: "violation_create_submit"
+- extendedWaitUntil:
+    visible:
+      id: "violations_filter_button"
+    timeout: 25000
+- takeScreenshot: cycle_mgr_violation_ok

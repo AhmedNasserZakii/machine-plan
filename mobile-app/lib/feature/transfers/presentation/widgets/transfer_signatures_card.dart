@@ -37,10 +37,8 @@ class TransferSignaturesCard extends StatelessWidget {
       icon: Icons.draw_outlined,
       children: signatures
           .map(
-            (TransferSignatureEntity signature) => _SignatureRow(
-              transferId: transferId,
-              signature: signature,
-            ),
+            (TransferSignatureEntity signature) =>
+                _SignatureRow(transferId: transferId, signature: signature),
           )
           .toList(growable: false),
     );
@@ -121,7 +119,10 @@ class _SignatureRow extends StatelessWidget {
 /// row — the URL is short-lived, so the full viewer re-fetches its own rather
 /// than reusing whatever this happened to resolve.
 class _SignatureThumbnail extends StatefulWidget {
-  const _SignatureThumbnail({required this.transferId, required this.signature});
+  const _SignatureThumbnail({
+    required this.transferId,
+    required this.signature,
+  });
 
   final String transferId;
   final TransferSignatureEntity signature;
@@ -131,8 +132,8 @@ class _SignatureThumbnail extends StatefulWidget {
 }
 
 class _SignatureThumbnailState extends State<_SignatureThumbnail> {
-  late final Future<Either<ServerFailure, String>> _future = getIt<TransfersRepo>()
-      .fetchSignatureMediaUrl(
+  late final Future<Either<ServerFailure, String>> _future =
+      getIt<TransfersRepo>().fetchSignatureMediaUrl(
         transferId: widget.transferId,
         signatureId: widget.signature.id,
       );
@@ -147,7 +148,7 @@ class _SignatureThumbnailState extends State<_SignatureThumbnail> {
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           border: Border.all(color: AppColors.borderColor),
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(16),
           color: Colors.white,
         ),
         child: FutureBuilder<Either<ServerFailure, String>>(

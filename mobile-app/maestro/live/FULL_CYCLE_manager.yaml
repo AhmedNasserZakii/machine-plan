@@ -1,0 +1,375 @@
+appId: com.machinery.machinery
+name: FULL CYCLE — Manager (Director) walks the whole app
+---
+# End-to-end smoke of every major surface the director can reach on the live API.
+- launchApp
+- tapOn:
+    text: "إغلاق"
+    optional: true
+- tapOn:
+    text: "تسجيل الدخول"
+    optional: true
+
+- runFlow:
+    when:
+      visible:
+        id: "login_phone_field"
+    commands:
+      - tapOn:
+          id: "login_phone_field"
+      - inputText: ${PHONE}
+      - tapOn:
+          point: "50%,12%"
+      - tapOn:
+          id: "login_password_field"
+      - inputText: ${PASSWORD}
+      - tapOn:
+          point: "50%,12%"
+      - tapOn:
+          id: "login_submit_button"
+      - tapOn:
+          text: "مش دلوقتي"
+          optional: true
+
+- extendedWaitUntil:
+    visible: "الرئيسية"
+    timeout: 40000
+- takeScreenshot: full_mgr_01_home
+
+# ── 1) Home quick actions present (labels, not semantics ids) ───────────────
+- assertVisible: "(?s).*تسليم جديد.*"
+- assertVisible: "(?s).*تسجيل تاجر.*"
+
+# ── 2) Machines: list → search → detail ─────────────────────────────────────
+- tapOn:
+    id: "nav_tab_machines"
+- extendedWaitUntil:
+    visible:
+      id: "machines_search_field"
+    timeout: 20000
+- takeScreenshot: full_mgr_02_machines_list
+- tapOn:
+    id: "machines_search_field"
+- inputText: "123456"
+- tapOn:
+    point: "50%,12%"
+- extendedWaitUntil:
+    visible:
+      id: "machine_card_123456"
+    timeout: 20000
+- tapOn:
+    id: "machine_card_123456"
+- extendedWaitUntil:
+    visible: "(?s).*123456.*"
+    timeout: 20000
+- takeScreenshot: full_mgr_03_machine_detail
+- tapOn:
+    point: "92%,8%"
+- extendedWaitUntil:
+    visible:
+      id: "machines_search_field"
+    timeout: 15000
+- tapOn:
+    point: "50%,12%"
+
+# ── 3) Transfers: all / incoming / outgoing + start wizard ──────────────────
+- tapOn:
+    id: "nav_tab_transfers"
+- extendedWaitUntil:
+    visible: "(?s).*التسليمات.*"
+    timeout: 20000
+- extendedWaitUntil:
+    visible:
+      id: "transfers_add_button"
+    timeout: 20000
+- tapOn:
+    id: "transfers_tab_incoming"
+- extendedWaitUntil:
+    visible:
+      id: "transfers_add_button"
+    timeout: 15000
+- tapOn:
+    id: "transfers_tab_outgoing"
+- extendedWaitUntil:
+    visible:
+      id: "transfers_add_button"
+    timeout: 15000
+- tapOn:
+    id: "transfers_tab_all"
+- extendedWaitUntil:
+    visible:
+      id: "transfers_add_button"
+    timeout: 15000
+- takeScreenshot: full_mgr_04_transfers
+- tapOn:
+    id: "transfers_add_button"
+- extendedWaitUntil:
+    visible: "(?s).*تسليم.*"
+    timeout: 20000
+- takeScreenshot: full_mgr_05_transfer_wizard
+- tapOn:
+    point: "92%,8%"
+- extendedWaitUntil:
+    visible:
+      id: "transfers_add_button"
+    timeout: 15000
+
+# ── 4) Merchants: register one, then inspect locked ─────────────────────────
+- evalScript: |
+    ${
+      output.suffix = String(Date.now()).slice(-8);
+      output.shop = 'دورة كاملة ' + output.suffix;
+      output.phone = '011' + output.suffix;
+      output.nationalId = '298010' + output.suffix;
+    }
+
+- tapOn:
+    id: "nav_tab_merchants"
+- extendedWaitUntil:
+    visible:
+      id: "merchants_add_button"
+    timeout: 20000
+- tapOn:
+    id: "merchants_add_button"
+- extendedWaitUntil:
+    visible:
+      id: "merchant_form_shop_name"
+    timeout: 15000
+- tapOn:
+    id: "merchant_form_shop_name"
+- inputText: ${output.shop}
+- tapOn:
+    id: "merchant_form_name"
+- inputText: "تاجر الدورة"
+- scrollUntilVisible:
+    element:
+      id: "merchant_form_phone"
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    id: "merchant_form_phone"
+- inputText: ${output.phone}
+- scrollUntilVisible:
+    element:
+      id: "merchant_form_address"
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    id: "merchant_form_address"
+- inputText: "شارع الاختبار، القاهرة"
+- scrollUntilVisible:
+    element:
+      id: "merchant_form_national_id"
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    id: "merchant_form_national_id"
+- inputText: ${output.nationalId}
+- scrollUntilVisible:
+    element:
+      id: "merchant_form_submit"
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    id: "merchant_form_submit"
+- extendedWaitUntil:
+    visible:
+      id: "merchants_add_button"
+    timeout: 30000
+- extendedWaitUntil:
+    visible: "(?s).*${output.shop}.*"
+    timeout: 20000
+- takeScreenshot: full_mgr_06_merchant_created
+
+# Locked merchant still cannot be reopened
+- tapOn:
+    point: "8%,16%"
+- extendedWaitUntil:
+    visible: "(?s).*اعرض التجار المقفولين.*"
+    timeout: 15000
+- tapOn: "(?s).*اعرض التجار المقفولين.*"
+- tapOn:
+    id: "merchants_filter_apply"
+- extendedWaitUntil:
+    visible:
+      id: "merchants_search_field"
+    timeout: 15000
+- tapOn:
+    id: "merchants_search_field"
+- inputText: "العميد"
+- tapOn:
+    point: "50%,12%"
+- extendedWaitUntil:
+    visible: "(?s).*العميد.*"
+    timeout: 20000
+- tapOn:
+    id: "merchant_card_0424daa8-478a-4be6-bae5-664caf80b9be"
+- extendedWaitUntil:
+    visible: "(?s).*(بيانات التاجر|مقفول|العميد).*"
+    timeout: 20000
+- assertVisible: "(?s).*مقفول.*"
+- assertNotVisible: "(?s).*فتح التاجر.*"
+- takeScreenshot: full_mgr_07_merchant_locked
+- tapOn:
+    point: "92%,8%"
+- extendedWaitUntil:
+    visible:
+      id: "merchants_search_field"
+    timeout: 15000
+
+# ── 5) Finance via home quick action (5-tab bar drops finance into overflow) ─
+- tapOn:
+    id: "nav_tab_home"
+- tapOn:
+    text: "الرئيسية"
+    optional: true
+- extendedWaitUntil:
+    visible: "(?s).*(الرئيسية|تسليم جديد|تسجيل تاجر|إضافة حركة).*"
+    timeout: 20000
+- tapOn: "(?s).*إضافة حركة.*"
+- extendedWaitUntil:
+    visible: "(?s).*(المالية|معاملة|حركة|الفئات).*"
+    timeout: 20000
+- takeScreenshot: full_mgr_08_finance
+- tapOn:
+    point: "92%,8%"
+- extendedWaitUntil:
+    visible: "(?s).*(الرئيسية|تسليم جديد|إضافة حركة).*"
+    timeout: 15000
+
+# ── 6) More: admin surfaces ─────────────────────────────────────────────────
+- tapOn:
+    id: "nav_tab_more"
+- extendedWaitUntil:
+    visible:
+      id: "more_violations_tile"
+    timeout: 20000
+- assertVisible:
+    id: "more_reports_tile"
+- assertVisible:
+    id: "more_users_tile"
+- assertVisible:
+    id: "more_branches_tile"
+- assertVisible:
+    id: "more_maintenance_tile"
+- assertVisible:
+    id: "more_notifications_tile"
+- takeScreenshot: full_mgr_09_more
+
+# Users
+- tapOn:
+    id: "more_users_tile"
+- extendedWaitUntil:
+    visible:
+      id: "users_search_field"
+    timeout: 20000
+- takeScreenshot: full_mgr_10_users
+- tapOn:
+    point: "92%,8%"
+- extendedWaitUntil:
+    visible:
+      id: "more_users_tile"
+    timeout: 15000
+
+# Branches
+- tapOn:
+    id: "more_branches_tile"
+- extendedWaitUntil:
+    visible:
+      id: "branches_search"
+    timeout: 20000
+- takeScreenshot: full_mgr_11_branches
+- tapOn:
+    point: "92%,8%"
+- extendedWaitUntil:
+    visible:
+      id: "more_branches_tile"
+    timeout: 15000
+
+# Maintenance
+- tapOn:
+    id: "more_maintenance_tile"
+- extendedWaitUntil:
+    visible: "(?s).*(الصيانة|طلبات).*"
+    timeout: 20000
+- takeScreenshot: full_mgr_12_maintenance
+- tapOn:
+    point: "92%,8%"
+- extendedWaitUntil:
+    visible:
+      id: "more_maintenance_tile"
+    timeout: 15000
+
+# Reports
+- tapOn:
+    id: "more_reports_tile"
+- extendedWaitUntil:
+    visible: "(?s).*تقارير.*"
+    timeout: 20000
+- takeScreenshot: full_mgr_13_reports
+- tapOn:
+    point: "92%,8%"
+- extendedWaitUntil:
+    visible:
+      id: "more_reports_tile"
+    timeout: 15000
+
+# Violations: short fail + valid create
+- tapOn:
+    id: "more_violations_tile"
+- extendedWaitUntil:
+    visible:
+      id: "violations_filter_button"
+    timeout: 20000
+- takeScreenshot: full_mgr_14_violations
+- tapOn:
+    point: "12%,90%"
+- extendedWaitUntil:
+    visible:
+      id: "violation_create_submit"
+    timeout: 20000
+- tapOn: "(?s).*أخرى.*"
+- tapOn:
+    id: "violation_create_user_tile"
+- extendedWaitUntil:
+    visible:
+      id: "violation_user_picker_search"
+    timeout: 15000
+- tapOn: "(?s).*أحمد عبد الستار.*"
+- extendedWaitUntil:
+    visible:
+      id: "violation_create_submit"
+    timeout: 15000
+- tapOn:
+    id: "violation_create_description"
+- inputText: "قصير"
+- tapOn:
+    point: "50%,12%"
+- tapOn:
+    id: "violation_create_submit"
+- waitForAnimationToEnd
+- assertVisible:
+    id: "violation_create_submit"
+- takeScreenshot: full_mgr_15_violation_short_fail
+- tapOn:
+    id: "violation_create_description"
+- eraseText
+- inputText: "دورة كاملة تسجيل مخالفة من المدير"
+- tapOn:
+    point: "50%,12%"
+- tapOn:
+    id: "violation_create_submit"
+- extendedWaitUntil:
+    visible:
+      id: "violations_filter_button"
+    timeout: 25000
+- takeScreenshot: full_mgr_16_violation_ok
+
+# Back to home (violations is a pushed route — tab bar may not expose ids)
+- tapOn:
+    text: "الرئيسية"
+    optional: true
+- tapOn:
+    id: "nav_tab_home"
+    optional: true
+- takeScreenshot: full_mgr_17_done

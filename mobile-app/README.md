@@ -1,17 +1,38 @@
 # machinery
 
-A new Flutter project.
+Flutter client for the Machinery custody / POS system.
 
-## Getting Started
+## Build stage (manual)
 
-This project is a starting point for a Flutter application.
+Edit **one file** before you build or run:
 
-A few resources to get you started if this is your first Flutter project:
+`config/active_stage.env`
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+```bash
+FLAVOR=development   # development | staging | production
+MODE=debug            # debug | profile | production
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Then:
+
+```bash
+./scripts/run_flavor.sh        # flutter run with that stage
+./scripts/run_flavor.sh apk    # flutter build apk with that stage
+```
+
+| MODE | Flutter flag |
+|------|----------------|
+| `debug` | `--debug` |
+| `profile` | `--profile` |
+| `production` | `--release` |
+
+`FLAVOR` picks the Android/iOS product flavor and loads `config/<flavor>.env.json` (`APP_ENV`, `API_BASE_URL`, store URLs).
+
+Optional overrides without editing the file:
+
+```bash
+./scripts/run_flavor.sh staging apk
+./scripts/run_flavor.sh production apk --mode=production
+```
+
+> Plain `flutter build apk` is not enough: this app has product flavors and dart-defines. Always use `./scripts/run_flavor.sh` so flavor + mode + env file stay in sync.

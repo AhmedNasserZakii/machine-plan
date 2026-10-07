@@ -87,12 +87,15 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+    - assets/icons/three_d/
     - assets/translations/
     - assets/animations/
 
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: assets/images/app_logo.png
+  image_path: assets/icons/launcher/machinery-3d.png
+  adaptive_icon_background: '#FFFFFF'
+  adaptive_icon_foreground: assets/icons/launcher/machinery-3d-foreground.png
+  adaptive_icon_foreground_inset: 0
   remove_alpha_ios: true
-

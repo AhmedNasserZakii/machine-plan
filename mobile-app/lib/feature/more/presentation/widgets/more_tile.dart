@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:machinery/core/shared_widgets/app_3d_icon.dart';
 import 'package:machinery/core/shared_widgets/clicked_widget.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
@@ -16,7 +17,7 @@ class MoreTile extends StatelessWidget {
     this.identifier,
   });
 
-  final IconData icon;
+  final App3dIconType icon;
   final String label;
   final VoidCallback onTap;
 
@@ -38,9 +39,9 @@ class MoreTile extends StatelessWidget {
         ? Badge(
             backgroundColor: AppColors.badgeColor,
             label: Text(badgeCount > 99 ? '99+' : '$badgeCount'),
-            child: Icon(icon, size: 22, color: accent),
+            child: App3dIcon(icon, size: 38),
           )
-        : Icon(icon, size: 22, color: accent);
+        : App3dIcon(icon, size: 38);
 
     final Widget tile = ClickedWidget(
       onTap: onTap,

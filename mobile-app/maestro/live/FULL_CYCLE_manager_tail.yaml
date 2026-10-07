@@ -1,0 +1,137 @@
+appId: com.machinery.machinery
+name: FULL CYCLE — Manager tail (finance + more + violations)
+---
+# Continues after the locked-merchant check when the main flow already signed in.
+- launchApp
+- tapOn:
+    text: "إغلاق"
+    optional: true
+- tapOn:
+    id: "nav_tab_home"
+    optional: true
+- tapOn:
+    text: "الرئيسية"
+    optional: true
+- extendedWaitUntil:
+    visible: "(?s).*(الرئيسية|تسليم جديد|تسجيل تاجر).*"
+    timeout: 20000
+- takeScreenshot: full_mgr_tail_home
+
+# Finance via home quick action
+- tapOn: "(?s).*إضافة حركة.*"
+- extendedWaitUntil:
+    visible: "(?s).*(المالية|معاملة|حركة|الفئات).*"
+    timeout: 20000
+- takeScreenshot: full_mgr_08_finance
+- tapOn:
+    point: "92%,8%"
+- extendedWaitUntil:
+    visible: "(?s).*(الرئيسية|تسليم جديد).*"
+    timeout: 15000
+
+# More admin surfaces
+- tapOn:
+    id: "nav_tab_more"
+- extendedWaitUntil:
+    visible:
+      id: "more_violations_tile"
+    timeout: 20000
+- assertVisible:
+    id: "more_reports_tile"
+- assertVisible:
+    id: "more_users_tile"
+- assertVisible:
+    id: "more_branches_tile"
+- assertVisible:
+    id: "more_maintenance_tile"
+- takeScreenshot: full_mgr_09_more
+
+- tapOn:
+    id: "more_users_tile"
+- extendedWaitUntil:
+    visible:
+      id: "users_search_field"
+    timeout: 20000
+- takeScreenshot: full_mgr_10_users
+- tapOn:
+    point: "92%,8%"
+
+- tapOn:
+    id: "more_branches_tile"
+- extendedWaitUntil:
+    visible:
+      id: "branches_search"
+    timeout: 20000
+- takeScreenshot: full_mgr_11_branches
+- tapOn:
+    point: "92%,8%"
+
+- tapOn:
+    id: "more_maintenance_tile"
+- extendedWaitUntil:
+    visible: "(?s).*(الصيانة|طلبات).*"
+    timeout: 20000
+- takeScreenshot: full_mgr_12_maintenance
+- tapOn:
+    point: "92%,8%"
+
+- tapOn:
+    id: "more_reports_tile"
+- extendedWaitUntil:
+    visible: "(?s).*تقارير.*"
+    timeout: 20000
+- takeScreenshot: full_mgr_13_reports
+- tapOn:
+    point: "92%,8%"
+
+# Violations short fail + valid create
+- tapOn:
+    id: "more_violations_tile"
+- extendedWaitUntil:
+    visible:
+      id: "violations_filter_button"
+    timeout: 20000
+- takeScreenshot: full_mgr_14_violations
+- tapOn:
+    point: "12%,90%"
+- extendedWaitUntil:
+    visible:
+      id: "violation_create_submit"
+    timeout: 20000
+- tapOn: "(?s).*أخرى.*"
+- tapOn:
+    id: "violation_create_user_tile"
+- extendedWaitUntil:
+    visible:
+      id: "violation_user_picker_search"
+    timeout: 15000
+- tapOn: "(?s).*أحمد عبد الستار.*"
+- extendedWaitUntil:
+    visible:
+      id: "violation_create_submit"
+    timeout: 15000
+- tapOn:
+    id: "violation_create_description"
+- inputText: "قصير"
+- tapOn:
+    point: "50%,12%"
+- tapOn:
+    id: "violation_create_submit"
+- waitForAnimationToEnd
+- assertVisible:
+    id: "violation_create_submit"
+- takeScreenshot: full_mgr_15_violation_short_fail
+- tapOn:
+    id: "violation_create_description"
+- eraseText
+- inputText: "دورة كاملة تسجيل مخالفة من المدير"
+- tapOn:
+    point: "50%,12%"
+- tapOn:
+    id: "violation_create_submit"
+- extendedWaitUntil:
+    visible:
+      id: "violations_filter_button"
+    timeout: 25000
+- takeScreenshot: full_mgr_16_violation_ok
+- takeScreenshot: full_mgr_17_done

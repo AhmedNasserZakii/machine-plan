@@ -50,32 +50,30 @@ class TransferActionsBar extends StatelessWidget {
               ),
             if (onConfirm != null && (onReject != null || onCancel != null))
               const SizedBox(height: AppSpacing.sm),
-            Row(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 if (onReject != null)
-                  Expanded(
-                    child: CustomButton(
-                      title: LocaleKeys.transferActionReject.tr(),
-                      isLoading: false,
-                      isStroked: true,
-                      height: 44,
-                      foregroundColor: AppColors.dangerColor,
-                      identifier: 'transfer_reject_button',
-                      onPressed: isBusy ? null : onReject,
-                    ),
+                  CustomButton(
+                    title: LocaleKeys.transferActionReject.tr(),
+                    isLoading: false,
+                    isStroked: true,
+                    height: 44,
+                    foregroundColor: AppColors.dangerColor,
+                    identifier: 'transfer_reject_button',
+                    onPressed: isBusy ? null : onReject,
                   ),
                 if (onReject != null && onCancel != null)
-                  const SizedBox(width: AppSpacing.sm),
+                  const SizedBox(height: AppSpacing.sm),
                 if (onCancel != null)
-                  Expanded(
-                    child: CustomButton(
-                      title: LocaleKeys.transferActionCancel.tr(),
-                      isLoading: false,
-                      isStroked: true,
-                      height: 44,
-                      identifier: 'transfer_cancel_button',
-                      onPressed: isBusy ? null : onCancel,
-                    ),
+                  CustomButton(
+                    title: LocaleKeys.transferActionCancel.tr(),
+                    isLoading: false,
+                    isStroked: true,
+                    height: 44,
+                    identifier: 'transfer_cancel_button',
+                    onPressed: isBusy ? null : onCancel,
                   ),
               ],
             ),

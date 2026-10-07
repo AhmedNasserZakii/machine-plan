@@ -1,0 +1,110 @@
+appId: com.machinery.machinery
+name: CYCLE — User (Representative) merchant + violation permissions
+---
+# Phone B — field user. Confirms what a representative can and cannot do
+# for the same two cycles (reopen locked merchant / raise a violation).
+- launchApp
+- tapOn:
+    text: "إغلاق"
+    optional: true
+- tapOn:
+    text: "تسجيل الدخول"
+    optional: true
+
+- runFlow:
+    when:
+      visible:
+        id: "login_phone_field"
+    commands:
+      - tapOn:
+          id: "login_phone_field"
+      - inputText: ${PHONE}
+      - tapOn:
+          point: "50%,12%"
+      - tapOn:
+          id: "login_password_field"
+      - inputText: ${PASSWORD}
+      - tapOn:
+          point: "50%,12%"
+      - tapOn:
+          id: "login_submit_button"
+      - tapOn:
+          text: "مش دلوقتي"
+          optional: true
+
+- extendedWaitUntil:
+    visible: "الرئيسية"
+    timeout: 40000
+- takeScreenshot: cycle_usr_home
+
+# ── Merchants: include locked; if visible, confirm no reopen ────────────────
+- tapOn:
+    id: "nav_tab_merchants"
+- extendedWaitUntil:
+    visible:
+      id: "merchants_search_field"
+    timeout: 20000
+- tapOn:
+    point: "8%,16%"
+- extendedWaitUntil:
+    visible: "(?s).*اعرض التجار المقفولين.*"
+    timeout: 15000
+- tapOn: "(?s).*اعرض التجار المقفولين.*"
+- tapOn:
+    id: "merchants_filter_apply"
+- runFlow:
+    when:
+      visible: "(?s).*العميد.*"
+    commands:
+      - tapOn: "(?s).*العميد.*"
+      - extendedWaitUntil:
+          visible: "(?s).*بيانات التاجر.*"
+          timeout: 20000
+      - assertVisible: "(?s).*مقفول.*"
+      - assertNotVisible: "(?s).*فتح التاجر.*"
+      - takeScreenshot: cycle_usr_merchant_locked
+      - back
+      - extendedWaitUntil:
+          visible:
+            id: "merchants_search_field"
+          timeout: 15000
+
+- takeScreenshot: cycle_usr_merchants_list
+
+# ── More: violations.create is NOT granted to representative ───────────────
+- tapOn:
+    id: "nav_tab_more"
+    optional: true
+- tapOn:
+    text: "المزيد"
+    optional: true
+- extendedWaitUntil:
+    visible: "(?s).*المزيد.*"
+    timeout: 15000
+- takeScreenshot: cycle_usr_more
+
+- runFlow:
+    when:
+      visible:
+        id: "more_violations_tile"
+    commands:
+      - tapOn:
+          id: "more_violations_tile"
+      - extendedWaitUntil:
+          visible:
+            id: "violations_filter_button"
+          timeout: 20000
+      - takeScreenshot: cycle_usr_violations_list
+
+- runFlow:
+    when:
+      visible:
+        id: "more_my_violations_tile"
+    commands:
+      - tapOn:
+          id: "more_my_violations_tile"
+      - takeScreenshot: cycle_usr_my_violations
+
+# Assert create FAB / submit not available from More for this role
+- assertNotVisible:
+    id: "violation_create_submit"

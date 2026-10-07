@@ -19,7 +19,8 @@ cd mobile-app
 # Requires Flutter with Dart ^3.9.2
 flutter analyze
 flutter test
-./scripts/run_flavor.sh development
+# Stage comes from config/active_stage.env (FLAVOR + MODE) unless overridden:
+./scripts/run_flavor.sh
 ./maestro/run.sh
 LIVE=1 ./maestro/run.sh maestro/live/
 ```
@@ -28,7 +29,9 @@ LIVE=1 ./maestro/run.sh maestro/live/
 
 1. Edit `mobile-app/config/production.env.json` — real `API_BASE_URL` + store URLs.
 2. Replace debug signing in `android/app/build.gradle.kts` with release keystore.
-3. Build: `./scripts/run_flavor.sh production appbundle` and `./scripts/run_flavor.sh production ipa`.
+3. Set `mobile-app/config/active_stage.env` to `FLAVOR=production` / `MODE=production`, then:
+   `./scripts/run_flavor.sh appbundle` and `./scripts/run_flavor.sh ipa`
+   (or override: `./scripts/run_flavor.sh production appbundle --mode=production`).
 
 ## Observability ownership
 

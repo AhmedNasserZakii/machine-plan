@@ -167,7 +167,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: LanguageToggleButton(),
                     ),
                     const SizedBox(height: AppSpacing.lg),
-                    const LoginHeader(),
+                    const Center(child: LoginHeader()),
                     const SizedBox(height: AppSpacing.xl),
                     LoginForm(
                       phoneController: _phoneController,

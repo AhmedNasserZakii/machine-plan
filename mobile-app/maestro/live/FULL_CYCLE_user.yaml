@@ -1,0 +1,222 @@
+appId: com.machinery.machinery
+name: FULL CYCLE — User (Representative) walks permitted surfaces
+---
+# End-to-end smoke of every surface a field representative can reach.
+- launchApp
+- tapOn:
+    text: "إغلاق"
+    optional: true
+- tapOn:
+    text: "تسجيل الدخول"
+    optional: true
+
+- runFlow:
+    when:
+      visible:
+        id: "login_phone_field"
+    commands:
+      - tapOn:
+          id: "login_phone_field"
+      - inputText: ${PHONE}
+      - tapOn:
+          point: "50%,12%"
+      - tapOn:
+          id: "login_password_field"
+      - inputText: ${PASSWORD}
+      - tapOn:
+          point: "50%,12%"
+      - tapOn:
+          id: "login_submit_button"
+      - tapOn:
+          text: "مش دلوقتي"
+          optional: true
+
+- extendedWaitUntil:
+    visible: "الرئيسية"
+    timeout: 40000
+- takeScreenshot: full_usr_01_home
+
+# ── Home ────────────────────────────────────────────────────────────────────
+- takeScreenshot: full_usr_01b_home_actions
+
+# ── Machines (read) ─────────────────────────────────────────────────────────
+- tapOn:
+    id: "nav_tab_machines"
+- tapOn:
+    text: "الماكينات"
+    optional: true
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    visible:
+      id: "machines_search_field"
+    timeout: 30000
+- takeScreenshot: full_usr_02_machines
+- tapOn:
+    id: "machines_search_field"
+- inputText: "123456"
+- tapOn:
+    point: "50%,12%"
+- runFlow:
+    when:
+      visible:
+        id: "machine_card_123456"
+    commands:
+      - tapOn:
+          id: "machine_card_123456"
+      - extendedWaitUntil:
+          visible: "(?s).*123456.*"
+          timeout: 20000
+      - takeScreenshot: full_usr_03_machine_detail
+      - tapOn:
+          point: "92%,8%"
+      - extendedWaitUntil:
+          visible:
+            id: "machines_search_field"
+          timeout: 15000
+- tapOn:
+    point: "50%,12%"
+
+# ── Transfers ───────────────────────────────────────────────────────────────
+- tapOn:
+    id: "nav_tab_transfers"
+- extendedWaitUntil:
+    visible: "(?s).*التسليمات.*"
+    timeout: 20000
+- extendedWaitUntil:
+    visible:
+      id: "transfers_add_button"
+    timeout: 25000
+- tapOn:
+    id: "transfers_tab_incoming"
+- waitForAnimationToEnd
+- tapOn:
+    id: "transfers_tab_outgoing"
+- waitForAnimationToEnd
+- tapOn:
+    id: "transfers_tab_all"
+- takeScreenshot: full_usr_04_transfers
+
+# ── Merchants: register one in their book ───────────────────────────────────
+- evalScript: |
+    ${
+      output.suffix = String(Date.now()).slice(-8);
+      output.shop = 'مندوب دورة ' + output.suffix;
+      output.phone = '012' + output.suffix;
+      output.nationalId = '299010' + output.suffix;
+    }
+
+- tapOn:
+    id: "nav_tab_merchants"
+- extendedWaitUntil:
+    visible:
+      id: "merchants_add_button"
+    timeout: 20000
+- tapOn:
+    id: "merchants_add_button"
+- extendedWaitUntil:
+    visible:
+      id: "merchant_form_shop_name"
+    timeout: 15000
+- tapOn:
+    id: "merchant_form_shop_name"
+- inputText: ${output.shop}
+- tapOn:
+    id: "merchant_form_name"
+- inputText: "تاجر المندوب"
+- scrollUntilVisible:
+    element:
+      id: "merchant_form_phone"
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    id: "merchant_form_phone"
+- inputText: ${output.phone}
+- scrollUntilVisible:
+    element:
+      id: "merchant_form_address"
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    id: "merchant_form_address"
+- inputText: "شارع المندوب، الجيزة"
+- scrollUntilVisible:
+    element:
+      id: "merchant_form_national_id"
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    id: "merchant_form_national_id"
+- inputText: ${output.nationalId}
+- scrollUntilVisible:
+    element:
+      id: "merchant_form_submit"
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    id: "merchant_form_submit"
+- extendedWaitUntil:
+    visible:
+      id: "merchants_add_button"
+    timeout: 30000
+- extendedWaitUntil:
+    visible: "(?s).*${output.shop}.*"
+    timeout: 20000
+- takeScreenshot: full_usr_05_merchant_created
+
+# Locked filter — reopen still unavailable if a locked shop is in scope
+- tapOn:
+    point: "8%,16%"
+- extendedWaitUntil:
+    visible: "(?s).*اعرض التجار المقفولين.*"
+    timeout: 15000
+- tapOn: "(?s).*اعرض التجار المقفولين.*"
+- tapOn:
+    id: "merchants_filter_apply"
+- takeScreenshot: full_usr_06_merchants_filtered
+
+# ── More: no admin tiles; violations readable without create ────────────────
+- tapOn:
+    id: "nav_tab_more"
+- extendedWaitUntil:
+    visible: "(?s).*المزيد.*"
+    timeout: 15000
+- assertNotVisible:
+    id: "more_users_tile"
+- assertNotVisible:
+    id: "more_branches_tile"
+# Reports / admin tiles are permission-gated; capture More as-is.
+- takeScreenshot: full_usr_07_more
+
+- runFlow:
+    when:
+      visible:
+        id: "more_violations_tile"
+    commands:
+      - tapOn:
+          id: "more_violations_tile"
+      - extendedWaitUntil:
+          visible:
+            id: "violations_filter_button"
+          timeout: 20000
+      - assertNotVisible:
+          id: "violation_create_submit"
+      - takeScreenshot: full_usr_08_violations_no_create
+
+- runFlow:
+    when:
+      visible:
+        id: "more_notifications_tile"
+    commands:
+      - tapOn:
+          id: "more_notifications_tile"
+      - takeScreenshot: full_usr_09_notifications
+      - tapOn:
+          point: "92%,8%"
+
+- tapOn:
+    text: "الرئيسية"
+    optional: true
+- tapOn:
+    id: "nav_tab_home"
+    optional: true
+- takeScreenshot: full_usr_10_done

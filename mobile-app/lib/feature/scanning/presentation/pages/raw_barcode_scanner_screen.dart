@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/full_width_action.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -105,10 +106,12 @@ class _RawBarcodeScannerScreenState extends State<RawBarcodeScannerScreen> {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: AppSpacing.lg),
-                      FilledButton.icon(
-                        onPressed: _openManualEntry,
-                        icon: const Icon(Icons.keyboard_alt_outlined),
-                        label: Text(LocaleKeys.scanManualEntry.tr()),
+                      FullWidthAction(
+                        child: FilledButton.icon(
+                          onPressed: _openManualEntry,
+                          icon: const Icon(Icons.keyboard_alt_outlined),
+                          label: Text(LocaleKeys.scanManualEntry.tr()),
+                        ),
                       ),
                     ],
                   ),
@@ -122,12 +125,14 @@ class _RawBarcodeScannerScreenState extends State<RawBarcodeScannerScreen> {
               end: AppSpacing.lg,
               bottom: AppSpacing.xl,
               child: SafeArea(
-                child: FilledButton.tonalIcon(
-                  onPressed: _openManualEntry,
-                  icon: const Icon(Icons.keyboard_alt_outlined),
-                  label: Semantics(
-                    identifier: 'raw_scanner_manual_entry_button',
-                    child: Text(LocaleKeys.scanManualEntry.tr()),
+                child: FullWidthAction(
+                  child: FilledButton.tonalIcon(
+                    onPressed: _openManualEntry,
+                    icon: const Icon(Icons.keyboard_alt_outlined),
+                    label: Semantics(
+                      identifier: 'raw_scanner_manual_entry_button',
+                      child: Text(LocaleKeys.scanManualEntry.tr()),
+                    ),
                   ),
                 ),
               ),
