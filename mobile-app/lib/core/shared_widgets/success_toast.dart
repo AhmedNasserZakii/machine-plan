@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:elegant_notification/elegant_notification.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +22,7 @@ void showSuccessToast(String message, BuildContext context, {double? height}) {
       overflow: TextOverflow.fade,
       style: Styles.s14(context).copyWith(color: AppColors.successColor),
     ),
-    icon: const Icon(
+    icon: const AppSymbol3d(
       Icons.check_circle_outline_rounded,
       color: AppColors.successColor,
       size: 28,

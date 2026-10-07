@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -65,7 +66,7 @@ class _MachineModelsListScreenState extends State<MachineModelsListScreen> {
           onPressed: _openForm,
           child: Semantics(
             identifier: 'machine_models_add_button',
-            child: const Icon(Icons.add_rounded),
+            child: const AppSymbol3d(Icons.add_rounded),
           ),
         ),
       ),
@@ -94,9 +95,8 @@ class _MachineModelsListScreenState extends State<MachineModelsListScreen> {
     final List<MachineModelEntity> visible = state.visible;
 
     return RefreshIndicator(
-      onRefresh: () => context.read<MachineModelsListCubit>().load(
-        showLoader: false,
-      ),
+      onRefresh: () =>
+          context.read<MachineModelsListCubit>().load(showLoader: false),
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: <Widget>[

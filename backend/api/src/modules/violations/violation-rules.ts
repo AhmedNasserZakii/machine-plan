@@ -1,3 +1,4 @@
+import { Locale } from 'src/common/constants/locales';
 import { Severity } from 'src/common/enums/operations.enum';
 import { ItemCondition } from 'src/common/enums/transfer.enum';
 import { TransferItem } from 'src/modules/transfers/entities/transfer-item.entity';
@@ -127,4 +128,51 @@ export function detectViolations(input: DetectionInput): DetectedViolation[] {
   }
 
   return found;
+}
+
+const CONDITION_AR: Record<string, string> = {
+  [ItemCondition.GOOD]: 'سليمة',
+  [ItemCondition.DAMAGED]: 'تالفة',
+  [ItemCondition.NOT_WORKING]: 'لا تعمل',
+};
+
+/**
+ * The Arabic wording of each description `detectViolations` writes.
+ *
+ * The stored text stays English so existing rows and new ones share one shape; the reader's
+ * language is applied on the way out, the same way lookup names are. Anything that does not match
+ * — a description a person typed — is returned untouched.
+ */
+const AUTO_DESCRIPTIONS_AR: ReadonlyArray<[RegExp, (match: RegExpMatchArray) => string]> = [
+  [
+    /^Battery returned as (.+), bonded battery is (.+)$/,
+    ([, scanned, expected]) =>
+      `أُعيدت البطارية برقم ${arUnknown(scanned)}، والبطارية المسجلة هي ${arUnknown(expected)}`,
+  ],
+  [/^Issued with a charger and returned without one$/, () => 'سُلّمت بشاحن وأُعيدت بدونه'],
+  [/^Issued boxed and returned without the carton$/, () => 'سُلّمت بالكرتونة وأُعيدت بدونها'],
+  [
+    /^Issued in (\w+) condition and returned (\w+)$/,
+    ([, issued, returned]) =>
+      `سُلّمت بحالة ${CONDITION_AR[issued] ?? issued} وأُعيدت بحالة ${CONDITION_AR[returned] ?? returned}`,
+  ],
+  [
+    /^Held for (\d+) days, past the (\d+)-day limit$/,
+    ([, held, limit]) => `ظلت في العهدة ${held} يومًا، بعد تجاوز الحد المسموح ${limit} يومًا`,
+  ],
+];
+
+function arUnknown(value: string): string {
+  return value === 'unknown' ? 'غير معروف' : value;
+}
+
+export function localizeAutoDescription(description: string, locale: Locale): string {
+  if (locale === 'en') return description;
+
+  for (const [pattern, render] of AUTO_DESCRIPTIONS_AR) {
+    const match = description.match(pattern);
+    if (match) return render(match);
+  }
+
+  return description;
 }

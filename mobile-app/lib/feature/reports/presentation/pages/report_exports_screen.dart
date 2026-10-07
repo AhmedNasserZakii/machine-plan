@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -48,12 +49,12 @@ class ReportExportsScreen extends StatelessWidget {
                       return Card(
                         child: ListTile(
                           leading: job.status == ReportJobStatus.failed
-                              ? const Icon(
+                              ? const AppSymbol3d(
                                   Icons.error_outline,
                                   color: AppColors.dangerColor,
                                 )
                               : ready
-                              ? const Icon(
+                              ? const AppSymbol3d(
                                   Icons.description_outlined,
                                   color: AppColors.successColor,
                                 )
@@ -66,9 +67,9 @@ class ReportExportsScreen extends StatelessWidget {
                           title: Text(job.filename ?? job.reportKey),
                           subtitle: Text(
                             job.status == ReportJobStatus.failed
-                                ? '${LocaleKeys.reportExportFailed.tr()}${job.errorCode == null ? '' : ': ${job.errorCode}'}'
+                                ? '${LocaleKeys.reportExportFailed.tr()}${job.errorMessage == null ? '' : ': ${job.errorMessage}'}'
                                 : ready
-                                ? '${job.format.name.toUpperCase()} • ${job.rowCount ?? 0} rows'
+                                ? '${job.format.name.toUpperCase()} • ${LocaleKeys.reportRowsInGroup.tr(args: <String>['${job.rowCount ?? 0}'])}'
                                 : (job.status == ReportJobStatus.running
                                           ? LocaleKeys.reportExportRunning
                                           : LocaleKeys.reportExportQueued)
@@ -77,7 +78,7 @@ class ReportExportsScreen extends StatelessWidget {
                           onTap: ready ? () => repo.openExport(job) : null,
                           trailing: ready
                               ? IconButton(
-                                  icon: const Icon(Icons.share_outlined),
+                                  icon: const AppSymbol3d(Icons.share_outlined),
                                   onPressed: () => repo.shareExport(job),
                                 )
                               : null,

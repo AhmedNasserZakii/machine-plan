@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:machinery/core/shared_widgets/full_width_action.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -128,7 +129,7 @@ class _RolePermissionsScreenState extends State<RolePermissionsScreen> {
                   child: FullWidthAction(
                     child: FilledButton.icon(
                       onPressed: state.isSaving ? null : _save,
-                      icon: const Icon(Icons.save_outlined),
+                      icon: const AppSymbol3d(Icons.save_outlined),
                       label: Text(LocaleKeys.save.tr()),
                     ),
                   ),

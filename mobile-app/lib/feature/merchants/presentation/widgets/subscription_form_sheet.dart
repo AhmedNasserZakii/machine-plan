@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -181,7 +182,7 @@ class _SubscriptionFormSheetState extends State<SubscriptionFormSheet> {
 
                   ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.event_outlined),
+                    leading: const AppSymbol3d(Icons.event_outlined),
                     title: Text(
                       LocaleKeys.subscriptionStartDate.tr(),
                       style: Styles.s14(context),

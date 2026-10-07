@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -53,7 +54,7 @@ class MerchantDetailHeader extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           Row(
             children: <Widget>[
-              const Icon(
+              const AppSymbol3d(
                 Icons.phone_outlined,
                 size: 16,
                 color: AppColors.textSecondaryColor,
@@ -67,7 +68,7 @@ class MerchantDetailHeader extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                const Icon(
+                const AppSymbol3d(
                   Icons.location_on_outlined,
                   size: 16,
                   color: AppColors.textSecondaryColor,

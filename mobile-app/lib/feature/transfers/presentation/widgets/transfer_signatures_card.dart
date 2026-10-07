@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dartz/dartz.dart' hide State;
 import 'package:easy_localization/easy_localization.dart';
@@ -68,7 +69,7 @@ class _SignatureRow extends StatelessWidget {
           else
             const Padding(
               padding: EdgeInsetsDirectional.only(top: 2),
-              child: Icon(
+              child: AppSymbol3d(
                 Icons.fingerprint,
                 size: 20,
                 color: AppColors.successColor,
@@ -165,7 +166,7 @@ class _SignatureThumbnailState extends State<_SignatureThumbnail> {
             }
 
             return snapshot.data!.fold(
-              (ServerFailure failure) => const Icon(
+              (ServerFailure failure) => const AppSymbol3d(
                 Icons.broken_image_outlined,
                 size: 16,
                 color: AppColors.textSecondaryColor,
@@ -174,7 +175,7 @@ class _SignatureThumbnailState extends State<_SignatureThumbnail> {
                 imageUrl: url,
                 fit: BoxFit.contain,
                 memCacheWidth: 256,
-                errorWidget: (_, _, _) => const Icon(
+                errorWidget: (_, _, _) => const AppSymbol3d(
                   Icons.broken_image_outlined,
                   size: 16,
                   color: AppColors.textSecondaryColor,

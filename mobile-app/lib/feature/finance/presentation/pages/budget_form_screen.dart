@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:machinery/core/shared_widgets/full_width_action.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -128,11 +129,12 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
                   widget.existing?.category.path ??
                   LocaleKeys.financeChooseCategory.tr(),
             ),
-            trailing: const Icon(Icons.chevron_right),
+            trailing: const AppSymbol3d(Icons.chevron_right),
             onTap: widget.existing == null ? _pickCategory : null,
           ),
           const SizedBox(height: AppSpacing.md),
           DropdownButtonFormField<String>(
+            icon: const AppSymbol3d(Icons.expand_more_rounded),
             initialValue: _periodType,
             decoration: InputDecoration(
               labelText: LocaleKeys.financePeriod.tr(),

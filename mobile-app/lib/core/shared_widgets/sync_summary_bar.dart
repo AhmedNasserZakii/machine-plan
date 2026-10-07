@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'dart:async';
 
 import 'package:easy_localization/easy_localization.dart';
@@ -42,8 +43,9 @@ class _SyncSummaryBarState extends State<SyncSummaryBar> {
 
   Future<void> _refresh() async {
     final int count = await _queueService.pendingCount();
-    final bool hasConflict =
-        (await _queueService.all()).any((item) => item.status == SyncItemStatus.conflict);
+    final bool hasConflict = (await _queueService.all()).any(
+      (item) => item.status == SyncItemStatus.conflict,
+    );
 
     if (mounted) {
       setState(() {
@@ -63,7 +65,9 @@ class _SyncSummaryBarState extends State<SyncSummaryBar> {
   Widget build(BuildContext context) {
     if (_pendingCount == 0) return const SizedBox.shrink();
 
-    final Color color = _hasConflict ? AppColors.dangerColor : AppColors.warningColor;
+    final Color color = _hasConflict
+        ? AppColors.dangerColor
+        : AppColors.warningColor;
 
     return InkWell(
       onTap: () => AppRoute.goToSyncQueue(context: context),
@@ -76,20 +80,26 @@ class _SyncSummaryBarState extends State<SyncSummaryBar> {
         color: color.withValues(alpha: .08),
         child: Row(
           children: <Widget>[
-            Icon(
-              _hasConflict ? Icons.report_gmailerrorred_rounded : Icons.sync_rounded,
+            AppSymbol3d(
+              _hasConflict
+                  ? Icons.report_gmailerrorred_rounded
+                  : Icons.sync_rounded,
               size: 16,
               color: color,
             ),
             const SizedBox(width: AppSpacing.xs),
             Expanded(
               child: Text(
-                LocaleKeys.syncPendingCount.tr(args: <String>['$_pendingCount']),
-                style: Styles.s12(context).copyWith(color: color, fontWeight: FontWeight.w600),
+                LocaleKeys.syncPendingCount.tr(
+                  args: <String>['$_pendingCount'],
+                ),
+                style: Styles.s12(
+                  context,
+                ).copyWith(color: color, fontWeight: FontWeight.w600),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            Icon(Icons.chevron_right_rounded, size: 16, color: color),
+            AppSymbol3d(Icons.chevron_right_rounded, size: 16, color: color),
           ],
         ),
       ),

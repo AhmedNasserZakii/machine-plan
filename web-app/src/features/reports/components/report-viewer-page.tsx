@@ -324,7 +324,7 @@ export function ReportViewerPage({ slug }: ReportViewerPageProps) {
             <div className="flex flex-wrap gap-md">
               {totalsEntries.map(([key, value]) => (
                 <div key={key} className="min-w-[8rem] rounded-md border border-border bg-surface px-md py-sm">
-                  <p className="t-caption text-text-secondary">{key}</p>
+                  <p className="t-caption text-text-secondary">{result.totalLabels?.[key] ?? key}</p>
                   <p className="t-h3">
                     {typeof value === 'number' && isMoneyColumn(key) ? (
                       <Money value={asNumber(value)} />

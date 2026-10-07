@@ -1,3 +1,5 @@
+import { Locale } from 'src/common/constants/locales';
+
 /**
  * The tunable numbers, with their defaults and their limits.
  *
@@ -21,7 +23,7 @@ export interface SettingDefinition {
   default: number;
   min: number;
   max: number;
-  description: string;
+  description: Record<Locale, string>;
 }
 
 export const SETTINGS_CATALOGUE: readonly SettingDefinition[] = [
@@ -31,7 +33,10 @@ export const SETTINGS_CATALOGUE: readonly SettingDefinition[] = [
     default: 0.4,
     min: 0,
     max: 1,
-    description: 'Repair cost against purchase price above which a machine is flagged for review',
+    description: {
+      ar: 'نسبة تكلفة الإصلاح إلى سعر الشراء التي تُعلَّم الماكينة بعدها للمراجعة',
+      en: 'Repair cost against purchase price above which a machine is flagged for review',
+    },
   },
   {
     key: SettingKey.DECOMMISSION_COST_RATIO_CONSIDER,
@@ -39,7 +44,10 @@ export const SETTINGS_CATALOGUE: readonly SettingDefinition[] = [
     default: 0.7,
     min: 0,
     max: 1,
-    description: 'Ratio above which decommissioning is recommended to the Director',
+    description: {
+      ar: 'النسبة التي يُوصى بعدها للمدير بتكهين الماكينة',
+      en: 'Ratio above which decommissioning is recommended to the Director',
+    },
   },
   {
     key: SettingKey.DECOMMISSION_REPAIR_COUNT_CONSIDER,
@@ -47,7 +55,10 @@ export const SETTINGS_CATALOGUE: readonly SettingDefinition[] = [
     default: 5,
     min: 1,
     max: 100,
-    description: 'Number of repairs above which decommissioning is recommended',
+    description: {
+      ar: 'عدد مرات الإصلاح الذي يُوصى بعده بتكهين الماكينة',
+      en: 'Number of repairs above which decommissioning is recommended',
+    },
   },
 ];
 

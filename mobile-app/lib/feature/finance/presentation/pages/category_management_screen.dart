@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -88,7 +89,7 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
                         ? LocaleKeys.financeRootCategory.tr()
                         : LocaleKeys.financeSelected.tr(),
                   ),
-                  trailing: const Icon(Icons.account_tree),
+                  trailing: const AppSymbol3d(Icons.account_tree),
                   onTap: () async {
                     final picked = await Navigator.push<FinanceCategory>(
                       context,
@@ -208,7 +209,7 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _edit,
-        child: const Icon(Icons.add),
+        child: const AppSymbol3d(Icons.add),
       ),
       body: Column(
         children: <Widget>[
@@ -265,7 +266,7 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
                                       start: AppSpacing.md + c.depth * 18,
                                       end: AppSpacing.sm,
                                     ),
-                                    leading: Icon(
+                                    leading: AppSymbol3d(
                                       c.isSystem
                                           ? Icons.lock_outline
                                           : Icons.category_outlined,
@@ -278,6 +279,9 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
                                     trailing: c.isSystem
                                         ? null
                                         : PopupMenuButton<String>(
+                                            icon: const AppSymbol3d(
+                                              Icons.more_vert_rounded,
+                                            ),
                                             onSelected: (value) {
                                               if (value == 'edit') _edit(c);
                                               if (value == 'toggle') {

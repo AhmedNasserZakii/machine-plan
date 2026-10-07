@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -144,7 +145,7 @@ class _Flag extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        Icon(
+        AppSymbol3d(
           isPresent ? Icons.check_rounded : Icons.close_rounded,
           size: 14,
           color: color,
@@ -177,7 +178,7 @@ class _BatteryMismatch extends StatelessWidget {
         children: <Widget>[
           Row(
             children: <Widget>[
-              const Icon(
+              const AppSymbol3d(
                 Icons.battery_alert_outlined,
                 size: 14,
                 color: AppColors.dangerColor,

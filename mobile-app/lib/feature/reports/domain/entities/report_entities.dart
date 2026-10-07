@@ -79,11 +79,14 @@ class ReportResult extends Equatable {
     required this.totals,
     required this.rowCount,
     required this.truncated,
+    this.totalLabels = const <String, String>{},
     this.extra = const <String, dynamic>{},
   });
   final String key, title;
   final DateTime generatedAt;
   final Map<String, dynamic> filters, totals, extra;
+  // `totals` keys already worded in the request locale by the backend.
+  final Map<String, String> totalLabels;
   final List<ReportColumn> columns;
   final List<Map<String, dynamic>> rows;
   final int rowCount;
@@ -102,6 +105,7 @@ class ReportResult extends Equatable {
     columns,
     rows,
     totals,
+    totalLabels,
     rowCount,
     truncated,
     extra,
@@ -201,6 +205,7 @@ class ReportJob extends Equatable {
     this.filename,
     this.downloadUrl,
     this.errorCode,
+    this.errorMessage,
     this.localPath,
     this.rowCount,
     this.sizeBytes,
@@ -210,7 +215,7 @@ class ReportJob extends Equatable {
   final ReportFormat format;
   final ReportJobStatus status;
   final DateTime expiresAt;
-  final String? filename, downloadUrl, errorCode, localPath;
+  final String? filename, downloadUrl, errorCode, errorMessage, localPath;
   final int? rowCount, sizeBytes;
   bool get isDownloaded => localPath != null;
   ReportJob copyWith({
@@ -218,6 +223,7 @@ class ReportJob extends Equatable {
     String? filename,
     String? downloadUrl,
     String? errorCode,
+    String? errorMessage,
     String? localPath,
     int? rowCount,
     int? sizeBytes,
@@ -230,6 +236,7 @@ class ReportJob extends Equatable {
     filename: filename ?? this.filename,
     downloadUrl: downloadUrl ?? this.downloadUrl,
     errorCode: errorCode ?? this.errorCode,
+    errorMessage: errorMessage ?? this.errorMessage,
     localPath: localPath ?? this.localPath,
     rowCount: rowCount ?? this.rowCount,
     sizeBytes: sizeBytes ?? this.sizeBytes,
@@ -257,6 +264,7 @@ class ReportJob extends Equatable {
     filename,
     downloadUrl,
     errorCode,
+    errorMessage,
     localPath,
     rowCount,
     sizeBytes,

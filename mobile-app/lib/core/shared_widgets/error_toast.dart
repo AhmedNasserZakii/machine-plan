@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:elegant_notification/elegant_notification.dart';
 import 'package:flutter/material.dart';
@@ -52,7 +53,7 @@ void showErrorToast(String message, BuildContext context, {double? height}) {
       overflow: TextOverflow.fade,
       style: Styles.s14(context).copyWith(color: AppColors.dangerColor),
     ),
-    icon: const Icon(
+    icon: const AppSymbol3d(
       Icons.error_outline_rounded,
       color: AppColors.dangerColor,
       size: 28,

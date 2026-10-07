@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -40,7 +41,7 @@ class PasswordField extends StatelessWidget {
       onFieldSubmitted: onFieldSubmitted,
       errorText: errorText,
       identifier: identifier,
-      prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
+      prefixIcon: const AppSymbol3d(Icons.lock_outline_rounded, size: 20),
     );
   }
 }

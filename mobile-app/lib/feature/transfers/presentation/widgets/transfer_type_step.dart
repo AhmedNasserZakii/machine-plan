@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -269,7 +270,7 @@ class _MerchantRecipientFieldState extends State<_MerchantRecipientField> {
             alignment: AlignmentDirectional.centerStart,
             child: TextButton.icon(
               onPressed: _createMerchant,
-              icon: const Icon(Icons.add_business_rounded, size: 18),
+              icon: const AppSymbol3d(Icons.add_business_rounded, size: 18),
               label: Semantics(
                 identifier: 'transfer_new_merchant_button',
                 child: Text(LocaleKeys.transferNewMerchant.tr()),
@@ -292,7 +293,7 @@ class _Note extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        const Icon(
+        const AppSymbol3d(
           Icons.info_outline_rounded,
           size: 16,
           color: AppColors.textSecondaryColor,

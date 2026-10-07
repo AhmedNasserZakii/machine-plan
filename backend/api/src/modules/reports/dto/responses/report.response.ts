@@ -29,6 +29,13 @@ export class ReportResponse {
   @ApiProperty({ type: [Object] }) rows: Record<string, unknown>[];
   @ApiProperty({ type: Object }) totals: Record<string, number | string>;
 
+  @ApiProperty({
+    type: Object,
+    example: { machines: 'الماكينات' },
+    description: '`totals` keys worded in the request locale.',
+  })
+  totalLabels: Record<string, string>;
+
   @ApiProperty({ description: 'Rows before paging — what an export of this report would contain.' })
   rowCount: number;
 
@@ -67,6 +74,12 @@ export class ReportJobResponse {
 
   @ApiProperty({ nullable: true, description: 'A stable ErrorCode. Present only on FAILED.' })
   errorCode: string | null;
+
+  @ApiProperty({
+    nullable: true,
+    description: '`errorCode` worded in the request locale. Present only on FAILED.',
+  })
+  errorMessage: string | null;
 
   @ApiProperty() expiresAt: string;
   @ApiProperty() createdAt: string;

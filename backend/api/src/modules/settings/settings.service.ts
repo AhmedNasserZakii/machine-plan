@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CacheKeys, CacheService } from 'src/common/cache';
 import { ErrorCode } from 'src/common/constants/error-codes';
+import { DEFAULT_LOCALE, Locale } from 'src/common/constants/locales';
 import { AppException } from 'src/common/errors';
 import { SettingResponse } from './dto/responses/setting.response';
 import { Setting } from './entities/setting.entity';
@@ -30,7 +31,7 @@ export class SettingsService {
   ) {}
 
   /** The whole catalogue with the current effective values, for the Director's settings screen. */
-  async findAll(): Promise<SettingResponse[]> {
+  async findAll(locale: Locale = DEFAULT_LOCALE): Promise<SettingResponse[]> {
     const overrides = await this.overrides();
 
     return SETTINGS_CATALOGUE.map((definition) => {
@@ -43,14 +44,14 @@ export class SettingsService {
         kind: definition.kind,
         min: definition.min,
         max: definition.max,
-        description: definition.description,
+        description: definition.description[locale],
         isOverridden: stored !== undefined,
       };
     });
   }
 
-  async findOne(key: string): Promise<SettingResponse> {
-    const all = await this.findAll();
+  async findOne(key: string, locale: Locale = DEFAULT_LOCALE): Promise<SettingResponse> {
+    const all = await this.findAll(locale);
     const found = all.find((setting) => setting.key === key);
 
     if (!found) throw AppException.notFound(ErrorCode.SETTING_NOT_FOUND, { key });
@@ -82,7 +83,12 @@ export class SettingsService {
     return { reviewRatio, considerRatio, considerRepairCount };
   }
 
-  async set(key: string, value: number, actorId: string): Promise<SettingResponse> {
+  async set(
+    key: string,
+    value: number,
+    actorId: string,
+    locale: Locale = DEFAULT_LOCALE,
+  ): Promise<SettingResponse> {
     const definition = settingDefinition(key);
 
     if (!definition) throw AppException.notFound(ErrorCode.SETTING_NOT_FOUND, { key });
@@ -101,7 +107,7 @@ export class SettingsService {
 
     await this.cache.del(CacheKeys.setting(key));
 
-    return this.findOne(key);
+    return this.findOne(key, locale);
   }
 
   private assertInRange(definition: SettingDefinition, value: number): void {

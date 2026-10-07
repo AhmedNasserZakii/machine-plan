@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -15,9 +16,9 @@ class PermissionBoundary extends StatelessWidget {
     this.permission,
     this.anyOf = const <String>[],
   }) : assert(
-          permission != null || anyOf.isNotEmpty,
-          'Provide permission or anyOf',
-        );
+         permission != null || anyOf.isNotEmpty,
+         'Provide permission or anyOf',
+       );
 
   final String? permission;
   final List<String> anyOf;
@@ -43,7 +44,7 @@ class PermissionBoundary extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  const Icon(Icons.lock_outline, size: 56),
+                  const AppSymbol3d(Icons.lock_outline, size: 56),
                   const SizedBox(height: AppSpacing.md),
                   Text(
                     LocaleKeys.noPermissionTitle.tr(),

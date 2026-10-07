@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:machinery/core/shared_widgets/full_width_action.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -57,7 +58,7 @@ class ViolationActionsRow extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                const Icon(Icons.visibility_outlined),
+                const AppSymbol3d(Icons.visibility_outlined),
                 const SizedBox(width: AppSpacing.sm),
                 Text(LocaleKeys.violationAcknowledge.tr()),
               ],
@@ -80,7 +81,7 @@ class ViolationActionsRow extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  const Icon(Icons.edit_outlined),
+                  const AppSymbol3d(Icons.edit_outlined),
                   const SizedBox(width: AppSpacing.sm),
                   Text(LocaleKeys.violationEdit.tr()),
                 ],
@@ -111,7 +112,7 @@ class ViolationActionsRow extends StatelessWidget {
                 FullWidthAction(
                   child: FilledButton.icon(
                     onPressed: isBusy ? null : onCharge,
-                    icon: const Icon(Icons.payments_outlined),
+                    icon: const AppSymbol3d(Icons.payments_outlined),
                     label: Semantics(
                       identifier: 'violation_charge_button',
                       child: Text(LocaleKeys.violationCharge.tr()),
@@ -134,7 +135,7 @@ class ViolationActionsRow extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                const Icon(Icons.do_not_disturb_on_outlined),
+                const AppSymbol3d(Icons.do_not_disturb_on_outlined),
                 const SizedBox(width: AppSpacing.sm),
                 Text(LocaleKeys.violationWaive.tr()),
               ],

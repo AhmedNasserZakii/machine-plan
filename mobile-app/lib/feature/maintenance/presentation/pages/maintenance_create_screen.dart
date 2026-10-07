@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -97,7 +98,10 @@ class _MaintenanceCreateScreenState extends State<MaintenanceCreateScreen> {
           }
 
           if (state is MaintenanceCreateSubmitted) {
-            showSuccessToast(LocaleKeys.maintenanceCreatedSuccess.tr(), context);
+            showSuccessToast(
+              LocaleKeys.maintenanceCreatedSuccess.tr(),
+              context,
+            );
             AppRoute.goBack(context: context, result: state.order);
           }
         },
@@ -276,7 +280,10 @@ class _DateField extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppRadius.md),
             child: InputDecorator(
               decoration: const InputDecoration(
-                suffixIcon: Icon(Icons.calendar_today_outlined, size: 18),
+                suffixIcon: AppSymbol3d(
+                  Icons.calendar_today_outlined,
+                  size: 18,
+                ),
               ),
               child: Text(
                 Formatters.isoDate(value) ?? label,

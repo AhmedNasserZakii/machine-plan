@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:machinery/core/shared_widgets/full_width_action.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -104,7 +105,7 @@ class _ReportFiltersSheetState extends State<ReportFiltersSheet> {
                 side: BorderSide(color: Theme.of(context).dividerColor),
                 borderRadius: BorderRadius.circular(16),
               ),
-              leading: const Icon(Icons.date_range),
+              leading: const AppSymbol3d(Icons.date_range),
               title: Text(LocaleKeys.reportDateRange.tr()),
               subtitle: Text(_periodLabel()),
               onTap: _dates,
@@ -112,6 +113,7 @@ class _ReportFiltersSheetState extends State<ReportFiltersSheet> {
             if (_branches.isNotEmpty) ...<Widget>[
               const SizedBox(height: AppSpacing.md),
               DropdownButtonFormField<String?>(
+                icon: const AppSymbol3d(Icons.expand_more_rounded),
                 initialValue: _branch,
                 decoration: InputDecoration(
                   labelText: LocaleKeys.reportBranch.tr(),
@@ -131,6 +133,7 @@ class _ReportFiltersSheetState extends State<ReportFiltersSheet> {
             if (widget.report.key == 'machine-custody') ...<Widget>[
               const SizedBox(height: AppSpacing.md),
               DropdownButtonFormField<String>(
+                icon: const AppSymbol3d(Icons.expand_more_rounded),
                 initialValue: _group,
                 decoration: InputDecoration(
                   labelText: LocaleKeys.reportGroupBy.tr(),
@@ -170,6 +173,7 @@ class _ReportFiltersSheetState extends State<ReportFiltersSheet> {
             if (widget.report.key == 'profit-loss') ...<Widget>[
               const SizedBox(height: AppSpacing.md),
               DropdownButtonFormField<String>(
+                icon: const AppSymbol3d(Icons.expand_more_rounded),
                 initialValue: _granularity,
                 decoration: InputDecoration(
                   labelText: LocaleKeys.reportGranularity.tr(),

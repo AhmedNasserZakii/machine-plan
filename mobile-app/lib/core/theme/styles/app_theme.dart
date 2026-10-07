@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
@@ -19,7 +20,14 @@ abstract class AppThemes {
   static final ThemeData lightTheme = ThemeData(
     brightness: Brightness.light,
     useMaterial3: true,
+    actionIconTheme: ActionIconThemeData(
+      backButtonIconBuilder: (_) => const AppSymbol3d(Icons.arrow_back_rounded),
+      closeButtonIconBuilder: (_) => const AppSymbol3d(Icons.close_rounded),
+      drawerButtonIconBuilder: (_) => const AppSymbol3d(Icons.menu_rounded),
+      endDrawerButtonIconBuilder: (_) => const AppSymbol3d(Icons.menu_rounded),
+    ),
     primaryColor: AppColors.primaryColor,
+    iconTheme: const IconThemeData(color: AppColors.primaryColor),
     scaffoldBackgroundColor: AppColors.scaffoldBackgroundColor,
     dividerColor: AppColors.dividerColor,
     textTheme: GoogleFonts.cairoTextTheme(ThemeData.light().textTheme),

@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:machinery/core/shared_widgets/full_width_action.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -88,13 +89,16 @@ class _FinanceTransactionsScreenState extends State<FinanceTransactionsScreen> {
             onPressed: state is FinanceTransactionsLoaded
                 ? () => _filters(state)
                 : null,
-            icon: const Icon(Icons.filter_list),
+            icon: const AppSymbol3d(Icons.filter_list),
           ),
         ),
       ],
     ),
     floatingActionButton: getIt<PermissionService>().has(P.financeCreate)
-        ? FloatingActionButton(onPressed: _add, child: const Icon(Icons.add))
+        ? FloatingActionButton(
+            onPressed: _add,
+            child: const AppSymbol3d(Icons.add),
+          )
         : null,
     body: BlocBuilder<FinanceTransactionsCubit, FinanceTransactionsState>(
       builder: (context, state) => switch (state) {
@@ -170,7 +174,7 @@ class _TransactionFiltersState extends State<_TransactionFilters> {
               controller: _search,
               decoration: InputDecoration(
                 labelText: LocaleKeys.financeReferenceOrNotes.tr(),
-                prefixIcon: const Icon(Icons.search),
+                prefixIcon: const AppSymbol3d(Icons.search),
               ),
             ),
             const SizedBox(height: 12),
@@ -244,7 +248,7 @@ class _TransactionFiltersState extends State<_TransactionFilters> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  const Icon(Icons.date_range),
+                  const AppSymbol3d(Icons.date_range),
                   const SizedBox(width: AppSpacing.sm),
                   if (_from == null)
                     Text(LocaleKeys.financeDateRange.tr())

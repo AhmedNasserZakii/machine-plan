@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -109,7 +110,7 @@ class _CategoryPickerScreenState extends State<CategoryPickerScreen> {
             padding: const EdgeInsetsDirectional.all(AppSpacing.md),
             child: TextField(
               decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search),
+                prefixIcon: const AppSymbol3d(Icons.search),
                 hintText: LocaleKeys.financeSearchCategories.tr(),
               ),
               onChanged: (value) => setState(() => _search = value),
@@ -130,7 +131,7 @@ class _CategoryPickerScreenState extends State<CategoryPickerScreen> {
                   ..._trail.asMap().entries.map(
                     (entry) => Row(
                       children: <Widget>[
-                        const Icon(Icons.chevron_right, size: 18),
+                        const AppSymbol3d(Icons.chevron_right, size: 18),
                         ActionChip(
                           label: Text(entry.value.name),
                           onPressed: () => setState(
@@ -174,8 +175,8 @@ class _CategoryPickerScreenState extends State<CategoryPickerScreen> {
                         return Card(
                           child: ListTile(
                             leading: recentIds.contains(c.id) && _trail.isEmpty
-                                ? const Icon(Icons.history)
-                                : Icon(
+                                ? const AppSymbol3d(Icons.history)
+                                : AppSymbol3d(
                                     c.children.isEmpty
                                         ? Icons.label_outline
                                         : Icons.folder_outlined,
@@ -188,7 +189,9 @@ class _CategoryPickerScreenState extends State<CategoryPickerScreen> {
                             trailing: c.children.isEmpty
                                 ? null
                                 : IconButton(
-                                    icon: const Icon(Icons.chevron_right),
+                                    icon: const AppSymbol3d(
+                                      Icons.chevron_right,
+                                    ),
                                     tooltip: LocaleKeys.financeOpenSubcategories
                                         .tr(),
                                     onPressed: () => setState(() {

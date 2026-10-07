@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -61,7 +62,7 @@ class _BranchesListScreenState extends State<BranchesListScreen> {
         onPressed: _openForm,
         child: Semantics(
           identifier: 'branches_add_button',
-          child: const Icon(Icons.add_rounded),
+          child: const AppSymbol3d(Icons.add_rounded),
         ),
       ),
       body: BlocBuilder<BranchesListCubit, BranchesListState>(

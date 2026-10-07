@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/shared_widgets/app_3d_icon.dart';
 import 'package:machinery/core/shared_widgets/clicked_widget.dart';
@@ -70,7 +71,7 @@ class MoreTile extends StatelessWidget {
               const SizedBox(width: AppSpacing.sm),
             ],
             if (!isDestructive)
-              const Icon(
+              const AppSymbol3d(
                 Icons.chevron_right_rounded,
                 size: 20,
                 color: AppColors.textSecondaryColor,

@@ -4817,6 +4817,13 @@ export interface components {
             columns: components["schemas"]["ReportColumnResponse"][];
             rows: Record<string, never>[];
             totals: Record<string, never>;
+            /**
+             * @description `totals` keys worded in the request locale.
+             * @example {
+             *       "machines": "الماكينات"
+             *     }
+             */
+            totalLabels: Record<string, never>;
             /** @description Rows before paging — what an export of this report would contain. */
             rowCount: number;
             /** @description True when the row cap cut the answer short. */
@@ -4841,6 +4848,8 @@ export interface components {
             downloadUrl: Record<string, never> | null;
             /** @description A stable ErrorCode. Present only on FAILED. */
             errorCode: Record<string, never> | null;
+            /** @description `errorCode` worded in the request locale. Present only on FAILED. */
+            errorMessage: Record<string, never> | null;
             expiresAt: string;
             createdAt: string;
             completedAt: Record<string, never> | null;

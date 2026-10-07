@@ -34,6 +34,9 @@ ReportResult reportResultFromJson(Map<String, dynamic> json) => ReportResult(
   ).map(reportColumnFromJson).toList(growable: false),
   rows: _maps(json['rows']),
   totals: _map(json['totals']),
+  totalLabels: _map(
+    json['totalLabels'],
+  ).map((key, value) => MapEntry(key, value.toString())),
   rowCount: _intOrNull(json['rowCount']) ?? 0,
   truncated: json['truncated'] as bool? ?? false,
   extra: _map(json['extra']),
@@ -68,6 +71,7 @@ ReportJob reportJobFromJson(Map<String, dynamic> json, {String ownerId = ''}) =>
       filename: json['filename'] as String?,
       downloadUrl: json['downloadUrl'] as String?,
       errorCode: json['errorCode'] as String?,
+      errorMessage: json['errorMessage'] as String?,
       rowCount: _intOrNull(json['rowCount']),
       sizeBytes: _intOrNull(json['sizeBytes']),
       localPath: json['localPath'] as String?,

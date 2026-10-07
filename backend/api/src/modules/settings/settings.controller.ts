@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Put } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { CurrentUser, Permissions } from 'src/common/decorators';
+import { Locale } from 'src/common/constants/locales';
+import { CurrentUser, Permissions, ReqLocale } from 'src/common/decorators';
 import { Perm } from 'src/modules/roles/permissions.catalogue';
 import { SettingResponse } from './dto/responses/setting.response';
 import { UpdateSettingDto } from './dto/setting.dto';
@@ -24,8 +25,8 @@ export class SettingsController {
     description: 'Fixed catalogue of settings keys, bounded by code. Not paginated.',
   })
   @ApiResponse({ status: 200, type: [SettingResponse] })
-  findAll(): Promise<SettingResponse[]> {
-    return this.settings.findAll();
+  findAll(@ReqLocale() locale: Locale): Promise<SettingResponse[]> {
+    return this.settings.findAll(locale);
   }
 
   @Get(':key')
@@ -33,8 +34,8 @@ export class SettingsController {
   @ApiOperation({ summary: 'Read one setting' })
   @ApiResponse({ status: 200, type: SettingResponse })
   @ApiResponse({ status: 404, description: 'SETTING_NOT_FOUND' })
-  findOne(@Param('key') key: string): Promise<SettingResponse> {
-    return this.settings.findOne(key);
+  findOne(@Param('key') key: string, @ReqLocale() locale: Locale): Promise<SettingResponse> {
+    return this.settings.findOne(key, locale);
   }
 
   @Put(':key')
@@ -46,7 +47,8 @@ export class SettingsController {
     @Param('key') key: string,
     @Body() dto: UpdateSettingDto,
     @CurrentUser('id') actorId: string,
+    @ReqLocale() locale: Locale,
   ): Promise<SettingResponse> {
-    return this.settings.set(key, dto.value, actorId);
+    return this.settings.set(key, dto.value, actorId, locale);
   }
 }

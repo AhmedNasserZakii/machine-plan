@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -58,7 +59,7 @@ class FinanceMetricCard extends StatelessWidget {
         Row(
           children: <Widget>[
             if (icon != null) ...<Widget>[
-              Icon(icon, color: color, size: 18),
+              AppSymbol3d(icon, color: color, size: 18),
               const SizedBox(width: AppSpacing.sm),
             ],
             Expanded(
@@ -101,7 +102,7 @@ class FinanceTransactionTile extends StatelessWidget {
         onTap: onTap,
         leading: CircleAvatar(
           backgroundColor: color.withValues(alpha: .1),
-          child: Icon(
+          child: AppSymbol3d(
             transaction.kind == FinanceKind.income
                 ? Icons.south_west_rounded
                 : Icons.north_east_rounded,

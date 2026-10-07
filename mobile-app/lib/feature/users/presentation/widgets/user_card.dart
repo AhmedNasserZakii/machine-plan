@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -82,7 +83,7 @@ class UserCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(
+              const AppSymbol3d(
                 Icons.chevron_right_rounded,
                 size: 20,
                 color: AppColors.textSecondaryColor,

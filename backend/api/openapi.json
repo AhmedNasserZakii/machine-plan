@@ -22094,6 +22094,13 @@
           "totals": {
             "type": "object"
           },
+          "totalLabels": {
+            "type": "object",
+            "description": "`totals` keys worded in the request locale.",
+            "example": {
+              "machines": "الماكينات"
+            }
+          },
           "rowCount": {
             "type": "number",
             "description": "Rows before paging — what an export of this report would contain."
@@ -22114,6 +22121,7 @@
           "columns",
           "rows",
           "totals",
+          "totalLabels",
           "rowCount",
           "truncated"
         ]
@@ -22191,6 +22199,11 @@
             "nullable": true,
             "description": "A stable ErrorCode. Present only on FAILED."
           },
+          "errorMessage": {
+            "type": "object",
+            "nullable": true,
+            "description": "`errorCode` worded in the request locale. Present only on FAILED."
+          },
           "expiresAt": {
             "type": "string"
           },
@@ -22213,6 +22226,7 @@
           "sizeBytes",
           "downloadUrl",
           "errorCode",
+          "errorMessage",
           "expiresAt",
           "createdAt",
           "completedAt"

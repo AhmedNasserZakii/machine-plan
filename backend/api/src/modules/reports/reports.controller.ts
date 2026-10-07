@@ -5,7 +5,7 @@ import { ErrorCode } from 'src/common/constants/error-codes';
 import { Locale } from 'src/common/constants/locales';
 import { CurrentUser, BranchScoped, Permissions, ReqLocale, Scope } from 'src/common/decorators';
 import { ReportFormat, ReportKey } from 'src/common/enums/report.enum';
-import { AppException } from 'src/common/errors';
+import { AppException, resolveErrorMessage } from 'src/common/errors';
 import { AuthUser, BranchScope } from 'src/common/types/request.types';
 import { Perm } from 'src/modules/roles/permissions.catalogue';
 import {
@@ -342,12 +342,13 @@ export class ReportsController {
   @ApiResponse({ status: 404, description: 'NOT_FOUND — also for another caller’s job' })
   async job(
     @Param('id', ParseUUIDPipe) id: string,
+    @ReqLocale() locale: Locale,
     @CurrentUser() user: AuthUser,
   ): Promise<ReportJobResponse> {
-    return this.toJobResponse(await this.jobs.findOne(id, user.id));
+    return this.toJobResponse(await this.jobs.findOne(id, user.id), locale);
   }
 
-  private async toJobResponse(job: ReportJob): Promise<ReportJobResponse> {
+  private async toJobResponse(job: ReportJob, locale: Locale): Promise<ReportJobResponse> {
     return {
       id: job.id,
       reportKey: job.reportKey,
@@ -359,6 +360,7 @@ export class ReportsController {
       sizeBytes: job.sizeBytes,
       downloadUrl: await this.jobs.downloadUrlFor(job),
       errorCode: job.errorCode,
+      errorMessage: job.errorCode ? resolveErrorMessage(job.errorCode, locale) : null,
       expiresAt: job.expiresAt.toISOString(),
       createdAt: job.createdAt.toISOString(),
       completedAt: job.completedAt?.toISOString() ?? null,
@@ -429,6 +431,7 @@ function toReportResponse(
     columns: result.columns,
     rows: result.rows.slice(skip, skip + take),
     totals: result.totals,
+    totalLabels: result.totalLabels ?? {},
     rowCount: result.rows.length,
     truncated: result.truncated ?? false,
     ...(result.extra ? { extra: result.extra } : {}),

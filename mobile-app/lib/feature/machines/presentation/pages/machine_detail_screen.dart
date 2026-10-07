@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -168,7 +169,7 @@ class _MachineDetailScreenState extends State<MachineDetailScreen> {
                     code: machine.qrPayload ?? machine.serial,
                     serial: machine.serial,
                   ),
-                  icon: const Icon(Icons.qr_code_2_rounded),
+                  icon: const AppSymbol3d(Icons.qr_code_2_rounded),
                   tooltip: LocaleKeys.machineQrTitle.tr(),
                 );
               },
@@ -250,7 +251,7 @@ class _MachineDetailScreenState extends State<MachineDetailScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    const Icon(Icons.edit_outlined, size: 18),
+                    const AppSymbol3d(Icons.edit_outlined, size: 18),
                     const SizedBox(width: AppSpacing.sm),
                     Text(LocaleKeys.machineEditTitle.tr()),
                   ],

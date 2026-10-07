@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -131,14 +132,14 @@ class _ReviewRow extends StatelessWidget {
             child: LtrText(item.machine.serial, style: Styles.mono(context)),
           ),
           if (isMismatch)
-            const Icon(
+            const AppSymbol3d(
               Icons.battery_alert_outlined,
               size: 16,
               color: AppColors.dangerColor,
             ),
           if (!item.params.hasCharger) ...<Widget>[
             const SizedBox(width: AppSpacing.sm),
-            const Icon(
+            const AppSymbol3d(
               Icons.power_off_outlined,
               size: 16,
               color: AppColors.warningColor,

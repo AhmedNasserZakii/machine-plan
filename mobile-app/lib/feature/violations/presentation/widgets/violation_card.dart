@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -100,7 +101,7 @@ class _MetaRow extends StatelessWidget {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Icon(
+            AppSymbol3d(
               StatusColors.iconForViolationSeverity(violation.severity),
               size: 14,
               color: severityColor,
@@ -116,7 +117,7 @@ class _MetaRow extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              const Icon(
+              const AppSymbol3d(
                 Icons.point_of_sale_outlined,
                 size: 14,
                 color: AppColors.textSecondaryColor,
@@ -142,7 +143,7 @@ class _MetaRow extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              const Icon(
+              const AppSymbol3d(
                 Icons.auto_awesome_outlined,
                 size: 14,
                 color: AppColors.textSecondaryColor,

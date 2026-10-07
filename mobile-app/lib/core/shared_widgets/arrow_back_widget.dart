@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/shared_widgets/clicked_widget.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
@@ -34,7 +35,7 @@ class ArrowBackWidget extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppRadius.md),
             border: Border.all(color: AppColors.borderColor),
           ),
-          child: const Icon(
+          child: const AppSymbol3d(
             Icons.arrow_back,
             size: 20,
             color: AppColors.textPrimaryColor,

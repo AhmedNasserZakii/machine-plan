@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
@@ -54,7 +55,7 @@ class MoreProfileHeader extends StatelessWidget {
                   const SizedBox(height: 2),
                   Row(
                     children: <Widget>[
-                      const Icon(
+                      const AppSymbol3d(
                         Icons.location_on_outlined,
                         size: 14,
                         color: AppColors.textSecondaryColor,

@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -52,7 +53,7 @@ class MerchantTimelineCard extends StatelessWidget {
                   )
                 : IconButton(
                     onPressed: onLoadMore,
-                    icon: const Icon(Icons.expand_more_rounded),
+                    icon: const AppSymbol3d(Icons.expand_more_rounded),
                   ),
           ),
       ],
@@ -74,7 +75,7 @@ class _TimelineRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Icon(_iconOf(entry.kind), size: 18, color: color),
+          AppSymbol3d(_iconOf(entry.kind), size: 18, color: color),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(

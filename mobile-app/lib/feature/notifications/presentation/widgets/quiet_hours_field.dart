@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -25,7 +26,7 @@ class QuietHoursField extends StatelessWidget {
         children: <Widget>[
           Row(
             children: <Widget>[
-              const Icon(
+              const AppSymbol3d(
                 Icons.nightlight_round,
                 size: 20,
                 color: AppColors.textSecondaryColor,
@@ -33,23 +34,25 @@ class QuietHoursField extends StatelessWidget {
               const SizedBox(width: AppSpacing.sm),
               Text(
                 LocaleKeys.notificationsQuietHoursTitle.tr(),
-                style: Styles.s15(context).copyWith(fontWeight: FontWeight.w600),
+                style: Styles.s15(
+                  context,
+                ).copyWith(fontWeight: FontWeight.w600),
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
             LocaleKeys.notificationsQuietHoursBody.tr(),
-            style: Styles.s13(context).copyWith(
-              color: AppColors.textSecondaryColor,
-            ),
+            style: Styles.s13(
+              context,
+            ).copyWith(color: AppColors.textSecondaryColor),
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
             LocaleKeys.notificationsQuietHoursExceptions.tr(),
-            style: Styles.s12(context).copyWith(
-              color: AppColors.textSecondaryColor,
-            ),
+            style: Styles.s12(
+              context,
+            ).copyWith(color: AppColors.textSecondaryColor),
           ),
         ],
       ),

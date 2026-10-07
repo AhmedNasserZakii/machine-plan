@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -332,9 +333,9 @@ class _DateField extends StatelessWidget {
             child: InputDecorator(
               decoration: InputDecoration(
                 suffixIcon: value == null
-                    ? const Icon(Icons.calendar_today_outlined, size: 18)
+                    ? const AppSymbol3d(Icons.calendar_today_outlined, size: 18)
                     : IconButton(
-                        icon: const Icon(Icons.close_rounded, size: 18),
+                        icon: const AppSymbol3d(Icons.close_rounded, size: 18),
                         onPressed: () => onPicked(null),
                       ),
               ),

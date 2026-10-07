@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -34,7 +35,7 @@ class DecommissionCandidateCard extends StatelessWidget {
       child: DetailCard(
         title: candidate.serial,
         icon: Icons.precision_manufacturing_outlined,
-        trailing: const Icon(Icons.chevron_right_rounded),
+        trailing: const AppSymbol3d(Icons.chevron_right_rounded),
         children: [
           if (candidate.model != null)
             Text(

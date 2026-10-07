@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -56,13 +57,13 @@ class _UsersListScreenState extends State<UsersListScreen> {
     }
 
     await context.read<UsersListCubit>().applyFilters(
-          roleId: result.roleId,
-          branchId: result.branchId,
-          isActive: result.isActive,
-          clearRole: result.roleId == null,
-          clearBranch: result.branchId == null,
-          clearActive: result.isActive == null,
-        );
+      roleId: result.roleId,
+      branchId: result.branchId,
+      isActive: result.isActive,
+      clearRole: result.roleId == null,
+      clearBranch: result.branchId == null,
+      clearActive: result.isActive == null,
+    );
   }
 
   Future<void> _openForm({UserEntity? existing}) async {
@@ -87,7 +88,7 @@ class _UsersListScreenState extends State<UsersListScreen> {
             permission: P.rolesManage,
             child: IconButton(
               tooltip: LocaleKeys.rolesTitle.tr(),
-              icon: const Icon(Icons.shield_outlined),
+              icon: const AppSymbol3d(Icons.shield_outlined),
               onPressed: () => AppRoute.goToRolesList(context: context),
             ),
           ),
@@ -100,7 +101,7 @@ class _UsersListScreenState extends State<UsersListScreen> {
           onPressed: _openForm,
           child: Semantics(
             identifier: 'users_add_button',
-            child: const Icon(Icons.person_add_alt_1_rounded),
+            child: const AppSymbol3d(Icons.person_add_alt_1_rounded),
           ),
         ),
       ),
@@ -166,8 +167,9 @@ class _UsersListScreenState extends State<UsersListScreen> {
               title: _isNarrowed(state)
                   ? LocaleKeys.usersNoSearchResults.tr()
                   : LocaleKeys.usersEmptyTitle.tr(),
-              subtitle:
-                  _isNarrowed(state) ? '' : LocaleKeys.usersEmptySubtitle.tr(),
+              subtitle: _isNarrowed(state)
+                  ? ''
+                  : LocaleKeys.usersEmptySubtitle.tr(),
             ),
             itemBuilder: (BuildContext context, UserEntity user, int index) {
               return UserCard(

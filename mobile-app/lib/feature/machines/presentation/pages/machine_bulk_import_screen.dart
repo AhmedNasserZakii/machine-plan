@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -216,7 +217,7 @@ class _MachineBulkImportScreenState extends State<MachineBulkImportScreen> {
                           state.rows.length >= MachineBulkImportCubit.maxRows
                           ? null
                           : cubit.addRow,
-                      icon: const Icon(Icons.add_rounded, size: 18),
+                      icon: const AppSymbol3d(Icons.add_rounded, size: 18),
                       label: Semantics(
                         identifier: 'machine_bulk_add_row',
                         child: Text(LocaleKeys.machineBulkImportAddRow.tr()),
@@ -360,7 +361,10 @@ class _RowCard extends StatelessWidget {
                 if (canRemove)
                   IconButton(
                     onPressed: onRemove,
-                    icon: const Icon(Icons.delete_outline_rounded, size: 20),
+                    icon: const AppSymbol3d(
+                      Icons.delete_outline_rounded,
+                      size: 20,
+                    ),
                     tooltip: LocaleKeys.machineBulkImportRemoveRow.tr(),
                   ),
               ],
@@ -494,9 +498,9 @@ class _DateField extends StatelessWidget {
             child: InputDecorator(
               decoration: InputDecoration(
                 suffixIcon: value == null
-                    ? const Icon(Icons.calendar_today_outlined, size: 18)
+                    ? const AppSymbol3d(Icons.calendar_today_outlined, size: 18)
                     : IconButton(
-                        icon: const Icon(Icons.close_rounded, size: 18),
+                        icon: const AppSymbol3d(Icons.close_rounded, size: 18),
                         onPressed: () => onPicked(null),
                       ),
               ),

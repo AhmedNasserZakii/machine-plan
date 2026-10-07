@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -82,7 +83,7 @@ class AppConfirmDialog extends StatelessWidget {
                 color: accent.withValues(alpha: .10),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
+              child: AppSymbol3d(
                 icon ??
                     (isDestructive
                         ? Icons.warning_amber_rounded

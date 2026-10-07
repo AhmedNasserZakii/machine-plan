@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'dart:typed_data';
 
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
@@ -258,12 +259,12 @@ class _MaintenanceCloseScreenState extends State<MaintenanceCloseScreen> {
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             ListTile(
-              leading: const Icon(Icons.photo_camera_outlined),
+              leading: const AppSymbol3d(Icons.photo_camera_outlined),
               title: Text(LocaleKeys.transferPhotoSourceCamera.tr()),
               onTap: () => Navigator.of(context).pop(ImageSource.camera),
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
+              leading: const AppSymbol3d(Icons.photo_library_outlined),
               title: Text(LocaleKeys.transferPhotoSourceGallery.tr()),
               onTap: () => Navigator.of(context).pop(ImageSource.gallery),
             ),
@@ -659,7 +660,7 @@ class _MaintenanceCloseScreenState extends State<MaintenanceCloseScreen> {
               padding: const EdgeInsetsDirectional.all(AppSpacing.md),
               children: <Widget>[
                 const SizedBox(height: AppSpacing.lg),
-                const Icon(
+                const AppSymbol3d(
                   Icons.check_circle_outline_rounded,
                   size: 56,
                   color: AppColors.successColor,
@@ -815,7 +816,7 @@ class _PickerTile extends StatelessWidget {
                 : AppColors.textSecondaryColor,
           ),
         ),
-        trailing: const Icon(Icons.chevron_right),
+        trailing: const AppSymbol3d(Icons.chevron_right),
       ),
     );
   }
@@ -867,7 +868,11 @@ class _InvoicePicker extends StatelessWidget {
                   child: const CircleAvatar(
                     radius: 12,
                     backgroundColor: Colors.black54,
-                    child: Icon(Icons.close, size: 14, color: Colors.white),
+                    child: AppSymbol3d(
+                      Icons.close,
+                      size: 14,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
@@ -890,7 +895,7 @@ class _InvoicePicker extends StatelessWidget {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   else
-                    const Icon(Icons.attach_file_outlined),
+                    const AppSymbol3d(Icons.attach_file_outlined),
                   const SizedBox(width: AppSpacing.sm),
                   Text(LocaleKeys.maintenanceCloseInvoice.tr()),
                 ],
@@ -956,7 +961,10 @@ class _DateField extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppRadius.md),
             child: InputDecorator(
               decoration: const InputDecoration(
-                suffixIcon: Icon(Icons.calendar_today_outlined, size: 18),
+                suffixIcon: AppSymbol3d(
+                  Icons.calendar_today_outlined,
+                  size: 18,
+                ),
               ),
               child: Text(
                 Formatters.isoDate(value) ?? label,

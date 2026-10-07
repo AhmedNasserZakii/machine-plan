@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:machinery/core/shared_widgets/full_width_action.dart';
 import 'dart:typed_data';
 
@@ -89,7 +90,7 @@ class _ApplyToAllButton extends StatelessWidget {
         alignment: AlignmentDirectional.centerEnd,
         child: TextButton.icon(
           onPressed: () => _open(context),
-          icon: const Icon(Icons.done_all_rounded, size: 18),
+          icon: const AppSymbol3d(Icons.done_all_rounded, size: 18),
           label: Semantics(
             identifier: 'transfer_apply_to_all',
             child: Text(LocaleKeys.transferApplyToAll.tr()),
@@ -304,12 +305,12 @@ class _ItemDetailsState extends State<_ItemDetails> {
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             ListTile(
-              leading: const Icon(Icons.photo_camera_outlined),
+              leading: const AppSymbol3d(Icons.photo_camera_outlined),
               title: Text(LocaleKeys.transferPhotoSourceCamera.tr()),
               onTap: () => Navigator.of(context).pop(ImageSource.camera),
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
+              leading: const AppSymbol3d(Icons.photo_library_outlined),
               title: Text(LocaleKeys.transferPhotoSourceGallery.tr()),
               onTap: () => Navigator.of(context).pop(ImageSource.gallery),
             ),
@@ -397,7 +398,7 @@ class _ItemDetailsState extends State<_ItemDetails> {
                 _cubit.updateItem(_machineId, batterySerialScanned: value),
             suffixIcon: IconButton(
               onPressed: _scanBattery,
-              icon: const Icon(Icons.qr_code_scanner_rounded, size: 20),
+              icon: const AppSymbol3d(Icons.qr_code_scanner_rounded, size: 20),
               tooltip: LocaleKeys.scanBatteryScanTooltip.tr(),
             ),
           ),
@@ -487,7 +488,7 @@ class _PhotosRow extends StatelessWidget {
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Icon(Icons.add_a_photo_outlined, size: 22),
+                    : const AppSymbol3d(Icons.add_a_photo_outlined, size: 22),
               ),
             ),
         ],
@@ -518,7 +519,7 @@ class _PhotoThumb extends StatelessWidget {
                   ? Image.memory(bytes!, fit: BoxFit.cover)
                   : const ColoredBox(
                       color: AppColors.borderColor,
-                      child: Icon(Icons.image_outlined),
+                      child: AppSymbol3d(Icons.image_outlined),
                     ),
             ),
           ),
@@ -531,7 +532,11 @@ class _PhotoThumb extends StatelessWidget {
               child: const CircleAvatar(
                 radius: 11,
                 backgroundColor: AppColors.dangerColor,
-                child: Icon(Icons.close_rounded, size: 14, color: Colors.white),
+                child: AppSymbol3d(
+                  Icons.close_rounded,
+                  size: 14,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),
@@ -559,7 +564,7 @@ class _BatteryVerdict extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Icon(
+        AppSymbol3d(
           matches
               ? Icons.check_circle_outline_rounded
               : Icons.battery_alert_outlined,

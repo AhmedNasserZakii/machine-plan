@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -52,7 +53,7 @@ class TransferMachinesStep extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                const Icon(
+                const AppSymbol3d(
                   Icons.qr_code_scanner_rounded,
                   size: 18,
                   color: AppColors.whiteColor,
@@ -73,7 +74,7 @@ class TransferMachinesStep extends StatelessWidget {
           padding: const EdgeInsetsDirectional.all(AppSpacing.md),
           child: TextButton.icon(
             onPressed: onPickFromList,
-            icon: const Icon(Icons.checklist_rounded, size: 18),
+            icon: const AppSymbol3d(Icons.checklist_rounded, size: 18),
             label: Semantics(
               identifier: 'transfer_pick_from_list',
               child: Text(LocaleKeys.transferPickFromList.tr()),
@@ -153,7 +154,7 @@ class _DraftRow extends StatelessWidget {
             MachineStatusChip(status: item.machine.status),
             IconButton(
               onPressed: onRemove,
-              icon: const Icon(
+              icon: const AppSymbol3d(
                 Icons.delete_outline_rounded,
                 size: 18,
                 color: AppColors.dangerColor,

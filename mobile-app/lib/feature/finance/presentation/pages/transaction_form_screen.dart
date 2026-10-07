@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:machinery/core/shared_widgets/full_width_action.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -165,12 +166,12 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                   ButtonSegment(
                     value: FinanceKind.expense,
                     label: Text(LocaleKeys.financeExpense.tr()),
-                    icon: const Icon(Icons.north_east),
+                    icon: const AppSymbol3d(Icons.north_east),
                   ),
                   ButtonSegment(
                     value: FinanceKind.income,
                     label: Text(LocaleKeys.financeIncome.tr()),
-                    icon: const Icon(Icons.south_west),
+                    icon: const AppSymbol3d(Icons.south_west),
                   ),
                 ],
                 selected: <FinanceKind>{_kind},
@@ -187,7 +188,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
               ),
               decoration: InputDecoration(
                 labelText: LocaleKeys.financeAmount.tr(),
-                prefixIcon: const Icon(Icons.payments_outlined),
+                prefixIcon: const AppSymbol3d(Icons.payments_outlined),
               ),
               validator: (value) => (double.tryParse(value ?? '') ?? 0) <= 0
                   ? LocaleKeys.thisFieldIsNotMinusOrZero.tr()
@@ -203,18 +204,19 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                 ),
                 borderRadius: BorderRadius.circular(16),
               ),
-              leading: const Icon(Icons.category_outlined),
+              leading: const AppSymbol3d(Icons.category_outlined),
               title: Text(LocaleKeys.financeCategory.tr()),
               subtitle: Text(
                 _category?.name ??
                     widget.existing?.category.path ??
                     LocaleKeys.financeChooseMatchingCategory.tr(),
               ),
-              trailing: const Icon(Icons.chevron_right),
+              trailing: const AppSymbol3d(Icons.chevron_right),
               onTap: _pickCategory,
             ),
             const SizedBox(height: AppSpacing.md),
             DropdownButtonFormField<String>(
+              icon: const AppSymbol3d(Icons.expand_more_rounded),
               initialValue: _paymentId,
               decoration: InputDecoration(
                 labelText: LocaleKeys.financePaymentMethod.tr(),
@@ -230,6 +232,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
             ),
             const SizedBox(height: AppSpacing.md),
             DropdownButtonFormField<String?>(
+              icon: const AppSymbol3d(Icons.expand_more_rounded),
               initialValue: _branchId,
               decoration: InputDecoration(
                 labelText: LocaleKeys.financeBranchOptional.tr(),
@@ -250,6 +253,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
             if (_kind == FinanceKind.expense) ...<Widget>[
               const SizedBox(height: AppSpacing.md),
               DropdownButtonFormField<String?>(
+                icon: const AppSymbol3d(Icons.expand_more_rounded),
                 initialValue: _supplierId,
                 decoration: InputDecoration(
                   labelText: LocaleKeys.financeSupplierOptional.tr(),
@@ -272,7 +276,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                 side: BorderSide(color: Theme.of(context).dividerColor),
                 borderRadius: BorderRadius.circular(16),
               ),
-              leading: const Icon(Icons.event_outlined),
+              leading: const AppSymbol3d(Icons.event_outlined),
               title: Text(LocaleKeys.financeTransactionDate.tr()),
               subtitle: LtrText(financeDate(_date)),
               onTap: _pickDate,
@@ -295,7 +299,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                         dimension: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Icon(Icons.save_outlined),
+                    : const AppSymbol3d(Icons.save_outlined),
                 label: Text(LocaleKeys.financeSaveTransaction.tr()),
               ),
             ),

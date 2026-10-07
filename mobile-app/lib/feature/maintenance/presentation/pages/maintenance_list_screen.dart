@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -48,11 +49,12 @@ class _MaintenanceListScreenState extends State<MaintenanceListScreen> {
   }
 
   Future<void> _openDetail(MaintenanceOrderEntity order) async {
-    final MaintenanceOrderEntity? updated = await AppRoute.goToMaintenanceDetail(
-      context: context,
-      orderId: order.id,
-      initial: order,
-    );
+    final MaintenanceOrderEntity? updated =
+        await AppRoute.goToMaintenanceDetail(
+          context: context,
+          orderId: order.id,
+          initial: order,
+        );
 
     if (updated != null && mounted) {
       context.read<MaintenanceListCubit>().replaceOrder(updated);
@@ -79,7 +81,7 @@ class _MaintenanceListScreenState extends State<MaintenanceListScreen> {
                   child: Badge(
                     isLabelVisible: state.query.hasFilters,
                     label: Text(state.query.activeFilterCount.toString()),
-                    child: const Icon(Icons.filter_list_rounded),
+                    child: const AppSymbol3d(Icons.filter_list_rounded),
                   ),
                 ),
                 tooltip: LocaleKeys.maintenanceFilterTitle.tr(),
@@ -99,10 +101,9 @@ class _MaintenanceListScreenState extends State<MaintenanceListScreen> {
                 message: isOffline
                     ? LocaleKeys.machinesOnlineOnlySubtitle.tr()
                     : errorMessage,
-                onRetry: () =>
-                    context.read<MaintenanceListCubit>().load(
-                      params: widget.scope,
-                    ),
+                onRetry: () => context.read<MaintenanceListCubit>().load(
+                  params: widget.scope,
+                ),
               ),
             MaintenanceListLoaded() => _buildList(context, state),
             _ => const AppLoadingIndicator(),

@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:machinery/core/shared_widgets/full_width_action.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -56,14 +57,14 @@ class _FinanceOverviewScreenState extends State<FinanceOverviewScreen> {
             IconButton(
               tooltip: LocaleKeys.financeCategories.tr(),
               onPressed: () => _open(const CategoryManagementScreen()),
-              icon: const Icon(Icons.account_tree_outlined),
+              icon: const AppSymbol3d(Icons.account_tree_outlined),
             ),
         ],
       ),
       floatingActionButton: getIt<PermissionService>().has(P.financeCreate)
           ? FloatingActionButton.extended(
               onPressed: () => _open(const TransactionFormScreen()),
-              icon: const Icon(Icons.add),
+              icon: const AppSymbol3d(Icons.add),
               label: Text(LocaleKeys.financeAddTransaction.tr()),
             )
           : null,
@@ -168,7 +169,7 @@ class _FinanceOverviewScreenState extends State<FinanceOverviewScreen> {
                       ),
                     ),
                   ),
-                  icon: const Icon(Icons.receipt_long_outlined),
+                  icon: const AppSymbol3d(Icons.receipt_long_outlined),
                   label: Text(LocaleKeys.financeTransactions.tr()),
                 ),
               ),
@@ -176,14 +177,14 @@ class _FinanceOverviewScreenState extends State<FinanceOverviewScreen> {
                 child: FilledButton.tonalIcon(
                   onPressed: () =>
                       _open(CategoryBreakdownScreen(query: state.query)),
-                  icon: const Icon(Icons.donut_small_outlined),
+                  icon: const AppSymbol3d(Icons.donut_small_outlined),
                   label: Text(LocaleKeys.financeBreakdown.tr()),
                 ),
               ),
               FullWidthAction(
                 child: FilledButton.tonalIcon(
                   onPressed: () => _open(BudgetsScreen(query: state.query)),
-                  icon: const Icon(Icons.speed_outlined),
+                  icon: const AppSymbol3d(Icons.speed_outlined),
                   label: Text(LocaleKeys.financeBudgets.tr()),
                 ),
               ),
@@ -233,7 +234,7 @@ class _Filters extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              const Icon(Icons.date_range),
+              const AppSymbol3d(Icons.date_range),
               const SizedBox(width: AppSpacing.sm),
               Flexible(
                 child: Text(
@@ -251,7 +252,7 @@ class _Filters extends StatelessWidget {
         const SizedBox(width: AppSpacing.sm),
         PopupMenuButton<String?>(
           tooltip: LocaleKeys.financeBranch.tr(),
-          icon: const Icon(Icons.business_outlined),
+          icon: const AppSymbol3d(Icons.business_outlined),
           onSelected: (id) => onChanged(
             FinanceQuery(
               dateFrom: state.query.dateFrom,

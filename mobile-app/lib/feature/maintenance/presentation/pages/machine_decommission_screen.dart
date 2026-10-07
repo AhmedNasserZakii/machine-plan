@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'dart:typed_data';
 
 import 'package:easy_localization/easy_localization.dart';
@@ -210,7 +211,7 @@ class _MachineDecommissionScreenState extends State<MachineDecommissionScreen> {
                     onTap: _pickDate,
                     child: InputDecorator(
                       decoration: const InputDecoration(
-                        suffixIcon: Icon(
+                        suffixIcon: AppSymbol3d(
                           Icons.calendar_today_outlined,
                           size: 18,
                         ),

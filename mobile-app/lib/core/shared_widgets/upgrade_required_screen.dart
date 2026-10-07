@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:machinery/core/shared_widgets/full_width_action.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -48,7 +49,7 @@ class UpgradeRequiredScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
                 const Spacer(),
-                Icon(
+                AppSymbol3d(
                   Icons.system_update_alt_rounded,
                   size: 72,
                   color: theme.colorScheme.primary,
@@ -89,7 +90,7 @@ class UpgradeRequiredScreen extends StatelessWidget {
                 FullWidthAction(
                   child: FilledButton.icon(
                     onPressed: () => _openStore(context),
-                    icon: const Icon(Icons.open_in_new),
+                    icon: const AppSymbol3d(Icons.open_in_new),
                     label: Text(LocaleKeys.upgradeRequiredUpdate.tr()),
                   ),
                 ),

@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:machinery/core/shared_widgets/full_width_action.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -92,7 +93,7 @@ class _ReportViewerScreenState extends State<ReportViewerScreen> {
             ListTile(title: Text(LocaleKeys.reportExportFormat.tr())),
             ...ReportFormat.values.map(
               (format) => ListTile(
-                leading: Icon(
+                leading: AppSymbol3d(
                   format == ReportFormat.pdf
                       ? Icons.picture_as_pdf_outlined
                       : Icons.table_view_outlined,
@@ -192,7 +193,7 @@ class _ReportViewerScreenState extends State<ReportViewerScreen> {
                     j.status == ReportJobStatus.running ||
                     j.status == ReportJobStatus.queued,
               ),
-              child: const Icon(Icons.download_outlined),
+              child: const AppSymbol3d(Icons.download_outlined),
             ),
           ),
         ),
@@ -213,7 +214,10 @@ class _ReportViewerScreenState extends State<ReportViewerScreen> {
           children: <Widget>[
             _ReportHeader(state: state, onFilters: () => _filters(state)),
             if (state.result.totals.isNotEmpty)
-              ReportKpiRow(totals: state.result.totals),
+              ReportKpiRow(
+                totals: state.result.totals,
+                labels: state.result.totalLabels,
+              ),
             Padding(
               padding: const EdgeInsetsDirectional.symmetric(
                 horizontal: AppSpacing.md,
@@ -227,22 +231,22 @@ class _ReportViewerScreenState extends State<ReportViewerScreen> {
                       segments: <ButtonSegment<ReportViewMode>>[
                         ButtonSegment(
                           value: ReportViewMode.table,
-                          icon: const Icon(Icons.table_rows),
+                          icon: const AppSymbol3d(Icons.table_rows),
                           tooltip: LocaleKeys.reportTableView.tr(),
                         ),
                         ButtonSegment(
                           value: ReportViewMode.cards,
-                          icon: const Icon(Icons.view_agenda_outlined),
+                          icon: const AppSymbol3d(Icons.view_agenda_outlined),
                           tooltip: LocaleKeys.reportCardView.tr(),
                         ),
                         ButtonSegment(
                           value: ReportViewMode.grouped,
-                          icon: const Icon(Icons.account_tree_outlined),
+                          icon: const AppSymbol3d(Icons.account_tree_outlined),
                           tooltip: LocaleKeys.reportGroupedView.tr(),
                         ),
                         ButtonSegment(
                           value: ReportViewMode.chart,
-                          icon: const Icon(Icons.bar_chart),
+                          icon: const AppSymbol3d(Icons.bar_chart),
                           tooltip: LocaleKeys.reportChartView.tr(),
                         ),
                       ],
@@ -256,13 +260,13 @@ class _ReportViewerScreenState extends State<ReportViewerScreen> {
                     IconButton(
                       tooltip: LocaleKeys.reportChooseColumns.tr(),
                       onPressed: () => _columns(state),
-                      icon: const Icon(Icons.view_column_outlined),
+                      icon: const AppSymbol3d(Icons.view_column_outlined),
                     ),
                   if (getIt<PermissionService>().has(P.reportsExport))
                     IconButton(
                       tooltip: LocaleKeys.reportExport.tr(),
                       onPressed: () => _export(state),
-                      icon: const Icon(Icons.ios_share_outlined),
+                      icon: const AppSymbol3d(Icons.ios_share_outlined),
                     ),
                 ],
               ),
@@ -324,7 +328,7 @@ class _ReportViewerScreenState extends State<ReportViewerScreen> {
                           dimension: 16,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Icon(Icons.expand_more),
+                      : const AppSymbol3d(Icons.expand_more),
                   label: Text(LocaleKeys.reportLoadMore.tr()),
                 ),
               ),
@@ -359,7 +363,7 @@ class _ReportHeader extends StatelessWidget {
             ),
             IconButton(
               onPressed: onFilters,
-              icon: const Icon(Icons.tune),
+              icon: const AppSymbol3d(Icons.tune),
               tooltip: LocaleKeys.reportFilters.tr(),
             ),
           ],

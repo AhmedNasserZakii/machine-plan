@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -302,16 +303,20 @@ class _PickerTile extends StatelessWidget {
             ),
             child: Row(
               children: <Widget>[
-                Icon(icon, size: 20, color: AppColors.textSecondaryColor),
+                AppSymbol3d(
+                  icon,
+                  size: 20,
+                  color: AppColors.textSecondaryColor,
+                ),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(child: Text(label, style: Styles.s14(context))),
                 if (onClear != null)
                   IconButton(
-                    icon: const Icon(Icons.close_rounded, size: 18),
+                    icon: const AppSymbol3d(Icons.close_rounded, size: 18),
                     onPressed: onClear,
                   )
                 else
-                  const Icon(
+                  const AppSymbol3d(
                     Icons.chevron_right_rounded,
                     color: AppColors.textSecondaryColor,
                   ),

@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -144,9 +145,9 @@ class _ActionTile extends StatelessWidget {
         type: MaterialType.transparency,
         child: ListTile(
           contentPadding: EdgeInsets.zero,
-          leading: Icon(icon, size: 20, color: color),
+          leading: AppSymbol3d(icon, size: 20, color: color),
           title: Text(label, style: Styles.s14(context).copyWith(color: color)),
-          trailing: const Icon(Icons.chevron_right_rounded, size: 20),
+          trailing: const AppSymbol3d(Icons.chevron_right_rounded, size: 20),
           onTap: onTap,
         ),
       ),

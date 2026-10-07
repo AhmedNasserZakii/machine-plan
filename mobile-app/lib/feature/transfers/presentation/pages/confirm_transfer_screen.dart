@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'dart:typed_data';
 
 import 'package:easy_localization/easy_localization.dart';
@@ -162,7 +163,7 @@ class _ConfirmTransferScreenState extends State<ConfirmTransferScreen> {
             isAdjusted: state.adjustments[item.id]?.isEmpty == false,
             trailing: IconButton(
               onPressed: () => _adjust(item),
-              icon: const Icon(Icons.edit_outlined, size: 18),
+              icon: const AppSymbol3d(Icons.edit_outlined, size: 18),
               tooltip: LocaleKeys.edit.tr(),
             ),
           ),

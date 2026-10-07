@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -101,7 +102,7 @@ class _TimelineTile extends StatelessWidget {
           CircleAvatar(
             radius: 16,
             backgroundColor: color.withValues(alpha: 0.12),
-            child: Icon(
+            child: AppSymbol3d(
               MachineTimelineLabels.icon(event.type),
               size: 16,
               color: color,

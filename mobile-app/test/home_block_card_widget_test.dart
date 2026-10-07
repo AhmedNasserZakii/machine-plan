@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:machinery/feature/home/domain/entities/home_block.dart';
@@ -112,7 +113,13 @@ void main() {
         );
 
         expect(find.text('Unavailable offline'), findsOneWidget);
-        expect(find.byIcon(Icons.cloud_off_rounded), findsOneWidget);
+        expect(
+          find.byWidgetPredicate(
+            (widget) =>
+                widget is AppSymbol3d && widget.icon == Icons.cloud_off_rounded,
+          ),
+          findsOneWidget,
+        );
         expect(find.byType(IconButton), findsNothing);
         expect(tester.takeException(), isNull);
       });
@@ -139,7 +146,12 @@ void main() {
         );
 
         expect(find.text('Server unavailable'), findsOneWidget);
-        await tester.tap(find.byIcon(Icons.refresh_rounded));
+        await tester.tap(
+          find.byWidgetPredicate(
+            (widget) =>
+                widget is AppSymbol3d && widget.icon == Icons.refresh_rounded,
+          ),
+        );
         await tester.pump();
 
         expect(retryCount, 1);

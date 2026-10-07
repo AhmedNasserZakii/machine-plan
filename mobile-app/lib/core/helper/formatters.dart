@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
+import 'package:machinery/core/local_storage/local_storage.dart';
 
 /// Number, date and money formatting.
 ///
@@ -10,10 +11,12 @@ import 'package:machinery/core/constants/locale_keys.dart';
 abstract class Formatters {
   static const String _digitLocale = 'en';
 
+  static bool get _isArabic => LocalStorage.getLocaleLanguage() == 'ar';
+
   static String currency(num value, {int decimalDigits = 2}) {
     return NumberFormat.currency(
       locale: _digitLocale,
-      symbol: 'ج.م ',
+      symbol: _isArabic ? 'ج.م ' : 'EGP ',
       decimalDigits: decimalDigits,
     ).format(value);
   }
@@ -27,14 +30,18 @@ abstract class Formatters {
   }
 
   static String dateTime(DateTime value) {
-    return DateFormat(
-      'yyyy/MM/dd — hh:mm a',
-      _digitLocale,
-    ).format(value.toLocal());
+    return '${date(value)} — ${time(value)}';
   }
 
+  /// Western digits, but the AM/PM marker in the reader's language.
   static String time(DateTime value) {
-    return DateFormat('hh:mm a', _digitLocale).format(value.toLocal());
+    final DateTime local = value.toLocal();
+    final String clock = DateFormat('hh:mm', _digitLocale).format(local);
+    final bool morning = local.hour < 12;
+    if (_isArabic) {
+      return '$clock ${morning ? 'ص' : 'م'}';
+    }
+    return '$clock ${morning ? 'AM' : 'PM'}';
   }
 
   /// "من ٣ أيام" / "3 days ago". Counted nouns go through ICU plurals because

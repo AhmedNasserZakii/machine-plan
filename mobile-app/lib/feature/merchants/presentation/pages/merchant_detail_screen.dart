@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -354,7 +355,7 @@ class _SubscriptionsCard extends StatelessWidget {
                 onPressed: onAdd,
                 icon: Semantics(
                   identifier: 'subscription_add_button',
-                  child: const Icon(Icons.add_rounded),
+                  child: const AppSymbol3d(Icons.add_rounded),
                 ),
                 tooltip: LocaleKeys.subscriptionAdd.tr(),
               ),
@@ -418,7 +419,7 @@ class _LoadMoreButton extends StatelessWidget {
       alignment: AlignmentDirectional.center,
       child: IconButton(
         onPressed: onPressed,
-        icon: const Icon(Icons.expand_more_rounded),
+        icon: const AppSymbol3d(Icons.expand_more_rounded),
       ),
     );
   }
@@ -444,7 +445,7 @@ class _Actions extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                const Icon(Icons.edit_outlined),
+                const AppSymbol3d(Icons.edit_outlined),
                 const SizedBox(width: AppSpacing.sm),
                 Text(LocaleKeys.merchantEditTitle.tr()),
               ],
@@ -467,7 +468,7 @@ class _Actions extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    const Icon(Icons.block_outlined),
+                    const AppSymbol3d(Icons.block_outlined),
                     const SizedBox(width: AppSpacing.sm),
                     Text(LocaleKeys.merchantDeactivate.tr()),
                   ],

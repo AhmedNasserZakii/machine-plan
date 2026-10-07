@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:machinery/core/shared_widgets/full_width_action.dart';
 import 'package:flutter/material.dart';
 
@@ -43,7 +44,7 @@ class HomeQuickActions extends StatelessWidget {
               child: FilledButton.tonalIcon(
                 key: ValueKey<String>(action.identifier),
                 onPressed: action.onTap,
-                icon: Icon(action.icon),
+                icon: AppSymbol3d(action.icon),
                 label: Text(action.label, style: Styles.s14(context)),
               ),
             ),

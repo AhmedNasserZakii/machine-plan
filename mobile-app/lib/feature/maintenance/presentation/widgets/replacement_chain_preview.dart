@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -47,7 +48,7 @@ class ReplacementChainPreview extends StatelessWidget {
               padding: EdgeInsetsDirectional.symmetric(
                 horizontal: AppSpacing.sm,
               ),
-              child: Icon(
+              child: AppSymbol3d(
                 Icons.arrow_forward_rounded,
                 color: AppColors.primaryColor,
               ),

@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -98,7 +99,7 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
                 ..._trail.map(
                   (c) => Row(
                     children: <Widget>[
-                      const Icon(Icons.chevron_right, size: 18),
+                      const AppSymbol3d(Icons.chevron_right, size: 18),
                       Text(c.name),
                     ],
                   ),
@@ -150,7 +151,7 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
                             trailing: c.children.isEmpty
                                 ? null
                                 : IconButton(
-                                    icon: const Icon(Icons.open_in_new),
+                                    icon: const AppSymbol3d(Icons.open_in_new),
                                     tooltip: LocaleKeys.financeOpenSubtree.tr(),
                                     onPressed: () {
                                       _trail.add(c);

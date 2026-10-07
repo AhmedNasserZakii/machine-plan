@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:machinery/core/di/service_locator.dart';
@@ -93,27 +94,24 @@ void main() {
       );
 
       expect(
-        find.widgetWithIcon(ListTile, Icons.history_rounded),
+        _widgetWithSymbol(ListTile, Icons.history_rounded),
         findsOneWidget,
       );
       expect(
-        find.widgetWithIcon(ListTile, Icons.build_circle_outlined),
+        _widgetWithSymbol(ListTile, Icons.build_circle_outlined),
         findsOneWidget,
       );
       expect(
-        find.widgetWithIcon(ListTile, Icons.swap_horiz_rounded),
+        _widgetWithSymbol(ListTile, Icons.swap_horiz_rounded),
+        findsOneWidget,
+      );
+      expect(_widgetWithSymbol(ListTile, Icons.build_outlined), findsOneWidget);
+      expect(
+        _widgetWithSymbol(ListTile, Icons.change_circle_outlined),
         findsOneWidget,
       );
       expect(
-        find.widgetWithIcon(ListTile, Icons.build_outlined),
-        findsOneWidget,
-      );
-      expect(
-        find.widgetWithIcon(ListTile, Icons.change_circle_outlined),
-        findsOneWidget,
-      );
-      expect(
-        find.widgetWithIcon(ListTile, Icons.delete_forever_rounded),
+        _widgetWithSymbol(ListTile, Icons.delete_forever_rounded),
         findsOneWidget,
       );
     },
@@ -139,24 +137,24 @@ void main() {
       );
 
       expect(
-        find.widgetWithIcon(ListTile, Icons.history_rounded),
+        _widgetWithSymbol(ListTile, Icons.history_rounded),
         findsOneWidget,
       );
       expect(
-        find.widgetWithIcon(ListTile, Icons.build_circle_outlined),
+        _widgetWithSymbol(ListTile, Icons.build_circle_outlined),
         findsNothing,
       );
       expect(
-        find.widgetWithIcon(ListTile, Icons.swap_horiz_rounded),
+        _widgetWithSymbol(ListTile, Icons.swap_horiz_rounded),
         findsNothing,
       );
-      expect(find.widgetWithIcon(ListTile, Icons.build_outlined), findsNothing);
+      expect(_widgetWithSymbol(ListTile, Icons.build_outlined), findsNothing);
       expect(
-        find.widgetWithIcon(ListTile, Icons.change_circle_outlined),
+        _widgetWithSymbol(ListTile, Icons.change_circle_outlined),
         findsNothing,
       );
       expect(
-        find.widgetWithIcon(ListTile, Icons.delete_forever_rounded),
+        _widgetWithSymbol(ListTile, Icons.delete_forever_rounded),
         findsNothing,
       );
     },
@@ -188,24 +186,24 @@ void main() {
       );
 
       expect(
-        find.widgetWithIcon(ListTile, Icons.history_rounded),
+        _widgetWithSymbol(ListTile, Icons.history_rounded),
         findsOneWidget,
       );
       expect(
-        find.widgetWithIcon(ListTile, Icons.build_circle_outlined),
+        _widgetWithSymbol(ListTile, Icons.build_circle_outlined),
         findsOneWidget,
       );
       expect(
-        find.widgetWithIcon(ListTile, Icons.swap_horiz_rounded),
+        _widgetWithSymbol(ListTile, Icons.swap_horiz_rounded),
         findsNothing,
       );
-      expect(find.widgetWithIcon(ListTile, Icons.build_outlined), findsNothing);
+      expect(_widgetWithSymbol(ListTile, Icons.build_outlined), findsNothing);
       expect(
-        find.widgetWithIcon(ListTile, Icons.change_circle_outlined),
+        _widgetWithSymbol(ListTile, Icons.change_circle_outlined),
         findsNothing,
       );
       expect(
-        find.widgetWithIcon(ListTile, Icons.delete_forever_rounded),
+        _widgetWithSymbol(ListTile, Icons.delete_forever_rounded),
         findsNothing,
       );
     },
@@ -229,7 +227,7 @@ void main() {
       ),
     );
 
-    await tester.tap(find.widgetWithIcon(ListTile, Icons.history_rounded));
+    await tester.tap(_widgetWithSymbol(ListTile, Icons.history_rounded));
     await tester.pump();
 
     expect(taps, 1);
@@ -255,7 +253,7 @@ void main() {
       ),
     );
 
-    await tester.tap(find.widgetWithIcon(ListTile, Icons.build_outlined));
+    await tester.tap(_widgetWithSymbol(ListTile, Icons.build_outlined));
     await tester.pump();
 
     expect(taps, 1);
@@ -284,11 +282,18 @@ void main() {
         ),
       );
 
-      expect(find.widgetWithIcon(ListTile, Icons.build_outlined), findsNothing);
+      expect(_widgetWithSymbol(ListTile, Icons.build_outlined), findsNothing);
       expect(
-        find.widgetWithIcon(ListTile, Icons.change_circle_outlined),
+        _widgetWithSymbol(ListTile, Icons.change_circle_outlined),
         findsNothing,
       );
     },
   );
 }
+
+Finder _widgetWithSymbol(Type type, IconData icon) => find.ancestor(
+  of: find.byWidgetPredicate(
+    (widget) => widget is AppSymbol3d && widget.icon == icon,
+  ),
+  matching: find.byType(type),
+);

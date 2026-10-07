@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -94,7 +95,7 @@ class _ViolationsListScreenState extends State<ViolationsListScreen> {
                   child: Badge(
                     isLabelVisible: state.query.hasFilters,
                     label: Text(state.query.activeFilterCount.toString()),
-                    child: const Icon(Icons.filter_list_rounded),
+                    child: const AppSymbol3d(Icons.filter_list_rounded),
                   ),
                 ),
                 tooltip: LocaleKeys.violationsFilterTitle.tr(),
@@ -128,7 +129,7 @@ class _ViolationsListScreenState extends State<ViolationsListScreen> {
         child: FloatingActionButton(
           heroTag: 'violations_create_fab',
           onPressed: _openCreate,
-          child: const Icon(Icons.add_rounded),
+          child: const AppSymbol3d(Icons.add_rounded),
         ),
       ),
     );

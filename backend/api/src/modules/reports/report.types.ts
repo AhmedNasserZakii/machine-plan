@@ -31,6 +31,8 @@ export interface ReportResult {
   columns: ExportColumn[];
   rows: ReportRow[];
   totals: Record<string, number | string>;
+  /** `totals` keys worded in the request locale, filled in by `localizeReport`. */
+  totalLabels?: Record<string, string>;
   extra?: Record<string, unknown>;
   /** Column the xlsx export splits worksheets on (`17`, export formatting). */
   sheetKey?: string;

@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -117,7 +118,7 @@ class _PersonCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           Row(
             children: <Widget>[
-              Icon(
+              AppSymbol3d(
                 ViolationLabels.trendIcon(summary.trend),
                 size: 18,
                 color: trendColor,

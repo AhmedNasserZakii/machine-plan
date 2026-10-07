@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -101,7 +102,7 @@ class _PartyLine extends StatelessWidget {
         Flexible(child: _party(context, transfer.from)),
         const Padding(
           padding: EdgeInsetsDirectional.symmetric(horizontal: AppSpacing.xs),
-          child: Icon(
+          child: AppSymbol3d(
             Icons.arrow_back_rounded,
             size: 14,
             color: AppColors.textSecondaryColor,
@@ -177,7 +178,7 @@ class _MetaItem extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        Icon(icon, size: 14, color: resolved),
+        AppSymbol3d(icon, size: 14, color: resolved),
         const SizedBox(width: AppSpacing.xs),
         Text(label, style: Styles.s12(context).copyWith(color: resolved)),
       ],

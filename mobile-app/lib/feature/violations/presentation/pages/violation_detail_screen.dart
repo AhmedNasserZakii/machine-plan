@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -303,7 +304,7 @@ class _FactsCard extends StatelessWidget {
                           color: AppColors.primaryColor,
                         ),
                       ),
-                      const Icon(
+                      const AppSymbol3d(
                         Icons.chevron_right_rounded,
                         size: 16,
                         color: AppColors.primaryColor,
@@ -327,7 +328,7 @@ class _FactsCard extends StatelessWidget {
                       color: AppColors.primaryColor,
                     ),
                   ),
-                  const Icon(
+                  const AppSymbol3d(
                     Icons.chevron_right_rounded,
                     size: 16,
                     color: AppColors.primaryColor,

@@ -13,12 +13,27 @@ import {
   toXlsx,
 } from 'src/common/export';
 import { reportTitle } from '../report-catalogue';
+import { valueLabel } from '../report-i18n';
 import { ReportResult } from '../report.types';
 
 /** Header labels for the metadata block, in both locales (`02`). */
 const META_LABELS: Record<Locale, { report: string; generatedAt: string; filters: string }> = {
   ar: { report: 'التقرير', generatedAt: 'تاريخ الإصدار', filters: 'عوامل التصفية' },
   en: { report: 'Report', generatedAt: 'Generated at', filters: 'Filters' },
+};
+
+/** The filter names a report echoes back, worded for the metadata block. */
+const FILTER_LABELS: Record<string, Record<Locale, string>> = {
+  branchId: { ar: 'الفرع', en: 'Branch' },
+  from: { ar: 'من', en: 'From' },
+  to: { ar: 'إلى', en: 'To' },
+  asOf: { ar: 'حتى تاريخ', en: 'As of' },
+  days: { ar: 'الأيام', en: 'Days' },
+  groupBy: { ar: 'التجميع حسب', en: 'Grouped by' },
+  kind: { ar: 'النوع', en: 'Kind' },
+  granularity: { ar: 'الفترة', en: 'Granularity' },
+  machineId: { ar: 'الماكينة', en: 'Machine' },
+  serial: { ar: 'الرقم التسلسلي', en: 'Serial' },
 };
 
 /**
@@ -69,7 +84,7 @@ export class ReportExportService {
       meta: [
         { label: labels.report, value: reportTitle(result.key, locale) },
         { label: labels.generatedAt, value: result.generatedAt },
-        { label: labels.filters, value: describeFilters(result.filters) },
+        { label: labels.filters, value: describeFilters(result.filters, locale) },
       ],
       columns: result.columns,
       rows: result.rows,
@@ -78,11 +93,14 @@ export class ReportExportService {
   }
 }
 
-/** `branchId=…, from=2026-06-01, to=2026-08-31` — readable in a cell, and complete. */
-function describeFilters(filters: Record<string, unknown>): string {
+/** `الفرع=…، من=2026-06-01، إلى=2026-08-31` — readable in a cell, and complete. */
+function describeFilters(filters: Record<string, unknown>, locale: Locale): string {
   const parts = Object.entries(filters)
     .filter(([, value]) => value !== null && value !== undefined)
-    .map(([key, value]) => `${key}=${String(value)}`);
+    .map(
+      ([key, value]) =>
+        `${FILTER_LABELS[key]?.[locale] ?? key}=${valueLabel(String(value), locale)}`,
+    );
 
-  return parts.length > 0 ? parts.join(', ') : '—';
+  return parts.length > 0 ? parts.join(locale === 'ar' ? '، ' : ', ') : '—';
 }

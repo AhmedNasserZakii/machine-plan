@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -57,7 +58,7 @@ class CustomSearchBar extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
               ),
-              leading: const Icon(
+              leading: const AppSymbol3d(
                 Icons.search_rounded,
                 size: 20,
                 color: AppColors.textPlaceholderColor,
@@ -86,7 +87,7 @@ class CustomSearchBar extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppRadius.md),
                 border: Border.all(color: AppColors.borderColor),
               ),
-              child: Icon(
+              child: AppSymbol3d(
                 Icons.tune_rounded,
                 size: 20,
                 color: hasActiveFilters

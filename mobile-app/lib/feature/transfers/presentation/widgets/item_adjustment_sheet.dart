@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -183,7 +184,10 @@ class _ItemAdjustmentSheetState extends State<ItemAdjustmentSheet> {
                 identifier: 'adjust_battery_field',
                 suffixIcon: IconButton(
                   onPressed: _scanBattery,
-                  icon: const Icon(Icons.qr_code_scanner_rounded, size: 20),
+                  icon: const AppSymbol3d(
+                    Icons.qr_code_scanner_rounded,
+                    size: 20,
+                  ),
                   tooltip: LocaleKeys.scanBatteryScanTooltip.tr(),
                 ),
               ),

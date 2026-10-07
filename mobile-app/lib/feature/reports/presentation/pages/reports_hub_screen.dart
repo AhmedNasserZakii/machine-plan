@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -52,7 +53,7 @@ class _ReportsHubScreenState extends State<ReportsHubScreen> {
             context,
             MaterialPageRoute(builder: (_) => const ReportExportsScreen()),
           ),
-          icon: const Icon(Icons.download_done_outlined),
+          icon: const AppSymbol3d(Icons.download_done_outlined),
         ),
       ],
     ),
@@ -101,13 +102,13 @@ class _ReportsHubScreenState extends State<ReportsHubScreen> {
                         child: ListTile(
                           leading: CircleAvatar(
                             backgroundColor: AppColors.infoSurfaceColor,
-                            child: Icon(
+                            child: AppSymbol3d(
                               _icon(entry.key),
                               color: AppColors.infoColor,
                             ),
                           ),
                           title: Text(report.title),
-                          trailing: const Icon(Icons.chevron_right),
+                          trailing: const AppSymbol3d(Icons.chevron_right),
                           onTap: () => _open(report),
                         ),
                       ),
@@ -162,7 +163,7 @@ class _DownloadedShortcut extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Icon(Icons.offline_pin_outlined),
+            const AppSymbol3d(Icons.offline_pin_outlined),
             const SizedBox(width: AppSpacing.sm),
             Text(LocaleKeys.reportsDownloaded.tr()),
           ],

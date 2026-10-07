@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -304,7 +305,7 @@ class _MachineReplacementScreenState extends State<MachineReplacementScreen> {
       suffixIcon: IconButton(
         onPressed: () => _scan(controller, labelKey),
         tooltip: LocaleKeys.replacementScan.tr(),
-        icon: const Icon(Icons.qr_code_scanner_rounded),
+        icon: const AppSymbol3d(Icons.qr_code_scanner_rounded),
       ),
       identifier: identifier,
     );
@@ -328,7 +329,7 @@ class _MachineReplacementScreenState extends State<MachineReplacementScreen> {
           borderRadius: BorderRadius.circular(AppRadius.md),
           child: InputDecorator(
             decoration: const InputDecoration(
-              suffixIcon: Icon(Icons.calendar_today_outlined, size: 18),
+              suffixIcon: AppSymbol3d(Icons.calendar_today_outlined, size: 18),
             ),
             child: Text(Formatters.isoDate(value) ?? label),
           ),

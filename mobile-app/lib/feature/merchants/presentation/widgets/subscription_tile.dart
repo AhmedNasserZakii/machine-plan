@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -72,7 +73,7 @@ class SubscriptionTile extends StatelessWidget {
               const SizedBox(height: AppSpacing.sm),
               Row(
                 children: <Widget>[
-                  Icon(
+                  AppSymbol3d(
                     Icons.event_outlined,
                     size: 14,
                     color: subscription.isOverdue
@@ -111,7 +112,7 @@ class SubscriptionTile extends StatelessWidget {
                 alignment: AlignmentDirectional.centerEnd,
                 child: TextButton.icon(
                   onPressed: onCollect,
-                  icon: const Icon(Icons.payments_outlined, size: 18),
+                  icon: const AppSymbol3d(Icons.payments_outlined, size: 18),
                   label: Text(LocaleKeys.subscriptionCollect.tr()),
                 ),
               ),

@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:machinery/core/shared_widgets/full_width_action.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -75,7 +76,7 @@ class _RawBarcodeScannerScreenState extends State<RawBarcodeScannerScreen> {
           if (!_cameraFailed)
             IconButton(
               onPressed: _controller.toggleTorch,
-              icon: const Icon(Icons.flashlight_on_outlined),
+              icon: const AppSymbol3d(Icons.flashlight_on_outlined),
               tooltip: LocaleKeys.scanTorch.tr(),
             ),
         ],
@@ -99,7 +100,10 @@ class _RawBarcodeScannerScreenState extends State<RawBarcodeScannerScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
-                      const Icon(Icons.no_photography_outlined, size: 48),
+                      const AppSymbol3d(
+                        Icons.no_photography_outlined,
+                        size: 48,
+                      ),
                       const SizedBox(height: AppSpacing.md),
                       Text(
                         LocaleKeys.scanCameraDenied.tr(),
@@ -109,7 +113,7 @@ class _RawBarcodeScannerScreenState extends State<RawBarcodeScannerScreen> {
                       FullWidthAction(
                         child: FilledButton.icon(
                           onPressed: _openManualEntry,
-                          icon: const Icon(Icons.keyboard_alt_outlined),
+                          icon: const AppSymbol3d(Icons.keyboard_alt_outlined),
                           label: Text(LocaleKeys.scanManualEntry.tr()),
                         ),
                       ),
@@ -128,7 +132,7 @@ class _RawBarcodeScannerScreenState extends State<RawBarcodeScannerScreen> {
                 child: FullWidthAction(
                   child: FilledButton.tonalIcon(
                     onPressed: _openManualEntry,
-                    icon: const Icon(Icons.keyboard_alt_outlined),
+                    icon: const AppSymbol3d(Icons.keyboard_alt_outlined),
                     label: Semantics(
                       identifier: 'raw_scanner_manual_entry_button',
                       child: Text(LocaleKeys.scanManualEntry.tr()),

@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -33,6 +34,7 @@ class MachineTypeSelector extends StatelessWidget {
         Semantics(
           identifier: 'machine_model_type_selector',
           child: DropdownButtonFormField<String>(
+            icon: const AppSymbol3d(Icons.expand_more_rounded),
             initialValue: selected?.id,
             isExpanded: true,
             decoration: InputDecoration(
@@ -57,9 +59,7 @@ class MachineTypeSelector extends StatelessWidget {
                 return;
               }
 
-              onSelected(
-                types.firstWhere((MachineTypeEntity t) => t.id == id),
-              );
+              onSelected(types.firstWhere((MachineTypeEntity t) => t.id == id));
             },
           ),
         ),

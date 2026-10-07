@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -92,7 +93,9 @@ class _ResponsibleUserPickerSheetState
           value: _cubit,
           child: Column(
             children: <Widget>[
-              _PickerHeader(title: LocaleKeys.maintenanceCloseResponsibleUser.tr()),
+              _PickerHeader(
+                title: LocaleKeys.maintenanceCloseResponsibleUser.tr(),
+              ),
               Padding(
                 padding: const EdgeInsetsDirectional.symmetric(
                   horizontal: AppSpacing.md,
@@ -135,10 +138,13 @@ class _ResponsibleUserPickerSheetState
                       itemBuilder:
                           (BuildContext context, UserEntity user, int _) {
                             return Semantics(
-                              identifier: 'responsible_user_picker_row_${user.id}',
+                              identifier:
+                                  'responsible_user_picker_row_${user.id}',
                               child: ListTile(
                                 contentPadding: EdgeInsets.zero,
-                                leading: const Icon(Icons.person_outline),
+                                leading: const AppSymbol3d(
+                                  Icons.person_outline,
+                                ),
                                 title: Text(
                                   user.fullName,
                                   style: Styles.s14(
@@ -147,9 +153,9 @@ class _ResponsibleUserPickerSheetState
                                 ),
                                 subtitle: Text(
                                   user.branchName ?? user.phone,
-                                  style: Styles.s12(
-                                    context,
-                                  ).copyWith(color: AppColors.textSecondaryColor),
+                                  style: Styles.s12(context).copyWith(
+                                    color: AppColors.textSecondaryColor,
+                                  ),
                                 ),
                                 onTap: () => Navigator.of(context).pop(user),
                               ),
@@ -258,13 +264,19 @@ class _ResponsibleMerchantPickerSheetState
                         subtitle: LocaleKeys.merchantsEmptySubtitle.tr(),
                       ),
                       itemBuilder:
-                          (BuildContext context, MerchantEntity merchant, int _) {
+                          (
+                            BuildContext context,
+                            MerchantEntity merchant,
+                            int _,
+                          ) {
                             return Semantics(
                               identifier:
                                   'responsible_merchant_picker_row_${merchant.id}',
                               child: ListTile(
                                 contentPadding: EdgeInsets.zero,
-                                leading: const Icon(Icons.storefront_outlined),
+                                leading: const AppSymbol3d(
+                                  Icons.storefront_outlined,
+                                ),
                                 title: Text(
                                   merchant.shopName,
                                   style: Styles.s14(
@@ -273,11 +285,12 @@ class _ResponsibleMerchantPickerSheetState
                                 ),
                                 subtitle: Text(
                                   merchant.name,
-                                  style: Styles.s12(
-                                    context,
-                                  ).copyWith(color: AppColors.textSecondaryColor),
+                                  style: Styles.s12(context).copyWith(
+                                    color: AppColors.textSecondaryColor,
+                                  ),
                                 ),
-                                onTap: () => Navigator.of(context).pop(merchant),
+                                onTap: () =>
+                                    Navigator.of(context).pop(merchant),
                               ),
                             );
                           },
@@ -312,7 +325,7 @@ class _PickerHeader extends StatelessWidget {
           Expanded(child: Text(title, style: Styles.s17(context))),
           IconButton(
             onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.close_rounded),
+            icon: const AppSymbol3d(Icons.close_rounded),
           ),
         ],
       ),

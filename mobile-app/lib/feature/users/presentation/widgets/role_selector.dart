@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -44,6 +45,7 @@ class RoleSelector extends StatelessWidget {
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<RoleEntity>(
+                icon: const AppSymbol3d(Icons.expand_more_rounded),
                 value: selected,
                 isExpanded: true,
                 hint: Text(

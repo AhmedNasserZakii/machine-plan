@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
@@ -73,7 +74,7 @@ class HomeBlockCard extends StatelessWidget {
             children: <Widget>[
               Row(
                 children: <Widget>[
-                  Icon(icon, color: color, size: 18),
+                  AppSymbol3d(icon, color: color, size: 18),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
@@ -117,7 +118,10 @@ class HomeBlockCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Text(valueText ?? '', style: Styles.s20(context).copyWith(color: color)),
+            Text(
+              valueText ?? '',
+              style: Styles.s20(context).copyWith(color: color),
+            ),
             if (caption != null) ...<Widget>[
               const SizedBox(height: 2),
               Text(
@@ -135,7 +139,7 @@ class HomeBlockCard extends StatelessWidget {
       case HomeBlockAvailability.offline:
         return Row(
           children: <Widget>[
-            const Icon(
+            const AppSymbol3d(
               Icons.cloud_off_rounded,
               size: 16,
               color: AppColors.neutralColor,
@@ -172,7 +176,7 @@ class HomeBlockCard extends StatelessWidget {
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
                 tooltip: retryTooltip,
-                icon: const Icon(
+                icon: const AppSymbol3d(
                   Icons.refresh_rounded,
                   size: 18,
                   color: AppColors.dangerColor,

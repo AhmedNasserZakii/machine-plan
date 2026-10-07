@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:machinery/core/shared_widgets/full_width_action.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -167,7 +168,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           if (!_cameraFailed)
             IconButton(
               onPressed: _controller.toggleTorch,
-              icon: const Icon(Icons.flashlight_on_outlined),
+              icon: const AppSymbol3d(Icons.flashlight_on_outlined),
               tooltip: LocaleKeys.scanTorch.tr(),
             ),
         ],
@@ -248,7 +249,7 @@ class _BottomActions extends StatelessWidget {
           FullWidthAction(
             child: FilledButton.icon(
               onPressed: onRetry,
-              icon: const Icon(Icons.refresh_rounded),
+              icon: const AppSymbol3d(Icons.refresh_rounded),
               label: Text(LocaleKeys.scanRetry.tr()),
             ),
           ),
@@ -264,7 +265,7 @@ class _BottomActions extends StatelessWidget {
     return FullWidthAction(
       child: FilledButton.tonalIcon(
         onPressed: onManualEntry,
-        icon: const Icon(Icons.keyboard_alt_outlined),
+        icon: const AppSymbol3d(Icons.keyboard_alt_outlined),
         label: Semantics(
           identifier: 'scanner_manual_entry_button',
           child: Text(LocaleKeys.scanManualEntry.tr()),
@@ -289,7 +290,7 @@ class _CameraUnavailable extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            const Icon(Icons.no_photography_outlined, size: 48),
+            const AppSymbol3d(Icons.no_photography_outlined, size: 48),
             const SizedBox(height: AppSpacing.md),
             Text(LocaleKeys.scanCameraDenied.tr(), textAlign: TextAlign.center),
             const SizedBox(height: AppSpacing.sm),
@@ -301,7 +302,7 @@ class _CameraUnavailable extends StatelessWidget {
             FullWidthAction(
               child: FilledButton.icon(
                 onPressed: onManualEntry,
-                icon: const Icon(Icons.keyboard_alt_outlined),
+                icon: const AppSymbol3d(Icons.keyboard_alt_outlined),
                 label: Text(LocaleKeys.scanManualEntry.tr()),
               ),
             ),

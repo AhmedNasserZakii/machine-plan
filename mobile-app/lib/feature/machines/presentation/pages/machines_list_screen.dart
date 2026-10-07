@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -108,7 +109,7 @@ class _MachinesListScreenState extends State<MachinesListScreen> {
               onPressed: _openBulkImport,
               icon: Semantics(
                 identifier: 'machines_bulk_import_button',
-                child: const Icon(Icons.upload_file_rounded),
+                child: const AppSymbol3d(Icons.upload_file_rounded),
               ),
               tooltip: LocaleKeys.machineBulkImportTitle.tr(),
             ),
@@ -117,7 +118,7 @@ class _MachinesListScreenState extends State<MachinesListScreen> {
             onPressed: _scan,
             icon: Semantics(
               identifier: 'machines_scan_button',
-              child: const Icon(Icons.qr_code_scanner_rounded),
+              child: const AppSymbol3d(Icons.qr_code_scanner_rounded),
             ),
             tooltip: LocaleKeys.scanTitle.tr(),
           ),
@@ -130,7 +131,7 @@ class _MachinesListScreenState extends State<MachinesListScreen> {
           onPressed: _openForm,
           child: Semantics(
             identifier: 'machines_add_button',
-            child: const Icon(Icons.add_rounded),
+            child: const AppSymbol3d(Icons.add_rounded),
           ),
         ),
       ),

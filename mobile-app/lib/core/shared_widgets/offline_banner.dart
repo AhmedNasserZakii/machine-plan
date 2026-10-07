@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/connection/network_connection_status.dart';
@@ -30,7 +31,7 @@ class OfflineBanner extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              const Icon(
+              const AppSymbol3d(
                 Icons.wifi_off_rounded,
                 size: 16,
                 color: AppColors.textOnPrimaryColor,

@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/shared_widgets/clicked_widget.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
@@ -44,7 +45,7 @@ class LanguageOptionTile extends StatelessWidget {
                 ),
               ),
             ),
-            Icon(
+            AppSymbol3d(
               isSelected
                   ? Icons.radio_button_checked_rounded
                   : Icons.radio_button_unchecked_rounded,

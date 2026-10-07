@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:machinery/core/di/service_locator.dart';
@@ -84,7 +85,7 @@ void main() {
       );
 
       expect(
-        find.widgetWithIcon(ElevatedButton, Icons.visibility_outlined),
+        _widgetWithSymbol(ElevatedButton, Icons.visibility_outlined),
         findsOneWidget,
       );
     },
@@ -110,7 +111,7 @@ void main() {
       );
 
       expect(
-        find.widgetWithIcon(ElevatedButton, Icons.visibility_outlined),
+        _widgetWithSymbol(ElevatedButton, Icons.visibility_outlined),
         findsNothing,
       );
     },
@@ -136,7 +137,7 @@ void main() {
       );
 
       expect(
-        find.widgetWithIcon(FilledButton, Icons.payments_outlined),
+        _widgetWithSymbol(FilledButton, Icons.payments_outlined),
         findsNothing,
       );
     },
@@ -162,7 +163,7 @@ void main() {
       );
 
       expect(
-        find.widgetWithIcon(FilledButton, Icons.payments_outlined),
+        _widgetWithSymbol(FilledButton, Icons.payments_outlined),
         findsOneWidget,
       );
     },
@@ -186,7 +187,7 @@ void main() {
     );
 
     expect(
-      find.widgetWithIcon(ElevatedButton, Icons.do_not_disturb_on_outlined),
+      _widgetWithSymbol(ElevatedButton, Icons.do_not_disturb_on_outlined),
       findsOneWidget,
     );
   });
@@ -211,7 +212,7 @@ void main() {
       );
 
       expect(
-        find.widgetWithIcon(ElevatedButton, Icons.edit_outlined),
+        _widgetWithSymbol(ElevatedButton, Icons.edit_outlined),
         findsNothing,
       );
     },
@@ -237,7 +238,7 @@ void main() {
       );
 
       expect(
-        find.widgetWithIcon(ElevatedButton, Icons.edit_outlined),
+        _widgetWithSymbol(ElevatedButton, Icons.edit_outlined),
         findsOneWidget,
       );
     },
@@ -261,11 +262,16 @@ void main() {
       ),
     );
 
-    await tester.tap(
-      find.widgetWithIcon(FilledButton, Icons.payments_outlined),
-    );
+    await tester.tap(_widgetWithSymbol(FilledButton, Icons.payments_outlined));
     await tester.pump();
 
     expect(taps, 1);
   });
 }
+
+Finder _widgetWithSymbol(Type type, IconData icon) => find.ancestor(
+  of: find.byWidgetPredicate(
+    (widget) => widget is AppSymbol3d && widget.icon == icon,
+  ),
+  matching: find.byType(type),
+);

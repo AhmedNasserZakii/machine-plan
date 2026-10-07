@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -111,7 +112,9 @@ class _ViolationMachinePickerSheetState
                                   'violation_machine_picker_row_${machine.id}',
                               child: ListTile(
                                 contentPadding: EdgeInsets.zero,
-                                leading: const Icon(Icons.inventory_2_outlined),
+                                leading: const AppSymbol3d(
+                                  Icons.inventory_2_outlined,
+                                ),
                                 title: LtrText(
                                   machine.serial,
                                   style: Styles.mono(
@@ -159,7 +162,7 @@ class _PickerHeader extends StatelessWidget {
           Expanded(child: Text(title, style: Styles.s17(context))),
           IconButton(
             onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.close_rounded),
+            icon: const AppSymbol3d(Icons.close_rounded),
           ),
         ],
       ),

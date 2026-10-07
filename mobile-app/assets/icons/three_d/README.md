@@ -5,3 +5,11 @@ Created with the built-in image generator as one transparent 4 × 5 atlas. Indiv
 Prompt: create a regular 4-column, 5-row transparent atlas of rounded satin-ceramic 3D icons, navy #1B4965, sky blue #5FA8D3 and white, with upper-left studio lighting and bold silhouettes for 36px display. Row-major subjects: house, POS terminal, transfer arrows, storefront; wallet, gear, chart, gavel; ID badge, wrench, checklist, users; branch building, paired POS terminals, bell, sync arrows; globe, padlock, coral-red exit door and arrow, profile avatar. No text, captions, dividers, tiles or watermark.
 
 `source-atlas.png` preserves the original output. Run `dart run scripts/prepare_3d_icons.dart` to reproduce the individual assets using the measured atlas gutters.
+
+`AppSymbol3d` renders feature and entity symbols using this artwork throughout
+forms, lists, details, and actions. Small controls use lit, extruded silhouettes
+with their inherited semantic colors, sizes, opacity, and RTL mirroring. Existing
+`IconData` values remain lookup keys for status helpers; they are not rendered
+with the flat Flutter `Icon` widget. Framework back/close/drawer buttons use the
+same renderer through the action icon theme, and dropdown/menu controls supply
+explicit dimensional icons.

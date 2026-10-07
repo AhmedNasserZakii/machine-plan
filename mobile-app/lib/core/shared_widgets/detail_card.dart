@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
@@ -34,7 +35,11 @@ class DetailCard extends StatelessWidget {
           Row(
             children: <Widget>[
               if (icon != null) ...<Widget>[
-                Icon(icon, size: 18, color: AppColors.textSecondaryColor),
+                AppSymbol3d(
+                  icon,
+                  size: 18,
+                  color: AppColors.textSecondaryColor,
+                ),
                 const SizedBox(width: AppSpacing.sm),
               ],
               Expanded(
@@ -128,7 +133,11 @@ class DetailNote extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Icon(icon ?? Icons.info_outline_rounded, size: 14, color: resolved),
+        AppSymbol3d(
+          icon ?? Icons.info_outline_rounded,
+          size: 14,
+          color: resolved,
+        ),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Text(

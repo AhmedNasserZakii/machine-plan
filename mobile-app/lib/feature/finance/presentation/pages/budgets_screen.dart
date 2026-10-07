@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:dartz/dartz.dart' hide State;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -67,8 +68,8 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
   Future<void> _loadMore() async {
     if (_loadingMore || !_hasNext) return;
     setState(() => _loadingMore = true);
-    final Either<ServerFailure, FinanceBudgetsPage> result =
-        await _repo.budgets(widget.query, page: _page + 1);
+    final Either<ServerFailure, FinanceBudgetsPage> result = await _repo
+        .budgets(widget.query, page: _page + 1);
     if (!mounted) return;
     _apply(budgetsResult: result, page: _page + 1, replace: false);
   }
@@ -79,7 +80,8 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
     required bool replace,
     Either<ServerFailure, BudgetStatusList>? statusResult,
   }) {
-    final ServerFailure? failure = budgetsResult.fold((f) => f, (_) => null) ??
+    final ServerFailure? failure =
+        budgetsResult.fold((f) => f, (_) => null) ??
         statusResult?.fold((f) => f, (_) => null);
     if (failure != null) {
       setState(() {
@@ -152,7 +154,10 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
       leading: const ArrowBackWidget(),
     ),
     floatingActionButton: _manage
-        ? FloatingActionButton(onPressed: _form, child: const Icon(Icons.add))
+        ? FloatingActionButton(
+            onPressed: _form,
+            child: const AppSymbol3d(Icons.add),
+          )
         : null,
     body: _error != null
         ? AppErrorView(message: _error!, onRetry: _load)
@@ -192,7 +197,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                 trailing: _manage
                     ? IconButton(
                         onPressed: () => _delete(b),
-                        icon: const Icon(Icons.delete_outline),
+                        icon: const AppSymbol3d(Icons.delete_outline),
                       )
                     : LtrText(formatMoney(context, b.amount)),
               ),

@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -28,58 +29,58 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-          title: Text(LocaleKeys.userDetailTitle.tr()),
-          leading: const ArrowBackWidget(),
-          actions: <Widget>[
-            BlocBuilder<UserDetailCubit, UserDetailState>(
-              builder: (context, state) => state is UserDetailLoaded
-                  ? PermissionGate(
-                      permission: P.usersUpdate,
-                      child: IconButton(
-                        tooltip: LocaleKeys.userEdit.tr(),
-                        icon: const Icon(Icons.edit_outlined),
-                        onPressed: () async {
-                          final changed = await AppRoute.goToUserForm(
-                            context: context,
-                            existing: state.user,
-                          );
-                          if ((changed ?? false) && context.mounted) {
-                            context.read<UserDetailCubit>().load();
-                          }
-                        },
-                      ),
-                    )
-                  : const SizedBox.shrink(),
-            ),
-          ],
+    appBar: AppBar(
+      title: Text(LocaleKeys.userDetailTitle.tr()),
+      leading: const ArrowBackWidget(),
+      actions: <Widget>[
+        BlocBuilder<UserDetailCubit, UserDetailState>(
+          builder: (context, state) => state is UserDetailLoaded
+              ? PermissionGate(
+                  permission: P.usersUpdate,
+                  child: IconButton(
+                    tooltip: LocaleKeys.userEdit.tr(),
+                    icon: const AppSymbol3d(Icons.edit_outlined),
+                    onPressed: () async {
+                      final changed = await AppRoute.goToUserForm(
+                        context: context,
+                        existing: state.user,
+                      );
+                      if ((changed ?? false) && context.mounted) {
+                        context.read<UserDetailCubit>().load();
+                      }
+                    },
+                  ),
+                )
+              : const SizedBox.shrink(),
         ),
-        body: BlocBuilder<UserDetailCubit, UserDetailState>(
-          builder: (context, state) => switch (state) {
-            UserDetailFailure(:final message, :final isOffline) => AppErrorView(
-                message: isOffline
-                    ? LocaleKeys.usersOnlineOnlySubtitle.tr()
-                    : message,
-                onRetry: context.read<UserDetailCubit>().load,
-              ),
-            UserDetailLoaded() => RefreshIndicator(
-                onRefresh: context.read<UserDetailCubit>().load,
-                child: ListView(
-                  padding: const EdgeInsetsDirectional.all(AppSpacing.md),
-                  children: <Widget>[
-                    UserDetailHeader(user: state.user),
-                    if (state.custody != null)
-                      UserCustodySection(custody: state.custody!),
-                    if (state.violations != null)
-                      UserViolationsSection(summary: state.violations!),
-                    UserActivitySection(activity: state.activity),
-                    const SizedBox(height: AppSpacing.sm),
-                    UserFormActions(user: state.user),
-                  ],
-                ),
-              ),
-            _ => const AppLoadingIndicator(),
-          },
+      ],
+    ),
+    body: BlocBuilder<UserDetailCubit, UserDetailState>(
+      builder: (context, state) => switch (state) {
+        UserDetailFailure(:final message, :final isOffline) => AppErrorView(
+          message: isOffline
+              ? LocaleKeys.usersOnlineOnlySubtitle.tr()
+              : message,
+          onRetry: context.read<UserDetailCubit>().load,
         ),
-      );
+        UserDetailLoaded() => RefreshIndicator(
+          onRefresh: context.read<UserDetailCubit>().load,
+          child: ListView(
+            padding: const EdgeInsetsDirectional.all(AppSpacing.md),
+            children: <Widget>[
+              UserDetailHeader(user: state.user),
+              if (state.custody != null)
+                UserCustodySection(custody: state.custody!),
+              if (state.violations != null)
+                UserViolationsSection(summary: state.violations!),
+              UserActivitySection(activity: state.activity),
+              const SizedBox(height: AppSpacing.sm),
+              UserFormActions(user: state.user),
+            ],
+          ),
+        ),
+        _ => const AppLoadingIndicator(),
+      },
+    ),
+  );
 }

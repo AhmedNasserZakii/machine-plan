@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -87,7 +88,7 @@ class _RecipientPickerSheetState extends State<RecipientPickerSheet> {
                   ),
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close_rounded),
+                    icon: const AppSymbol3d(Icons.close_rounded),
                   ),
                 ],
               ),
@@ -134,23 +135,24 @@ class _RecipientPickerSheetState extends State<RecipientPickerSheet> {
                           TransferRecipient recipient,
                           int _,
                         ) {
-                      final bool selected = state.recipientId == recipient.id;
-                      return ListTile(
-                        selected: selected,
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(recipient.name),
-                        subtitle: recipient.subtitle == null
-                            ? null
-                            : Text(recipient.subtitle!),
-                        trailing: selected
-                            ? const Icon(Icons.check_rounded)
-                            : null,
-                        onTap: () {
-                          cubit.selectRecipient(recipient);
-                          Navigator.of(context).pop();
+                          final bool selected =
+                              state.recipientId == recipient.id;
+                          return ListTile(
+                            selected: selected,
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(recipient.name),
+                            subtitle: recipient.subtitle == null
+                                ? null
+                                : Text(recipient.subtitle!),
+                            trailing: selected
+                                ? const AppSymbol3d(Icons.check_rounded)
+                                : null,
+                            onTap: () {
+                              cubit.selectRecipient(recipient);
+                              Navigator.of(context).pop();
+                            },
+                          );
                         },
-                      );
-                    },
                   );
                 },
               ),

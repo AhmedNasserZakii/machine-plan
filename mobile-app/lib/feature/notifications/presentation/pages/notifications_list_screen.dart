@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -71,7 +72,7 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
             tooltip: LocaleKeys.notificationPreferencesTitle.tr(),
             icon: Semantics(
               identifier: 'notifications_preferences_button',
-              child: const Icon(Icons.settings_outlined),
+              child: const AppSymbol3d(Icons.settings_outlined),
             ),
           ),
         ],

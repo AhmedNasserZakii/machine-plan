@@ -34,8 +34,13 @@ String reportCellText(
 }
 
 class ReportKpiRow extends StatelessWidget {
-  const ReportKpiRow({required this.totals, super.key});
+  const ReportKpiRow({
+    required this.totals,
+    this.labels = const <String, String>{},
+    super.key,
+  });
   final Map<String, dynamic> totals;
+  final Map<String, String> labels;
   @override
   Widget build(BuildContext context) => SizedBox(
     height: 96,
@@ -58,7 +63,7 @@ class ReportKpiRow extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Text(
-                _human(entry.key),
+                labels[entry.key] ?? _human(entry.key),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: Styles.s12(

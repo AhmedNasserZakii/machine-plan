@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
@@ -219,7 +220,7 @@ class _BiometricSection extends StatelessWidget {
     if (isVerified) {
       return Row(
         children: <Widget>[
-          const Icon(
+          const AppSymbol3d(
             Icons.fingerprint,
             color: AppColors.successColor,
             size: 22,
@@ -228,9 +229,10 @@ class _BiometricSection extends StatelessWidget {
           Expanded(
             child: Text(
               LocaleKeys.signatureBiometricVerified.tr(),
-              style: Styles.s13(
-                context,
-              ).copyWith(color: AppColors.successColor, fontWeight: FontWeight.w600),
+              style: Styles.s13(context).copyWith(
+                color: AppColors.successColor,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -249,7 +251,7 @@ class _BiometricSection extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              const Icon(Icons.fingerprint, size: 18),
+              const AppSymbol3d(Icons.fingerprint, size: 18),
               const SizedBox(width: AppSpacing.sm),
               Text(LocaleKeys.signatureBiometricConfirm.tr()),
             ],

@@ -9,6 +9,7 @@ import { BranchScope } from 'src/common/types/request.types';
 import { ReportsConfig } from 'src/config/reports.config';
 import { ReportQueryDto } from '../dto/report-query.dto';
 import { hashFilters, resolveBranchFilter, resolvePeriod } from '../report-filters';
+import { localizeReport } from '../report-i18n';
 import { ReportContext, ReportResult, ReportRow, ReportRunQuery } from '../report.types';
 import { FinanceReportsService } from './finance-reports.service';
 import { MachineReportsService } from './machine-reports.service';
@@ -90,8 +91,10 @@ export class ReportRunnerService {
     // report are asking two different questions, and one must not be served the other's answer.
     const cacheKey = CacheKeys.reportForUser(key, hashFilters(identity), context.userId);
 
-    const result = await this.cache.remember(cacheKey, this.config.cacheTtlSeconds, () =>
-      this.execute(key, context, query, params),
+    // Localized inside the cached call: the locale is part of the key, so each language is its
+    // own entry and a hit never has to translate again.
+    const result = await this.cache.remember(cacheKey, this.config.cacheTtlSeconds, async () =>
+      localizeReport(await this.execute(key, context, query, params), context.locale),
     );
 
     return this.sorted(result, query);

@@ -1,3 +1,4 @@
+import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:flutter/material.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/core/theme/styles/app_text_styles.dart';
@@ -31,7 +32,7 @@ class StatusChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Icon(icon, size: 14, color: color),
+          AppSymbol3d(icon, size: 14, color: color),
           const SizedBox(width: AppSpacing.xs),
           Text(
             label,
