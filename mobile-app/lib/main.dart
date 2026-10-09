@@ -14,6 +14,8 @@ import 'package:machinery/core/services/locale_service.dart';
 import 'package:machinery/core/services/observability/crash_reporter.dart';
 import 'package:machinery/core/services/push/push_notification_service.dart';
 import 'package:machinery/core/services/sync/sync_coordinator.dart';
+import 'package:machinery/feature/notifications/domain/params/notification_preferences_params.dart';
+import 'package:machinery/feature/notifications/domain/repos/notifications_repo.dart';
 import 'package:machinery/my_app.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -54,6 +56,16 @@ Future<void> main() async {
   getIt<LocaleService>().registerCacheInvalidator(
     syncCoordinator.invalidateForLocaleChange,
   );
+  // Push notifications are worded server-side in the account's saved
+  // language, so a switch here has to reach the server too. A failure (signed
+  // out, offline) is harmless: the next switch sends it again.
+  getIt<LocaleService>().registerCacheInvalidator(() async {
+    await getIt<NotificationsRepo>().updatePreferences(
+      params: UpdateNotificationPreferencesParams(
+        locale: LocalStorage.getLocaleLanguage(),
+      ),
+    );
+  });
 
   await EasyLocalization.ensureInitialized();
   await Future.wait<void>(<Future<void>>[

@@ -2,6 +2,7 @@ import { Locale } from 'src/common/constants/locales';
 import { SortDirection } from 'src/common/dto';
 import { ExportCell, ExportColumn } from 'src/common/export';
 import { CustodyGroupBy, ReportGranularity, ReportKey } from 'src/common/enums/report.enum';
+import type { FilterSummaryEntry } from './report-i18n';
 import { BranchScope } from 'src/common/types/request.types';
 
 export type ReportRow = Record<string, ExportCell>;
@@ -33,6 +34,8 @@ export interface ReportResult {
   totals: Record<string, number | string>;
   /** `totals` keys worded in the request locale, filled in by `localizeReport`. */
   totalLabels?: Record<string, string>;
+  /** `filters` worded in the request locale, filled in by `localizeReport`. */
+  filterSummary?: FilterSummaryEntry[];
   extra?: Record<string, unknown>;
   /** Column the xlsx export splits worksheets on (`17`, export formatting). */
   sheetKey?: string;

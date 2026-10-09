@@ -57,25 +57,19 @@ class _MerchantsListScreenState extends State<MerchantsListScreen> {
   }
 
   Future<void> _openDetail(MerchantEntity merchant) async {
-    final bool? changed = await AppRoute.goToMerchantDetail(
+    // Create/edit/deactivate already update this cubit via
+    // MerchantsChangeNotifier; the bool result only means "something happened".
+    await AppRoute.goToMerchantDetail(
       context: context,
       merchantId: merchant.id,
       initial: merchant,
     );
-
-    if ((changed ?? false) && mounted) {
-      await context.read<MerchantsListCubit>().load(showLoader: false);
-    }
   }
 
   Future<void> _openForm() async {
-    final MerchantEntity? created = await AppRoute.goToMerchantForm(
-      context: context,
-    );
-
-    if (created != null && mounted) {
-      await context.read<MerchantsListCubit>().load(showLoader: false);
-    }
+    // Insert happens in MerchantsListCubit via MerchantsChangeNotifier when the
+    // form succeeds — including creates started from Home.
+    await AppRoute.goToMerchantForm(context: context);
   }
 
   @override

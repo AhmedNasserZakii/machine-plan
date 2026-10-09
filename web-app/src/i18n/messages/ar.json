@@ -1988,24 +1988,24 @@
       "action": "الإجراء",
       "entityType": "نوع الكيان",
       "entityTypes": {
-        "machine": "machine",
-        "battery": "battery",
-        "merchant": "merchant",
-        "user": "user",
-        "role": "role",
-        "branch": "branch",
-        "warehouse": "warehouse",
-        "transfer": "transfer",
-        "transfer_signature": "transfer_signature",
-        "maintenance_order": "maintenance_order",
-        "replacement": "replacement",
-        "decommission": "decommission",
-        "finance_transaction": "finance_transaction",
-        "budget": "budget",
-        "finance_category": "finance_category",
-        "violation": "violation",
-        "auth": "auth",
-        "finance": "finance"
+        "machine": "ماكينة",
+        "battery": "بطارية",
+        "merchant": "تاجر",
+        "user": "مستخدم",
+        "role": "دور",
+        "branch": "فرع",
+        "warehouse": "مخزن",
+        "transfer": "تسليم",
+        "transfer_signature": "توقيع التسليم",
+        "maintenance_order": "أمر صيانة",
+        "replacement": "استبدال",
+        "decommission": "تكهين",
+        "finance_transaction": "حركة مالية",
+        "budget": "ميزانية",
+        "finance_category": "تصنيف مالي",
+        "violation": "مخالفة",
+        "auth": "تسجيل الدخول",
+        "finance": "المالية"
       }
     },
     "notifications": {
@@ -2045,7 +2045,11 @@
       "overridden": "مُتجاوز",
       "settingSaved": "تم الحفظ",
       "confirmBusinessRule": "تغيير قاعدة عمل؟",
-      "confirmBusinessRuleBody": "تحديث {key} يغيّر السلوك عبر الويب والجوال. أكّد فقط إذا كان مقصودًا."
+      "confirmBusinessRuleBody": "تحديث {key} يغيّر السلوك عبر الويب والجوال. أكّد فقط إذا كان مقصودًا.",
+      "kinds": {
+        "RATIO": "نسبة",
+        "COUNT": "عدد"
+      }
     },
     "scanning": {
       "manualLabel": "الرقم التسلسلي / الباركود",

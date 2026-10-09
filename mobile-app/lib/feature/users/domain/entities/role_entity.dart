@@ -1,9 +1,10 @@
 import 'package:equatable/equatable.dart';
+import 'package:machinery/core/utils/enums.dart';
 
 /// A system role and the permission codes it grants.
 ///
-/// [displayName] arrives localized to the request locale, so it is shown as-is
-/// and never mapped through a client-side table.
+/// Seeded system roles are localized via `RoleLabels` + [code]. Custom roles
+/// keep [displayName] from the server so back-office renames still show.
 class RoleEntity extends Equatable {
   const RoleEntity({
     required this.id,
@@ -25,23 +26,23 @@ class RoleEntity extends Equatable {
 
   /// Company-level roles have no branch, so the form must not ask for one.
   /// The branch-scoped roles are the ones whose work is bounded by a branch.
-  static const Set<String> branchScopedCodes = <String>{
-    'BRANCH_SUPERVISOR',
-    'REPRESENTATIVE',
+  static final Set<String> branchScopedCodes = <String>{
+    SystemRole.branchSupervisor.value,
+    SystemRole.representative.value,
   };
 
-  bool get isBranchScoped => branchScopedCodes.contains(code);
+  bool get isBranchScoped => SystemRole.fromJson(code).isBranchScoped;
 
   @override
   List<Object?> get props => <Object?>[
-        id,
-        code,
-        displayName,
-        description,
-        isSystem,
-        permissions,
-        translations,
-      ];
+    id,
+    code,
+    displayName,
+    description,
+    isSystem,
+    permissions,
+    translations,
+  ];
 }
 
 class RoleTranslation extends Equatable {

@@ -51,7 +51,7 @@ export function OpenViolationsTile() {
                 <StatusChip
                   status={item.severity}
                   tone={SEVERITY_TONE[item.severity] ?? 'neutral'}
-                  label={t(`enums.violationSeverity.${item.severity}` as 'enums.violationSeverity.UNKNOWN')}
+                  label={t(`enums.severity.${item.severity}` as 'enums.severity.UNKNOWN')}
                 />
                 <StatusChip
                   status={item.status}

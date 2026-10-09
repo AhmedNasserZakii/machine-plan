@@ -4805,6 +4805,14 @@ export interface components {
             /** @enum {string} */
             type: "text" | "number" | "date";
         };
+        ReportFilterSummaryResponse: {
+            /** @example groupBy */
+            key: string;
+            /** @example التجميع حسب */
+            label: string;
+            /** @example المندوب */
+            value: string;
+        };
         ReportResponse: {
             /** @enum {string} */
             key: "machine-inventory" | "machine-custody" | "machine-idle" | "machine-lifecycle" | "machine-costs" | "warranty-expiry" | "transfers-log" | "transfers-pending" | "representative-performance" | "violations-register" | "merchant-portfolio" | "maintenance-log" | "expenses-by-category" | "income-by-category" | "profit-loss" | "budget-performance" | "branch-comparison";
@@ -4824,6 +4832,8 @@ export interface components {
              *     }
              */
             totalLabels: Record<string, never>;
+            /** @description `filters` worded in the request locale, ids left out. For display only. */
+            filterSummary: components["schemas"]["ReportFilterSummaryResponse"][];
             /** @description Rows before paging — what an export of this report would contain. */
             rowCount: number;
             /** @description True when the row cap cut the answer short. */

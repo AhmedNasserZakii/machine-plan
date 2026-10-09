@@ -6,6 +6,7 @@ import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/core/theme/styles/app_text_styles.dart';
 import 'package:machinery/feature/users/domain/entities/role_entity.dart';
+import 'package:machinery/feature/users/presentation/helpers/role_labels.dart';
 
 /// Role picker. Shows the permission count under each name so the Director is
 /// choosing on what the role can do, not only on what it is called.
@@ -59,7 +60,10 @@ class RoleSelector extends StatelessWidget {
                       (RoleEntity role) => DropdownMenuItem<RoleEntity>(
                         value: role,
                         child: Text(
-                          role.displayName,
+                          RoleLabels.resolve(
+                            role.code,
+                            fallback: role.displayName,
+                          ),
                           style: Styles.s14(context),
                           overflow: TextOverflow.ellipsis,
                         ),

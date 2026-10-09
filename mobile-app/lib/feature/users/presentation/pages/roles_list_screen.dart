@@ -13,6 +13,7 @@ import 'package:machinery/core/utils/app_route.dart';
 import 'package:machinery/feature/users/data/logic/roles/roles_cubit.dart';
 import 'package:machinery/feature/users/domain/entities/role_entity.dart';
 import 'package:machinery/feature/users/domain/params/role_write_params.dart';
+import 'package:machinery/feature/users/presentation/helpers/role_labels.dart';
 import 'package:machinery/feature/users/presentation/widgets/role_form_dialog.dart';
 
 class RolesListScreen extends StatefulWidget {
@@ -81,7 +82,9 @@ class _RolesListScreenState extends State<RolesListScreen> {
                   leading: const CircleAvatar(
                     child: AppSymbol3d(Icons.shield_outlined),
                   ),
-                  title: Text(role.displayName),
+                  title: Text(
+                    RoleLabels.resolve(role.code, fallback: role.displayName),
+                  ),
                   subtitle: Text(
                     '${role.code} • ${LocaleKeys.rolePermissionCount.tr(args: <String>[role.permissions.length.toString()])}',
                   ),

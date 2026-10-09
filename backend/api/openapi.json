@@ -22042,6 +22042,28 @@
           "type"
         ]
       },
+      "ReportFilterSummaryResponse": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "example": "groupBy"
+          },
+          "label": {
+            "type": "string",
+            "example": "التجميع حسب"
+          },
+          "value": {
+            "type": "string",
+            "example": "المندوب"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "value"
+        ]
+      },
       "ReportResponse": {
         "type": "object",
         "properties": {
@@ -22101,6 +22123,13 @@
               "machines": "الماكينات"
             }
           },
+          "filterSummary": {
+            "description": "`filters` worded in the request locale, ids left out. For display only.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReportFilterSummaryResponse"
+            }
+          },
           "rowCount": {
             "type": "number",
             "description": "Rows before paging — what an export of this report would contain."
@@ -22122,6 +22151,7 @@
           "rows",
           "totals",
           "totalLabels",
+          "filterSummary",
           "rowCount",
           "truncated"
         ]

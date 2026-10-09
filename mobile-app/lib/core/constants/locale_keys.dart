@@ -262,7 +262,8 @@ class LocaleKeys {
   static const String financeEditMove = 'finance_edit_move';
   static const String financeDeleteCategoryTitle =
       'finance_delete_category_title';
-  static const String financeDeleteCategoryBody = 'finance_delete_category_body';
+  static const String financeDeleteCategoryBody =
+      'finance_delete_category_body';
   static const String financeGrandTotal = 'finance_grand_total';
   static const String financeDirectRolledUp = 'finance_direct_rolled_up';
   static const String financeDirectTotal = 'finance_direct_total';
@@ -526,6 +527,13 @@ class LocaleKeys {
   static const String rolePermissionsAffected = 'role_permissions_affected';
   static const String rolePermissionsSaved = 'role_permissions_saved';
   static const String roleSystemProtected = 'role_system_protected';
+  static const String systemRoleDirector = 'system_role_director';
+  static const String systemRoleBranchSupervisor =
+      'system_role_branch_supervisor';
+  static const String systemRoleRepresentative = 'system_role_representative';
+  static const String systemRoleAccountant = 'system_role_accountant';
+  static const String systemRoleViewer = 'system_role_viewer';
+  static const String systemRoleUnknown = 'system_role_unknown';
 
   // ── Machines ─────────────────────────────────────────────────────────────
   static const String machinesTitle = 'machines_title';

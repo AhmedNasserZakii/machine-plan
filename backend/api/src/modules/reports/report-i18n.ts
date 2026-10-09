@@ -284,8 +284,59 @@ export const TOTAL_LABELS: Record<string, Localized> = {
   total: { ar: 'الإجمالي', en: 'Total' },
 };
 
+/** The filter names a report echoes back. */
+export const FILTER_LABELS: Record<string, Localized> = {
+  branchId: { ar: 'الفرع', en: 'Branch' },
+  from: { ar: 'من', en: 'From' },
+  to: { ar: 'إلى', en: 'To' },
+  asOf: { ar: 'حتى تاريخ', en: 'As of' },
+  days: { ar: 'الأيام', en: 'Days' },
+  groupBy: { ar: 'التجميع حسب', en: 'Grouped by' },
+  kind: { ar: 'النوع', en: 'Kind' },
+  granularity: { ar: 'الفترة', en: 'Granularity' },
+  machineId: { ar: 'الماكينة', en: 'Machine' },
+  serial: { ar: 'الرقم التسلسلي', en: 'Serial' },
+};
+
+/** Filter values that are codes of their own rather than report cell codes. */
+const FILTER_VALUE_LABELS: Record<string, Localized> = {
+  representative: { ar: 'المندوب', en: 'Representative' },
+  supervisor: { ar: 'المشرف', en: 'Supervisor' },
+  branch: { ar: 'الفرع', en: 'Branch' },
+  merchant: { ar: 'التاجر', en: 'Merchant' },
+  status: { ar: 'الحالة', en: 'Status' },
+  model: { ar: 'الموديل', en: 'Model' },
+  DAY: { ar: 'يومي', en: 'Daily' },
+  WEEK: { ar: 'أسبوعي', en: 'Weekly' },
+  MONTH: { ar: 'شهري', en: 'Monthly' },
+  YEAR: { ar: 'سنوي', en: 'Yearly' },
+};
+
 export function valueLabel(code: string, locale: Locale): string {
-  return VALUE_LABELS[code]?.[locale] ?? code;
+  return VALUE_LABELS[code]?.[locale] ?? FILTER_VALUE_LABELS[code]?.[locale] ?? code;
+}
+
+export interface FilterSummaryEntry {
+  key: string;
+  label: string;
+  value: string;
+}
+
+/**
+ * The filters a report ran with, worded for a chip on screen. Ids are left out: a UUID reads the
+ * same in every language, which is to say not at all.
+ */
+export function filterSummary(
+  filters: Record<string, unknown>,
+  locale: Locale,
+): FilterSummaryEntry[] {
+  return Object.entries(filters)
+    .filter(([key, value]) => value !== null && value !== undefined && !key.endsWith('Id'))
+    .map(([key, value]) => ({
+      key,
+      label: FILTER_LABELS[key]?.[locale] ?? key,
+      value: valueLabel(String(value), locale),
+    }));
 }
 
 function localizeCell(key: string, value: ExportCell, locale: Locale): ExportCell {
@@ -316,6 +367,7 @@ export function localizeReport(result: ReportResult, locale: Locale): ReportResu
     totalLabels: Object.fromEntries(
       Object.keys(result.totals).map((key) => [key, TOTAL_LABELS[key]?.[locale] ?? key]),
     ),
+    filterSummary: filterSummary(result.filters, locale),
     ...(result.extra ? { extra: localizeExtra(result.extra, locale) } : {}),
   };
 }

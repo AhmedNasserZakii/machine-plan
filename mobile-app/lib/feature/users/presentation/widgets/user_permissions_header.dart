@@ -3,6 +3,7 @@ import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/core/theme/styles/app_text_styles.dart';
 import 'package:machinery/feature/users/domain/entities/user_entity.dart';
+import 'package:machinery/feature/users/presentation/helpers/role_labels.dart';
 import 'package:machinery/feature/users/presentation/widgets/user_avatar.dart';
 
 /// Who is being edited, pinned above the list. Without this it is far too easy
@@ -35,7 +36,7 @@ class UserPermissionsHeader extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   <String?>[
-                    user.roleName,
+                    RoleLabels.resolve(user.roleCode, fallback: user.roleName),
                     user.branchName,
                   ].whereType<String>().join(' — '),
                   style: Styles.s13(

@@ -64,7 +64,10 @@ class UserCard extends StatelessWidget {
                       spacing: AppSpacing.xs,
                       runSpacing: AppSpacing.xs,
                       children: <Widget>[
-                        UserRoleChip(roleName: user.roleName),
+                        UserRoleChip(
+                          roleName: user.roleName,
+                          roleCode: user.roleCode,
+                        ),
                         if (user.branchName != null)
                           UserRoleChip(roleName: user.branchName!),
                         if (!user.isActive)

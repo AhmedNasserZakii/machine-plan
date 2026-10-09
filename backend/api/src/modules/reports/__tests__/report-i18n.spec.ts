@@ -1,7 +1,13 @@
 import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { ReportKey } from 'src/common/enums/report.enum';
-import { HEADERS_EN, localizeReport, TOTAL_LABELS, VALUE_LABELS } from '../report-i18n';
+import {
+  filterSummary,
+  HEADERS_EN,
+  localizeReport,
+  TOTAL_LABELS,
+  VALUE_LABELS,
+} from '../report-i18n';
 import { ReportResult } from '../report.types';
 
 const SERVICES_DIR = join(__dirname, '..', 'services');
@@ -67,5 +73,19 @@ describe('report-i18n', () => {
     expect(result.rows[0].status).toBe('Confirmed');
     expect(result.rows[0].fromParty).toBe('Ali (Representative)');
     expect(result.totalLabels?.transfers).toBe('Transfers');
+  });
+
+  it('words the filters for display and leaves ids out', () => {
+    const filters = { branchId: 'a-uuid', groupBy: 'representative', from: '2026-01-01' };
+
+    expect(filterSummary(filters, 'ar')).toEqual([
+      { key: 'groupBy', label: 'التجميع حسب', value: 'المندوب' },
+      { key: 'from', label: 'من', value: '2026-01-01' },
+    ]);
+    expect(filterSummary(filters, 'en')[0]).toEqual({
+      key: 'groupBy',
+      label: 'Grouped by',
+      value: 'Representative',
+    });
   });
 });

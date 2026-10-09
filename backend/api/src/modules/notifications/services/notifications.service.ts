@@ -2,10 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, IsNull, Repository } from 'typeorm';
 import { ErrorCode } from 'src/common/constants/error-codes';
+import { isSupportedLocale, Locale } from 'src/common/constants/locales';
+import { NotificationTemplateCode } from 'src/common/enums/notification.enum';
 import { PaginatedResult } from 'src/common/dto/paginated-result';
 import { AppException } from 'src/common/errors/app.exception';
 import { Notification } from '../entities/notification.entity';
 import { QueryNotificationsDto } from '../dto/notification.dto';
+import { DIGEST_SUBJECTS } from '../notification-templates.catalogue';
+import { renderTemplate } from '../notification-rules';
+import { NotificationTemplatesService } from './notification-templates.service';
 
 /**
  * The recipient's own view of his notifications (`18`, Endpoints).
@@ -18,7 +23,43 @@ import { QueryNotificationsDto } from '../dto/notification.dto';
 export class NotificationsService {
   constructor(
     @InjectRepository(Notification) private readonly notifications: Repository<Notification>,
+    private readonly templates: NotificationTemplatesService,
   ) {}
+
+  /**
+   * Re-words a stored notification in the reader's current language.
+   *
+   * A row is written in whatever language its recipient had at the time; somebody who switched
+   * the app to English afterwards should not keep reading Arabic. The template code and the
+   * params are on the row, so the wording is rebuilt from them. If that fails — a template edited
+   * since, a param it no longer has — the stored text is still correct, just in the old language.
+   */
+  async localize(notification: Notification, locale: Locale): Promise<Notification> {
+    if (notification.locale === locale) return notification;
+
+    try {
+      const template = await this.templates.resolve(notification.templateCode, locale);
+      const params: Record<string, string> = { ...notification.data };
+
+      // The digest's subject is itself a worded title, chosen in the original language.
+      if (notification.templateCode === NotificationTemplateCode.DIGEST && params.subject) {
+        const from = isSupportedLocale(notification.locale) ? notification.locale : null;
+        const source = from
+          ? Object.values(DIGEST_SUBJECTS).find((subject) => subject[from] === params.subject)
+          : undefined;
+        if (source) params.subject = source[locale];
+      }
+
+      return {
+        ...notification,
+        locale,
+        title: renderTemplate(template.title, params),
+        body: renderTemplate(template.body, params),
+      };
+    } catch {
+      return notification;
+    }
+  }
 
   async list(userId: string, query: QueryNotificationsDto): Promise<PaginatedResult<Notification>> {
     const qb = this.notifications

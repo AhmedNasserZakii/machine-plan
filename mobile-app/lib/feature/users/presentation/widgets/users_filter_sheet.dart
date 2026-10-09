@@ -10,6 +10,7 @@ import 'package:machinery/core/theme/styles/app_text_styles.dart';
 import 'package:machinery/feature/users/domain/entities/branch_entity.dart';
 import 'package:machinery/feature/users/domain/entities/role_entity.dart';
 import 'package:machinery/feature/users/domain/params/users_query_params.dart';
+import 'package:machinery/feature/users/presentation/helpers/role_labels.dart';
 
 /// The chosen filters, or null when the sheet was dismissed without applying.
 class UsersFilterResult {
@@ -83,7 +84,10 @@ class _UsersFilterSheetState extends State<UsersFilterSheet> {
               child: FilterChoiceRow(
                 labels: <String>[
                   LocaleKeys.userFilterAll.tr(),
-                  ...widget.roles.map((RoleEntity r) => r.displayName),
+                  ...widget.roles.map(
+                    (RoleEntity r) =>
+                        RoleLabels.resolve(r.code, fallback: r.displayName),
+                  ),
                 ],
                 values: <String?>[
                   null,

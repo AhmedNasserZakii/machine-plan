@@ -9,7 +9,8 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { CurrentUser } from 'src/common/decorators';
+import { Locale } from 'src/common/constants/locales';
+import { CurrentUser, ReqLocale } from 'src/common/decorators';
 import { PaginatedResult } from 'src/common/dto/paginated-result';
 import { MarkAllReadDto, QueryNotificationsDto } from './dto/notification.dto';
 import {
@@ -37,10 +38,16 @@ export class NotificationsController {
   async findAll(
     @CurrentUser('id') userId: string,
     @Query() query: QueryNotificationsDto,
+    @ReqLocale() locale: Locale,
   ): Promise<PaginatedResult<NotificationResponse>> {
     const page = await this.notifications.list(userId, query);
+    const localized = await Promise.all(
+      page.items.map((notification) => this.notifications.localize(notification, locale)),
+    );
 
-    return page.map(toNotificationResponse);
+    return new PaginatedResult(localized, page.meta.total, page.meta.page, page.meta.limit).map(
+      toNotificationResponse,
+    );
   }
 
   @Get('unread-count')
@@ -57,8 +64,11 @@ export class NotificationsController {
   async markRead(
     @CurrentUser('id') userId: string,
     @Param('id', ParseUUIDPipe) id: string,
+    @ReqLocale() locale: Locale,
   ): Promise<NotificationResponse> {
-    return toNotificationResponse(await this.notifications.markRead(userId, id));
+    const notification = await this.notifications.markRead(userId, id);
+
+    return toNotificationResponse(await this.notifications.localize(notification, locale));
   }
 
   @Patch('read-all')

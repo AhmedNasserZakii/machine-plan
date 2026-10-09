@@ -4,6 +4,7 @@ import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/core/theme/styles/app_text_styles.dart';
 import 'package:machinery/feature/auth/domain/entities/auth_user_entity.dart';
+import 'package:machinery/feature/users/presentation/helpers/role_labels.dart';
 
 /// Who am I and which branch am I acting for — the two things a field user
 /// checks before a hand-over goes wrong.
@@ -46,7 +47,7 @@ class MoreProfileHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  user.roleName,
+                  RoleLabels.resolve(user.roleCode, fallback: user.roleName),
                   style: Styles.s13(
                     context,
                   ).copyWith(color: AppColors.textSecondaryColor),

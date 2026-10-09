@@ -40,7 +40,10 @@ class UserDetailHeader extends StatelessWidget {
                   spacing: AppSpacing.sm,
                   runSpacing: AppSpacing.xs,
                   children: <Widget>[
-                    UserRoleChip(roleName: user.roleName),
+                    UserRoleChip(
+                      roleName: user.roleName,
+                      roleCode: user.roleCode,
+                    ),
                     UserStatusChip(isActive: user.isActive),
                   ],
                 ),

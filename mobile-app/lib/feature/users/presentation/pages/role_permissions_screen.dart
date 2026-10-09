@@ -13,6 +13,7 @@ import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
 import 'package:machinery/feature/users/data/logic/roles/roles_cubit.dart';
 import 'package:machinery/feature/users/domain/entities/role_entity.dart';
+import 'package:machinery/feature/users/presentation/helpers/role_labels.dart';
 
 class RolePermissionsScreen extends StatefulWidget {
   const RolePermissionsScreen({required this.role, super.key});
@@ -53,7 +54,9 @@ class _RolePermissionsScreenState extends State<RolePermissionsScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: Text(widget.role.displayName),
+      title: Text(
+        RoleLabels.resolve(widget.role.code, fallback: widget.role.displayName),
+      ),
       leading: const ArrowBackWidget(),
     ),
     body: BlocBuilder<RolesCubit, RolesState>(

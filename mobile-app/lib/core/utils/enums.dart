@@ -392,3 +392,29 @@ enum DevicePlatform {
     );
   }
 }
+
+/// Seeded system role codes from the backend. Custom roles stay outside this
+/// enum and keep the server's localized `displayName`.
+enum SystemRole {
+  director('DIRECTOR'),
+  branchSupervisor('BRANCH_SUPERVISOR'),
+  representative('REPRESENTATIVE'),
+  accountant('ACCOUNTANT'),
+  viewer('VIEWER'),
+  unknown('UNKNOWN');
+
+  const SystemRole(this.value);
+
+  final String value;
+
+  static SystemRole fromJson(String? raw) {
+    return SystemRole.values.firstWhere(
+      (role) => role.value == raw,
+      orElse: () => SystemRole.unknown,
+    );
+  }
+
+  /// Roles whose users must be scoped to a branch.
+  bool get isBranchScoped =>
+      this == SystemRole.branchSupervisor || this == SystemRole.representative;
+}

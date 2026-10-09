@@ -7,6 +7,12 @@ export class ReportColumnResponse {
   @ApiProperty({ enum: ['text', 'number', 'date'] }) type: string;
 }
 
+export class ReportFilterSummaryResponse {
+  @ApiProperty({ example: 'groupBy' }) key: string;
+  @ApiProperty({ example: 'التجميع حسب' }) label: string;
+  @ApiProperty({ example: 'المندوب' }) value: string;
+}
+
 /**
  * One shape for all seventeen reports (`17`, shared contract).
  *
@@ -35,6 +41,12 @@ export class ReportResponse {
     description: '`totals` keys worded in the request locale.',
   })
   totalLabels: Record<string, string>;
+
+  @ApiProperty({
+    type: [ReportFilterSummaryResponse],
+    description: '`filters` worded in the request locale, ids left out. For display only.',
+  })
+  filterSummary: ReportFilterSummaryResponse[];
 
   @ApiProperty({ description: 'Rows before paging — what an export of this report would contain.' })
   rowCount: number;

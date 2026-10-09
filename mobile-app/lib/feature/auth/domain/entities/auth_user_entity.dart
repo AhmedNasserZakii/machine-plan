@@ -5,6 +5,7 @@ class AuthUserEntity extends Equatable {
     required this.id,
     required this.name,
     required this.phone,
+    required this.roleCode,
     required this.roleName,
     required this.mustChangePassword,
     this.branchId,
@@ -15,8 +16,11 @@ class AuthUserEntity extends Equatable {
   final String name;
   final String phone;
 
-  /// Display only. Nothing in the UI branches on the role — gating reads the
-  /// permission list.
+  /// Stable wire code (`DIRECTOR`, …). Used to localize system roles.
+  final String roleCode;
+
+  /// Server display name. Prefer [roleCode] + `RoleLabels` for system roles.
+  /// Nothing in the UI branches on the role — gating reads the permission list.
   final String roleName;
 
   final bool mustChangePassword;
@@ -28,6 +32,7 @@ class AuthUserEntity extends Equatable {
       id: id,
       name: name,
       phone: phone,
+      roleCode: roleCode,
       roleName: roleName,
       mustChangePassword: mustChangePassword ?? this.mustChangePassword,
       branchId: branchId,
@@ -40,6 +45,7 @@ class AuthUserEntity extends Equatable {
     id,
     name,
     phone,
+    roleCode,
     roleName,
     mustChangePassword,
     branchId,

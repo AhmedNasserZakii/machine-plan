@@ -16,6 +16,7 @@ import 'package:machinery/core/services/biometric/biometric_service.dart';
 import 'package:machinery/core/services/biometric/handover_biometric_service.dart';
 import 'package:machinery/core/services/finance_change_notifier.dart';
 import 'package:machinery/core/services/locale_service.dart';
+import 'package:machinery/core/services/merchants_change_notifier.dart';
 import 'package:machinery/core/services/observability/app_analytics.dart';
 import 'package:machinery/core/services/observability/crash_reporter.dart';
 import 'package:machinery/core/services/sync/pending_sync_counter.dart';
@@ -186,6 +187,9 @@ void setupServiceLocator(AppDatabase appDatabase) {
   getIt.registerLazySingleton<PermissionService>(PermissionService.new);
   getIt.registerLazySingleton<LocaleService>(LocaleService.new);
   getIt.registerLazySingleton<FinanceChangeNotifier>(FinanceChangeNotifier.new);
+  getIt.registerLazySingleton<MerchantsChangeNotifier>(
+    MerchantsChangeNotifier.new,
+  );
   getIt.registerLazySingleton<BiometricService>(BiometricService.new);
   getIt.registerLazySingleton<HandoverBiometricService>(
     HandoverBiometricService.new,
@@ -446,7 +450,10 @@ void setupServiceLocator(AppDatabase appDatabase) {
   );
 
   getIt.registerFactory<MerchantsListCubit>(
-    () => MerchantsListCubit(merchantsRepo: getIt()),
+    () => MerchantsListCubit(
+      merchantsRepo: getIt(),
+      merchantsChangeNotifier: getIt(),
+    ),
   );
 
   // The list row arrives as a second param so the shop name and phone paint
@@ -454,14 +461,18 @@ void setupServiceLocator(AppDatabase appDatabase) {
   getIt.registerFactoryParam<MerchantDetailCubit, String, MerchantEntity?>(
     (String merchantId, MerchantEntity? initial) => MerchantDetailCubit(
       merchantsRepo: getIt(),
+      merchantsChangeNotifier: getIt(),
       merchantId: merchantId,
       initial: initial,
     ),
   );
 
   getIt.registerFactoryParam<MerchantFormCubit, MerchantEntity?, void>(
-    (MerchantEntity? existing, _) =>
-        MerchantFormCubit(merchantsRepo: getIt(), existing: existing),
+    (MerchantEntity? existing, _) => MerchantFormCubit(
+      merchantsRepo: getIt(),
+      merchantsChangeNotifier: getIt(),
+      existing: existing,
+    ),
   );
 
   // ── Violations ───────────────────────────────────────────────────────────

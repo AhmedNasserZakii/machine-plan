@@ -68,6 +68,14 @@ class ReportColumn extends Equatable {
   List<Object?> get props => <Object?>[key, header, type];
 }
 
+/// One applied filter, already worded in the request locale by the backend.
+class ReportFilterChip extends Equatable {
+  const ReportFilterChip({required this.label, required this.value});
+  final String label, value;
+  @override
+  List<Object?> get props => <Object?>[label, value];
+}
+
 class ReportResult extends Equatable {
   const ReportResult({
     required this.key,
@@ -80,6 +88,7 @@ class ReportResult extends Equatable {
     required this.rowCount,
     required this.truncated,
     this.totalLabels = const <String, String>{},
+    this.filterSummary = const <ReportFilterChip>[],
     this.extra = const <String, dynamic>{},
   });
   final String key, title;
@@ -87,6 +96,7 @@ class ReportResult extends Equatable {
   final Map<String, dynamic> filters, totals, extra;
   // `totals` keys already worded in the request locale by the backend.
   final Map<String, String> totalLabels;
+  final List<ReportFilterChip> filterSummary;
   final List<ReportColumn> columns;
   final List<Map<String, dynamic>> rows;
   final int rowCount;
@@ -106,6 +116,7 @@ class ReportResult extends Equatable {
     rows,
     totals,
     totalLabels,
+    filterSummary,
     rowCount,
     truncated,
     extra,

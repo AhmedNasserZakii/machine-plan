@@ -432,6 +432,7 @@ function toReportResponse(
     rows: result.rows.slice(skip, skip + take),
     totals: result.totals,
     totalLabels: result.totalLabels ?? {},
+    filterSummary: result.filterSummary ?? [],
     rowCount: result.rows.length,
     truncated: result.truncated ?? false,
     ...(result.extra ? { extra: result.extra } : {}),

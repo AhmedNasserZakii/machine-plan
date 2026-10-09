@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
+import 'package:machinery/core/helper/formatters.dart';
 import 'package:machinery/core/di/service_locator.dart';
 import 'package:machinery/core/permissions/permission_keys.dart';
 import 'package:machinery/core/permissions/permission_service.dart';
@@ -355,7 +356,7 @@ class _ReportHeader extends StatelessWidget {
           children: <Widget>[
             Expanded(
               child: Text(
-                '${LocaleKeys.reportRows.tr(args: <String>[state.result.rowCount.toString()])} • ${LocaleKeys.reportGeneratedAt.tr(args: <String>[DateFormat.yMd().add_Hm().format(state.result.generatedAt.toLocal())])}',
+                '${LocaleKeys.reportRows.tr(args: <String>[state.result.rowCount.toString()])} • ${LocaleKeys.reportGeneratedAt.tr(args: <String>[Formatters.dateTime(state.result.generatedAt)])}',
                 style: Styles.s12(
                   context,
                 ).copyWith(color: AppColors.textSecondaryColor),
@@ -375,12 +376,11 @@ class _ReportHeader extends StatelessWidget {
           ),
         Wrap(
           spacing: AppSpacing.xs,
-          children: state.result.filters.entries
-              .where((e) => e.value != null)
+          children: state.result.filterSummary
               .map(
-                (e) => Chip(
+                (ReportFilterChip chip) => Chip(
                   label: Text(
-                    '${e.key}: ${e.value}',
+                    '${chip.label}: ${chip.value}',
                     style: Styles.s10(context),
                   ),
                 ),

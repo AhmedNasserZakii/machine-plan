@@ -1,8 +1,8 @@
 import 'package:machinery/core/shared_widgets/app_symbol_3d.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:machinery/core/constants/locale_keys.dart';
+import 'package:machinery/core/helper/formatters.dart';
 import 'package:machinery/core/shared_widgets/ltr_text.dart';
 import 'package:machinery/core/theme/styles/app_colors.dart';
 import 'package:machinery/core/theme/styles/app_spacing.dart';
@@ -120,7 +120,7 @@ class FinanceTransactionTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             LtrText(
-              '${transaction.referenceNo} • ${DateFormat.yMMMd().format(transaction.transactionDate)}',
+              '${transaction.referenceNo} • ${Formatters.date(transaction.transactionDate)}',
             ),
             if (transaction.isAutomatic)
               Text(

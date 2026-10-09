@@ -13,27 +13,13 @@ import {
   toXlsx,
 } from 'src/common/export';
 import { reportTitle } from '../report-catalogue';
-import { valueLabel } from '../report-i18n';
+import { FILTER_LABELS, valueLabel } from '../report-i18n';
 import { ReportResult } from '../report.types';
 
 /** Header labels for the metadata block, in both locales (`02`). */
 const META_LABELS: Record<Locale, { report: string; generatedAt: string; filters: string }> = {
   ar: { report: 'التقرير', generatedAt: 'تاريخ الإصدار', filters: 'عوامل التصفية' },
   en: { report: 'Report', generatedAt: 'Generated at', filters: 'Filters' },
-};
-
-/** The filter names a report echoes back, worded for the metadata block. */
-const FILTER_LABELS: Record<string, Record<Locale, string>> = {
-  branchId: { ar: 'الفرع', en: 'Branch' },
-  from: { ar: 'من', en: 'From' },
-  to: { ar: 'إلى', en: 'To' },
-  asOf: { ar: 'حتى تاريخ', en: 'As of' },
-  days: { ar: 'الأيام', en: 'Days' },
-  groupBy: { ar: 'التجميع حسب', en: 'Grouped by' },
-  kind: { ar: 'النوع', en: 'Kind' },
-  granularity: { ar: 'الفترة', en: 'Granularity' },
-  machineId: { ar: 'الماكينة', en: 'Machine' },
-  serial: { ar: 'الرقم التسلسلي', en: 'Serial' },
 };
 
 /**

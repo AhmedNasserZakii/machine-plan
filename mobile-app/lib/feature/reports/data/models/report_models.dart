@@ -37,6 +37,14 @@ ReportResult reportResultFromJson(Map<String, dynamic> json) => ReportResult(
   totalLabels: _map(
     json['totalLabels'],
   ).map((key, value) => MapEntry(key, value.toString())),
+  filterSummary: _maps(json['filterSummary'])
+      .map(
+        (Map<String, dynamic> chip) => ReportFilterChip(
+          label: chip['label']?.toString() ?? '',
+          value: chip['value']?.toString() ?? '',
+        ),
+      )
+      .toList(growable: false),
   rowCount: _intOrNull(json['rowCount']) ?? 0,
   truncated: json['truncated'] as bool? ?? false,
   extra: _map(json['extra']),

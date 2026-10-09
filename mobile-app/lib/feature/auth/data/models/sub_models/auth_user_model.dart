@@ -74,6 +74,7 @@ class AuthUserModel {
       id: id,
       name: name,
       phone: phone,
+      roleCode: roleCode,
       roleName: roleName,
       mustChangePassword: mustChangePassword,
       branchId: branchId,

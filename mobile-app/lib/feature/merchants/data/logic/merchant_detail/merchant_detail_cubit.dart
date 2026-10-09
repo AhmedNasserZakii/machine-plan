@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:machinery/core/network_services/api_service_failure.dart';
+import 'package:machinery/core/services/merchants_change_notifier.dart';
 import 'package:machinery/feature/machines/domain/entities/machine_entity.dart';
 import 'package:machinery/feature/merchants/data/logic/merchant_detail/merchant_detail_state.dart';
 import 'package:machinery/feature/merchants/domain/entities/merchant_entity.dart';
@@ -17,6 +18,7 @@ class MerchantDetailCubit extends Cubit<MerchantDetailState> {
   /// record loads, instead of a spinner over information the app already holds.
   MerchantDetailCubit({
     required this.merchantsRepo,
+    required this.merchantsChangeNotifier,
     required this.merchantId,
     MerchantEntity? initial,
   }) : super(
@@ -29,6 +31,7 @@ class MerchantDetailCubit extends Cubit<MerchantDetailState> {
        );
 
   final MerchantsRepo merchantsRepo;
+  final MerchantsChangeNotifier merchantsChangeNotifier;
   final String merchantId;
 
   /// Set by an action so the screen can react once and clear it. Kept off the
@@ -135,8 +138,7 @@ class MerchantDetailCubit extends Cubit<MerchantDetailState> {
     }
 
     result.fold(
-      (ServerFailure _) =>
-          emit(current.copyWith(isLoadingMoreMachines: false)),
+      (ServerFailure _) => emit(current.copyWith(isLoadingMoreMachines: false)),
       (MerchantMachinesPage page) {
         final MerchantDetailState latest = state;
         if (latest is! MerchantDetailLoaded) {
@@ -223,8 +225,7 @@ class MerchantDetailCubit extends Cubit<MerchantDetailState> {
     }
 
     result.fold(
-      (ServerFailure _) =>
-          emit(current.copyWith(isLoadingMoreTimeline: false)),
+      (ServerFailure _) => emit(current.copyWith(isLoadingMoreTimeline: false)),
       (MerchantTimelinePage page) {
         final MerchantDetailState latest = state;
         if (latest is! MerchantDetailLoaded) {
@@ -286,6 +287,9 @@ class MerchantDetailCubit extends Cubit<MerchantDetailState> {
       _,
     ) {
       lastOutcome = outcome;
+      if (outcome == MerchantActionOutcome.deactivated) {
+        merchantsChangeNotifier.notifyRemoved(merchantId);
+      }
     });
 
     final MerchantDetailState settled = state;
@@ -319,8 +323,9 @@ class MerchantDetailCubit extends Cubit<MerchantDetailState> {
     }
 
     final MerchantMachinesPage? machinesPage = machines.toOption().toNullable();
-    final MerchantSubscriptionsPage? subscriptionsPage =
-        subscriptions.toOption().toNullable();
+    final MerchantSubscriptionsPage? subscriptionsPage = subscriptions
+        .toOption()
+        .toNullable();
     final MerchantTimelinePage? timelinePage = timeline.toOption().toNullable();
 
     // These three are supporting detail, not the point of the screen: one that

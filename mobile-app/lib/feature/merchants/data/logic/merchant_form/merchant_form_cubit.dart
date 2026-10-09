@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:machinery/core/network_services/api_service_failure.dart';
+import 'package:machinery/core/services/merchants_change_notifier.dart';
 import 'package:machinery/core/utils/enums.dart';
 import 'package:machinery/feature/merchants/data/logic/merchant_form/merchant_form_state.dart';
 import 'package:machinery/feature/merchants/domain/entities/merchant_entity.dart';
@@ -12,10 +13,14 @@ import 'package:machinery/feature/merchants/domain/repos/merchants_repo.dart';
 /// Backs both registration and edit. [existing] being null is what makes it a
 /// registration — there is no separate mode flag to keep in sync.
 class MerchantFormCubit extends Cubit<MerchantFormState> {
-  MerchantFormCubit({required this.merchantsRepo, this.existing})
-    : super(const MerchantFormReady());
+  MerchantFormCubit({
+    required this.merchantsRepo,
+    required this.merchantsChangeNotifier,
+    this.existing,
+  }) : super(const MerchantFormReady());
 
   final MerchantsRepo merchantsRepo;
+  final MerchantsChangeNotifier merchantsChangeNotifier;
   final MerchantEntity? existing;
 
   /// Long enough that a phone typed at normal speed produces one request, not
@@ -156,9 +161,14 @@ class MerchantFormCubit extends Cubit<MerchantFormState> {
         emit(MerchantFormSubmitFailure(errorMessage: failure.errorMessage));
         emit(current.copyWith(isSubmitting: false));
       },
-      (MerchantEntity merchant) => emit(
-        MerchantFormSubmitted(merchant: merchant, wasCreated: !isEditing),
-      ),
+      (MerchantEntity merchant) {
+        if (isEditing) {
+          merchantsChangeNotifier.notifyUpdated(merchant);
+        } else {
+          merchantsChangeNotifier.notifyCreated(merchant);
+        }
+        emit(MerchantFormSubmitted(merchant: merchant, wasCreated: !isEditing));
+      },
     );
   }
 

@@ -64,7 +64,7 @@ export function SystemSettingsPage() {
                   </p>
                   <p className="t-body text-text-secondary">{setting.description}</p>
                   <p className="t-caption text-text-secondary">
-                    {t('web.settings.kind')}: {setting.kind} · {t('web.settings.range')}: {setting.min}–{setting.max}
+                    {t('web.settings.kind')}: {t(`web.settings.kinds.${setting.kind}` as 'web.settings.kinds.RATIO')} · {t('web.settings.range')}: {setting.min}–{setting.max}
                     {setting.isOverridden ? ` · ${t('web.settings.overridden')}` : ''}
                   </p>
                 </div>

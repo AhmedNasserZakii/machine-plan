@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:machinery/core/network_services/api_service_failure.dart';
+import 'package:machinery/core/services/merchants_change_notifier.dart';
 import 'package:machinery/feature/merchants/data/logic/merchants_list/merchants_list_state.dart';
 import 'package:machinery/feature/merchants/domain/entities/merchant_entity.dart';
 import 'package:machinery/feature/merchants/domain/params/merchants_query_params.dart';
@@ -9,22 +10,42 @@ import 'package:machinery/feature/merchants/domain/repos/merchants_repo.dart';
 import 'package:machinery/feature/users/domain/entities/branch_entity.dart';
 
 class MerchantsListCubit extends Cubit<MerchantsListState> {
-  MerchantsListCubit({required this.merchantsRepo})
-    : super(const MerchantsListInitial());
+  MerchantsListCubit({
+    required this.merchantsRepo,
+    required this.merchantsChangeNotifier,
+  }) : super(const MerchantsListInitial()) {
+    // Home (and other entry points) can register a shop while this tab stays
+    // mounted in the IndexedStack — pick those up without waiting for a pull.
+    _changesSubscription = merchantsChangeNotifier.onChange.listen(_onChange);
+  }
 
   final MerchantsRepo merchantsRepo;
+  final MerchantsChangeNotifier merchantsChangeNotifier;
 
   /// Typing in the search box must not fire a request per keystroke.
   static const Duration searchDebounce = Duration(milliseconds: 350);
 
   Timer? _searchTimer;
+  StreamSubscription<MerchantsChange>? _changesSubscription;
 
   List<BranchEntity> _branches = const <BranchEntity>[];
 
   @override
   Future<void> close() {
     _searchTimer?.cancel();
+    _changesSubscription?.cancel();
     return super.close();
+  }
+
+  void _onChange(MerchantsChange change) {
+    switch (change) {
+      case MerchantCreated(:final MerchantEntity merchant):
+        insertMerchant(merchant);
+      case MerchantUpdated(:final MerchantEntity merchant):
+        replaceMerchant(merchant);
+      case MerchantRemoved(:final String id):
+        removeMerchant(id);
+    }
   }
 
   /// First load and the pull-to-refresh path. Keeps whatever filters are
@@ -127,6 +148,28 @@ class MerchantsListCubit extends Cubit<MerchantsListState> {
 
   Future<void> clearFilters() {
     return load(params: _currentQuery.cleared(), showLoader: false);
+  }
+
+  /// Prepends a freshly registered shop so the list updates without a reload.
+  void insertMerchant(MerchantEntity created) {
+    final MerchantsListState current = state;
+    if (current is! MerchantsListLoaded) {
+      // Tab not loaded yet — next open of the screen will fetch page 1.
+      return;
+    }
+
+    if (current.merchants.any((MerchantEntity m) => m.id == created.id)) {
+      return;
+    }
+
+    // Active search/filters may exclude this row; still show it at the top so
+    // the user sees what they just registered, then they can clear filters.
+    emit(
+      current.copyWith(
+        merchants: <MerchantEntity>[created, ...current.merchants],
+        total: current.total + 1,
+      ),
+    );
   }
 
   /// Swaps one row in place after an edit, so returning from the detail screen
